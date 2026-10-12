@@ -45,6 +45,7 @@ from pyfds.core.events import EventType
 from pyfds.core.viewport import CameraPreset, VisibilityFlags
 from pyfds.domain.geometry_tools import GeometryTools
 from pyfds.gui.entity_dialogs import SchemaFormDialog
+from pyfds.gui.icons import icon_for_entity
 from pyfds.gui.property_schema import apply_edits, build_edit_schema
 from pyfds.gui.report_dialog import TextReportDialog
 
@@ -289,10 +290,12 @@ class ProjectExplorer(QTreeWidget):
         for label, attr in _ENTITY_COLLECTIONS:
             entities = getattr(self._api, attr).all()
             top = QTreeWidgetItem([f"{label} ({len(entities)})"])
+            top.setIcon(0, icon_for_entity(attr))
             for entity in entities:
                 text = getattr(entity, "name", repr(entity))
                 child = QTreeWidgetItem([text])
                 child.setData(0, Qt.UserRole, (attr, entity))
+                child.setIcon(0, icon_for_entity(attr, entity, disabled=not getattr(entity, "enabled", True)))
                 if not getattr(entity, "enabled", True):
                     child.setText(0, f"{text} (disabled)")
                     child.setForeground(0, QColor("gray"))
@@ -419,6 +422,8 @@ class MainWindow(QMainWindow):
         from .extras import install_extras
         install_extras(self)      # room/library/run-monitor/results-viewer entries (see extras.py)
         self._build_toolbar()
+        from .icons import install_icons
+        install_icons(self, "pyfds")      # task-coloured icons on every menu entry and toolbar button
         self._default_window_state = self.saveState()
         self._status_sub_ids = [self.api.subscribe(t, self._on_status_event) for t in _REFRESH_EVENTS]
         self._refresh_status()

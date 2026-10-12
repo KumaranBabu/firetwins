@@ -54,6 +54,8 @@ class ResultsWindow(QMainWindow):
         self._build_menus()
         from .parity import install_parity
         install_parity(self)
+        from pyfds.gui.icons import install_icons
+        install_icons(self, "results")
         self.statusBar().showMessage("No results loaded")
         self.sync()
 
@@ -126,6 +128,10 @@ class ResultsWindow(QMainWindow):
         self.play_btn = QPushButton("Play")
         self.play_btn.clicked.connect(self._play_pause)
         step_b, step_f = QPushButton("<"), QPushButton(">")
+        from pyfds.gui.icons import icon
+        self._play_ui(False)
+        step_b.setIcon(icon("stepback"))
+        step_f.setIcon(icon("stepfwd"))
         step_b.clicked.connect(lambda: self._step(-1))
         step_f.clicked.connect(lambda: self._step(1))
         self.slider = QSlider(Qt.Horizontal)
@@ -142,12 +148,17 @@ class ResultsWindow(QMainWindow):
         for w in (step_b, self.play_btn, step_f, self.slider, self.time_label, self.speed, self.loop):
             bar.addWidget(w)
 
+    def _play_ui(self, playing: bool) -> None:
+        from pyfds.gui.icons import icon
+        self.play_btn.setText("Pause" if playing else "Play")
+        self.play_btn.setIcon(icon("pause" if playing else "play"))
+
     def _play_pause(self) -> None:
         pb = self.viewer.playback
         if pb is None:
             return
         playing = pb.toggle()
-        self.play_btn.setText("Pause" if playing else "Play")
+        self._play_ui(playing)
         self._last_tick = None
         if playing:
             self.viewer.prefetch_async()
@@ -165,7 +176,7 @@ class ResultsWindow(QMainWindow):
         pb.tick(min(max(now - last, self._timer.interval() / 1000.0), 0.5) if last else self._timer.interval() / 1000.0)   # real time: slow frames are skipped, not stretched
         if not pb.playing:
             self._timer.stop()
-            self.play_btn.setText("Play")
+            self._play_ui(False)
         self.viewer.time = float(pb.time)
         self.sync()
 
@@ -214,7 +225,7 @@ class ResultsWindow(QMainWindow):
         self._try(lambda: self.viewer.toggle(node_id))
         pb = self.viewer.playback
         if pb is not None and pb.playing and not self._timer.isActive():
-            self.play_btn.setText("Pause")
+            self._play_ui(True)
             self._timer.start()
         self.sync()
 

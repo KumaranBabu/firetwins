@@ -8,6 +8,7 @@ from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QMenu, QTreeWidget, QTreeWidgetItem, QWidget
 
 from pyfds.api.viz import RESULT_KINDS
+from pyfds.gui.icons import icon_for_node
 
 TOGGLE_KINDS = set(RESULT_KINDS) | {"geometry", "view"}
 
@@ -38,6 +39,7 @@ class NavTree(QTreeWidget):
         def add(node, parent):
             it = QTreeWidgetItem(parent if parent is not None else self.invisibleRootItem(), [node.label])
             it.setData(0, _ID, node.id)
+            it.setIcon(0, icon_for_node(node.kind, node.label))
             self._items[node.id] = it
             for c in node.children:
                 add(c, it)

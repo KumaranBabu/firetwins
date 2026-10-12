@@ -160,6 +160,10 @@ def install_parity(win) -> None:
                      ("×2", lambda: win.speed.setValue(min(win.speed.value() * 2, 100.0)))):
         b = QToolButton()
         b.setText(text)
+        glyph = {"|<": "tostart", ">|": "toend"}.get(text)
+        if glyph:
+            from pyfds.gui.icons import icon
+            b.setIcon(icon(glyph))
         b.clicked.connect(lambda _c=False, f=fn: f())
         bar.addWidget(b)
 

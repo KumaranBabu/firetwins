@@ -4,25 +4,27 @@
   "results": "fine_mesh_demo_room.smv",
   "active": [
     "root/FDS Results/3D Smoke/TEMPERATURE/Mesh 1",
-    "geometry/pyfds_geometry"
+    "geometry/fds_actual",
+    "root/FDS Results/2D Slices/TEMPERATURE/SLICE_T_Y (Y = 2.4)/Mesh 1",
+    "root/FDS Results/3D Smoke/HRRPUV/Mesh 1"
   ],
   "geometry_set": "fds_actual",
   "rendering_mode": "wireframe",
   "camera": {
     "position": [
-      10.0,
-      -10.0,
-      8.0
+      10.350750661738596,
+      -5.100750661738596,
+      6.750536186956141
     ],
     "target": [
-      0.0,
-      0.0,
-      0.0
+      3.0,
+      2.25,
+      1.5
     ],
     "up": [
-      0.0,
-      0.0,
-      1.0
+      0,
+      0,
+      1
     ],
     "fov_deg": 45.0,
     "zoom": 1.0,
@@ -50,6 +52,28 @@
         "invert": false,
         "color": "#000000",
         "opacity_source": "constant",
+        "opacity": 1.0,
+        "opacity_at_min": 0.0,
+        "opacity_at_max": 0.75,
+        "feather_threshold": 0.25,
+        "n_colors": 256,
+        "highlight_enabled": false,
+        "highlight_value": 0.0,
+        "highlight_width": 0.0,
+        "highlight_color": "#ffffff"
+      },
+      "HRRPUV": {
+        "range_mode": "percentile_rounded",
+        "minimum": null,
+        "maximum": null,
+        "truncate": false,
+        "hide_below": null,
+        "hide_above": null,
+        "color_source": "colormap",
+        "colormap": "turbo",
+        "invert": false,
+        "color": "#000000",
+        "opacity_source": "gradient",
         "opacity": 1.0,
         "opacity_at_min": 0.0,
         "opacity_at_max": 0.75,

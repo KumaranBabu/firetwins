@@ -34,6 +34,13 @@ PLAY = """<h3>Play the run</h3>
 
 """
 
+TAB = """<h3>The viewer inside the main window</h3>
+<div class="where"><span class="tag">Panel</span>Messages &gt; Results &gt; Open in Results Viewer · or Run Monitor &gt; Open Results Viewer</div>
+<p>The viewer does not have to be a second window. The <b>Results</b> tab of the bottom <b>Messages</b> panel lists the result sets (<code>.smv</code>) of the last run, and opening one shows the 3D Results Viewer as a tab named <b>Results</b> beside the <b>Model</b> tab. The model, the Project Explorer and the Properties panel stay around it, so you can click <b>Model</b>, change something, and come back. Everything described in this manual works the same inside the tab. Close the tab with its x when you are done; it can be opened again at any time.</p>
+<figure><img alt="The results viewer in a tab next to the Model tab" src="%%gui/15g_results_tab.png%%"><figcaption>The finished run in the Results tab of the main window.</figcaption></figure>
+
+"""
+
 TROUBLE = """<h3>If playback is slow or seems stuck</h3>
 <ul class="plain">
   <li><b>Smoke or flame on an older graphics card.</b> The viewer measures the first picture. If it needs more than a third of a second, it switches by itself to the <b>compatibility smoke renderer</b> (software, about 15 times faster on the laptop used for this manual) and says so in the status bar. You can also choose it yourself: Preferences &gt; Rendering… &gt; <b>Max Compatibility</b>.</li>
@@ -46,16 +53,16 @@ TROUBLE = """<h3>If playback is slow or seems stuck</h3>
 
 """
 
-order = ["10a", "10b", "PLAY", "10c", "10d", "10e", "10f", "10g", "10h", "10i", "10j", "10k", "TROUBLE"]
+order = ["10a", "10b", "PLAY", "10c", "10d", "10e", "10f", "10g", "10h", "10i", "10j", "10k", "TAB", "TROUBLE"]
 titles = {"10a": "Open the viewer", "10b": "Load the finished run", "PLAY": "Play the run", "10c": "Slices and the time bar",
           "10d": "3D smoke and flame", "10e": "Isosurfaces from Plot3D", "10f": "Select objects by clicking",
           "10g": "Colour bar and rendering quality", "10h": "Plots from the output files",
           "10i": "Views, section planes, dimensions and labels", "10j": "Screenshots and the animation",
-          "10k": "Save the visualization", "TROUBLE": "If playback is slow or seems stuck"}
+          "10k": "Save the visualization", "TAB": "The viewer inside the main window", "TROUBLE": "If playback is slow or seems stuck"}
 body_parts = []
 toc = []
 for n, key in enumerate(order, 1):
-    chunk = {"PLAY": PLAY, "TROUBLE": TROUBLE}.get(key) or parts[key]
+    chunk = {"PLAY": PLAY, "TAB": TAB, "TROUBLE": TROUBLE}.get(key) or parts[key]
     chunk = re.sub(r"<h3>(?:10[a-k] · )?(.*?)</h3>", lambda m, n=n: f'<h2 id="p{n}">{n} · {m.group(1)}</h2>', chunk, count=1)
     body_parts.append(chunk.strip())
     toc.append(f'<li><a href="#p{n}">{titles[key]}</a></li>')

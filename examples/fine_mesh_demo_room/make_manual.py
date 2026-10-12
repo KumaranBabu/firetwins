@@ -29,6 +29,11 @@ extra_css = """
 """
 body = fine_text.apply((SRC / "manual_body.html").read_text(encoding="utf-8"))
 
+PANELS = (SRC / "manual_panels.html").read_text(encoding="utf-8")        # section 11, spliced in before the files table
+ANCHOR = '<div class="wrap">' + chr(10) + '<h2 id="files">'
+body = body.replace(ANCHOR, PANELS + ANCHOR, 1)
+assert PANELS in body
+
 
 def embed(match: re.Match) -> str:
     rel = match.group(1)

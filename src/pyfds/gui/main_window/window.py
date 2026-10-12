@@ -155,7 +155,9 @@ class MainWindow(
         self._refresh_status()
 
     def _refresh_status(self) -> None:
-        self.statusBar().showMessage(self.api.info().replace("\n", "   |   "))
+        # a long title would push the right-hand labels (cursor, selection, run) out of view: cut it short
+        lines = [ln if not ln.startswith("Title") or len(ln) < 36 else ln[:33] + "..." for ln in self.api.info().split("\n")]
+        self.statusBar().showMessage("   |   ".join(lines))
 
     def _build_agent_dock(self) -> QDockWidget:
         dock = QDockWidget("AI Assistant", self)
@@ -200,12 +202,13 @@ class MainWindow(
         return Viewport3D(self.api, self)
 
     def closeEvent(self, event) -> None:
+        if self._results_window is not None and not self._results_window.close():
+            event.ignore()                # the user cancelled "Save changes?" in the results tab: stay open
+            return
         self.explorer.shutdown()
         self.output_panel.shutdown()
         if getattr(self, "_persist_layout", False):
             self.save_layout()
-        if self._results_window is not None:
-            self._results_window.close()
         if hasattr(self.viewport_widget, "shutdown"):
             self.viewport_widget.shutdown()
         for sub_id in self._status_sub_ids + self._panel_sub_ids:

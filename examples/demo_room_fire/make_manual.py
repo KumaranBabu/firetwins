@@ -25,6 +25,11 @@ extra_css = """
 body = (HERE / "manual_body.html").read_text(encoding="utf-8")
 body = body.replace("when the fire was about 165 kW", "when the fire was about 145 kW")
 
+PANELS = (HERE / "manual_panels.html").read_text(encoding="utf-8")        # section 11, spliced in before the files table
+ANCHOR = '<div class="wrap">' + chr(10) + '<h2 id="files">'
+body = body.replace(ANCHOR, PANELS + ANCHOR, 1)
+assert PANELS in body
+
 
 def embed(match: re.Match) -> str:
     rel = match.group(1)

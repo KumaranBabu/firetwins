@@ -186,3 +186,15 @@ def test_ray_floor_point():
     assert ray_floor_point((0, 0, 10), (2, 4, -10)) == (1.0, 2.0, 0.0)
     assert ray_floor_point((0, 0, 5), (1, 1, 5)) is None          # parallel to the floor
     assert ray_floor_point((0, 0, 5), (1, 1, 9)) is None          # floor is behind the ray
+
+
+def test_closing_main_window_respects_cancel_in_results_tab(win, monkeypatch):
+    from pyfds.gui.results.window import ResultsWindow
+    monkeypatch.setattr(ResultsWindow, "open_results", lambda self, smv=None: None)
+    rw = win.show_results_tab()
+    monkeypatch.setattr(ResultsWindow, "close", lambda self: False)      # the user pressed Cancel
+    from PySide6.QtGui import QCloseEvent
+    ev = QCloseEvent()
+    win.closeEvent(ev)
+    assert not ev.isAccepted() and win._results_window is rw
+    monkeypatch.undo()

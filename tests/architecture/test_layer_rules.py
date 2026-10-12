@@ -48,8 +48,8 @@ ALLOWED: dict[str, set[str]] = {
 
 # (importing module, imported package): known debt, removed by G5 (route adapters via ``api``).
 KNOWN_VIOLATIONS: set[tuple[str, str]] = {
-    ("cli/main.py", "domain"), ("cli/main.py", "execution"),
-    ("cli/main.py", "results"), ("cli/main.py", "smokeview"),
+    ("cli/main_batch.py", "domain"), ("cli/main_batch.py", "execution"), ("cli/main_batch.py", "results"),
+    ("cli/main_batch.py", "smokeview"), ("cli/main_project.py", "results"), ("cli/main_project.py", "smokeview"),
     ("gui/main_window/actions_draw.py", "automation"), ("gui/main_window/actions_draw.py", "domain"),
     ("gui/main_window/actions_edit.py", "automation"), ("gui/main_window/actions_results.py", "results"),
     ("gui/main_window/actions_tools_help.py", "io"), ("gui/main_window/actions_transform.py", "automation"),

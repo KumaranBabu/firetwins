@@ -3,10 +3,11 @@
   "version": 1,
   "results": "fine_mesh_demo_room.smv",
   "active": [
-    "root/FDS Results/3D Smoke/TEMPERATURE/Mesh 1"
+    "root/FDS Results/3D Smoke/TEMPERATURE/Mesh 1",
+    "geometry/pyfds_geometry"
   ],
   "geometry_set": "fds_actual",
-  "rendering_mode": "solid_outlines",
+  "rendering_mode": "wireframe",
   "camera": {
     "position": [
       10.0,

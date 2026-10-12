@@ -255,21 +255,10 @@ def test_validate_shows_report_dialog(monkeypatch):
     from tests.mw_proxy import main_window_mod
 
     window = _make_window()
-    shown = {}
-
-    class _FakeDialog:
-        def __init__(self, title, text, parent=None):
-            shown["title"] = title
-
-        def exec(self):
-            shown["exec_called"] = True
-
-    monkeypatch.setattr(main_window_mod, "TextReportDialog", _FakeDialog)
-
     window._on_validate()
-
-    assert shown.get("exec_called") is True
-    assert "Validation" in shown["title"]
+    assert window.validation_panel.summary.text() != "Not validated yet."
+    assert window.messages_tabs.currentWidget() is window.validation_panel
+    assert not window.messages_dock.isHidden()
     window.close()
 
 def test_auto_fix_refreshes_explorer_and_shows_report(monkeypatch):

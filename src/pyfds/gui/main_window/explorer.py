@@ -44,6 +44,17 @@ class ProjectExplorer(QTreeWidget):
         self.entity_context_menu_requested.emit()
 
     def refresh(self) -> None:
+        """Rebuild the tree; the selection survives (entities still present stay selected)."""
+        keep = self.selected_entities()
+        self.blockSignals(True)
+        try:
+            self._rebuild()
+            self.select_entities(keep)
+        finally:
+            self.blockSignals(False)
+        self.itemSelectionChanged.emit()
+
+    def _rebuild(self) -> None:
         self.clear()
         for label, attr in _ENTITY_COLLECTIONS:
             entities = getattr(self._api, attr).all()

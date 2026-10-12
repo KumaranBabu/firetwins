@@ -91,18 +91,15 @@ class HrrPlot(QWidget):
         p.end()
 
 
-class RunMonitorDialog(QDialog):
-    """Non-modal window that follows a run."""
+class _MonitorBody:
+    """Progress bar, heat release curve and solver log; mixed into a dialog or a dockable panel."""
 
-    def __init__(self, output_dir: str, chid: str, t_end: float, parent: Optional[QWidget] = None,
+    def __init__(self, output_dir: Optional[str], chid: str, t_end: float, parent: Optional[QWidget] = None,
                  open_results: Optional[Callable[[], None]] = None, interval_ms: int = 500) -> None:
         super().__init__(parent)
-        self.setWindowTitle(f"Simulation Monitor - {chid}")
-        self.resize(720, 560)
-        self.out_file = Path(output_dir) / f"{chid}.out"
-        self.hrr_file = Path(output_dir) / f"{chid}_hrr.csv"
-        self.t_end = t_end
-        self.state = "waiting"
+        self.interval_ms = interval_ms
+        self.open_results = open_results
+        self.state = "idle"
 
         root = QVBoxLayout(self)
         self.headline = QLabel("")
@@ -126,17 +123,28 @@ class RunMonitorDialog(QDialog):
         row.addStretch(1)
         self.results_button = QPushButton("Open Results Viewer")
         self.results_button.setEnabled(False)
-        if open_results is not None:
-            self.results_button.clicked.connect(open_results)
+        self.results_button.clicked.connect(lambda: self.open_results and self.open_results())
         row.addWidget(self.results_button)
-        close = QPushButton("Close")
-        close.clicked.connect(self.close)
-        row.addWidget(close)
+        self.extra_row = row
         root.addLayout(row)
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.refresh)
-        self.timer.start(interval_ms)
+        self.out_file = self.hrr_file = None
+        if output_dir:
+            self.watch(output_dir, chid, t_end, open_results)
+        else:
+            self.headline.setText("No run yet - start one with Run > Run Simulation.")
+
+    def watch(self, output_dir: str, chid: str, t_end: float, open_results: Optional[Callable[[], None]] = None) -> None:
+        """Follow the files of another run (a panel is reused from run to run)."""
+        self.out_file = Path(output_dir) / f"{chid}.out"
+        self.hrr_file = Path(output_dir) / f"{chid}_hrr.csv"
+        self.t_end = t_end
+        self.plot.t_end = max(t_end, 1e-6)
+        self.open_results = open_results
+        self.state = "waiting"
+        self.timer.start(self.interval_ms)
         self.refresh()
 
     def refresh(self) -> None:
@@ -159,6 +167,27 @@ class RunMonitorDialog(QDialog):
         self.results_button.setEnabled(self.state == "done")
         if self.state in ("done", "failed"):
             self.timer.stop()
+
+
+
+class RunMonitorPanel(_MonitorBody, QWidget):
+    """The monitor as a dock panel (starts idle; ``watch()`` points it at a run)."""
+
+    def __init__(self, parent: Optional[QWidget] = None, interval_ms: int = 500) -> None:
+        super().__init__(None, "", 0.0, parent, interval_ms=interval_ms)
+
+
+class RunMonitorDialog(_MonitorBody, QDialog):
+    """Non-modal window that follows a run."""
+
+    def __init__(self, output_dir: str, chid: str, t_end: float, parent: Optional[QWidget] = None,
+                 open_results: Optional[Callable[[], None]] = None, interval_ms: int = 500) -> None:
+        super().__init__(output_dir, chid, t_end, parent, open_results, interval_ms)
+        self.setWindowTitle(f"Simulation Monitor - {chid}")
+        self.resize(720, 560)
+        close = QPushButton("Close")
+        close.clicked.connect(self.close)
+        self.extra_row.addWidget(close)
 
     def closeEvent(self, event) -> None:            # noqa: N802
         self.timer.stop()

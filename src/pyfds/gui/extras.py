@@ -20,7 +20,6 @@ from .entity_dialogs import SchemaFormDialog
 from .library_dialog import LibraryDialog
 from .results_viewer import ResultsViewerDialog
 from .room_dialog import RoomDialog
-from .run_monitor import RunMonitorDialog
 
 
 def _find_menu(parent: QMenu, title: str) -> Optional[QMenu]:
@@ -93,10 +92,9 @@ def install_extras(w) -> None:
         if not out:
             QMessageBox.information(w, "Monitor Simulation", "Start a run first (Run > Run Simulation).")
             return
-        dlg = RunMonitorDialog(out, api.project.chid, api.project.params.t_end, w,
-                               open_results=lambda: results_window(str(Path(out) / f"{api.project.chid}.smv")))
-        w._run_monitor = dlg
-        dlg.show()
+        w.run_panel.watch(out, api.project.chid, api.project.params.t_end,
+                          lambda: results_window(str(Path(out) / f"{api.project.chid}.smv")))
+        w._show_messages(w.run_panel)
 
     # -- Draw -------------------------------------------------------------------
     draw = top.get("Draw")

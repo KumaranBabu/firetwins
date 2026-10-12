@@ -35,6 +35,7 @@ from .menus_view_draw import MenusViewDrawMixin
 from .menus_model import MenusModelMixin
 from .menus_run_results import MenusRunResultsMixin
 from .menus_tools_help import MenusToolsHelpMixin
+from .panels import PanelsMixin
 from .placeholders import PlaceholderMixin
 
 
@@ -55,6 +56,7 @@ class MainWindow(
     MenusRunResultsMixin,
     MenusToolsHelpMixin,
     PlaceholderMixin,
+    PanelsMixin,
     QMainWindow,
 ):
     """Primary application window. The AI panel is one optional dock among many."""
@@ -90,6 +92,7 @@ class MainWindow(
 
         self.agent_dock = self._build_agent_dock()
         self.addDockWidget(Qt.RightDockWidgetArea, self.agent_dock)
+        self._build_panels()
 
         self._build_menu()
         from pyfds.gui.extras import install_extras
@@ -194,6 +197,6 @@ class MainWindow(
         self.explorer.shutdown()
         if hasattr(self.viewport_widget, "shutdown"):
             self.viewport_widget.shutdown()
-        for sub_id in self._status_sub_ids:
+        for sub_id in self._status_sub_ids + self._panel_sub_ids:
             self.api.unsubscribe(sub_id)
         super().closeEvent(event)

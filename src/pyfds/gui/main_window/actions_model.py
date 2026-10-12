@@ -46,13 +46,15 @@ class ActionsModelMixin:
 
     def _on_validate(self) -> None:
         report = self.api.validation.validate()
-        TextReportDialog("Validation Report", str(report), self).exec()
+        self.validation_panel.show_report(report)
+        self._show_messages(self.validation_panel)
 
     def _on_auto_fix(self) -> None:
         self.api.validation.auto_fix()
         # auto_fix() mutates entities directly (not through CommandPipeline), so
         # it fires no COMMAND_EXECUTED event — refresh the tree/status explicitly.
         report = self.api.validation.validate()
+        self.validation_panel.show_report(report)
         self.explorer.refresh()
         self._refresh_status()
         TextReportDialog("Auto-Fix Report (after fixing)", str(report), self).exec()

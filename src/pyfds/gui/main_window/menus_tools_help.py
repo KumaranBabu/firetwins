@@ -45,6 +45,8 @@ class MenusToolsHelpMixin:
 
         panels_menu = window_menu.addMenu("Show &Panels")
         panels_menu.addAction(self.explorer_dock.toggleViewAction())
+        panels_menu.addAction(self.properties_dock.toggleViewAction())
+        panels_menu.addAction(self.messages_dock.toggleViewAction())
         panels_menu.addAction(self.agent_dock.toggleViewAction())
         window_menu.addAction("&Layouts...", self._on_layouts)
         window_menu.addAction("&Workspace...", self._on_workspace)

@@ -1,0 +1,83 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyfds"
+version = "0.3.0"
+description = "Python backend for NIST Fire Dynamics Simulator (FDS) and Smokeview (SMV)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "PyFDS Contributors"}
+]
+keywords = ["fds", "fire", "simulation", "smokeview", "fire-dynamics-simulator"]
+
+dependencies = [
+    "pydantic>=2.0",
+    "numpy>=1.20.0",
+]
+
+[project.optional-dependencies]
+agent_anthropic = ["anthropic>=0.40"]
+gmsh = ["gmsh>=4.11"]
+gui = ["PySide6>=6.5"]
+meshing_basic = ["gmsh>=4.11"]
+meshing_full = [
+    "gmsh>=4.11",
+    "tetgen>=0.6",
+    "netgen-mesher>=6.2",
+    "wildmeshing>=0.4"
+]
+netgen = ["netgen-mesher>=6.2"]
+plot = ["matplotlib>=3.5.0"]
+tetgen = ["tetgen>=0.6"]
+viewport = [
+    "pyvista>=0.44",
+    "pyvistaqt>=0.11"
+]
+results = [
+    "pyvista>=0.44",
+    "pyvistaqt>=0.11",
+    "scipy>=1.9",
+    "matplotlib>=3.5.0",
+    "imageio-ffmpeg>=0.4.9"
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov",
+    "black",
+    "ruff",
+    "mypy",
+]
+
+[project.scripts]
+pyfds = "pyfds.cli.main:main"
+pyfds-gui = "pyfds.gui.main_window:main"
+pyfds-validate = "pyfds.cli.main:main"
+pyfds-results = "pyfds.gui.results.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/firetwins/pyfds"
+Documentation = "https://pyfds.readthedocs.io"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false

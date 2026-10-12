@@ -1,0 +1,57 @@
+# --- Code only: no solver binaries, no results, no documents ---------------------------------------
+# FDS / Smokeview installation (hundreds of MB of binaries)
+fds_smv/
+
+# Documentation, reports and manuals (add back a folder with "!docs/active_docs/" if you want it on GitHub)
+docs/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+build/
+dist/
+
+# Tool and scratch folders
+.claude/
+tmp_async_test/
+
+# Example cases: keep the scripts and the small model files, drop everything FDS and the viewer produce
+examples/*/run/
+examples/*/gui/
+examples/*/gui_run/
+examples/*/gui_results/
+examples/*/gui_viewer/
+examples/*/results/
+examples/*/gui_viewer_shots/
+examples/**/*.pdf
+examples/**/*.html
+examples/**/*.mp4
+examples/**/*.png
+examples/**/*.pyfdsv
+
+# FDS / Smokeview output anywhere
+*.smv
+*.s3d
+*.s3d.sz
+*.sf
+*.bnd
+*.q
+*.pyfcache
+*.pyfstats
+*.out
+*.csv
+*.log
+
+# Editors and OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# ...but the test fixtures are small and the tests need them
+!tests/fixtures/
+!tests/fixtures/**

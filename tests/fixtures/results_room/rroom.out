@@ -1,0 +1,935 @@
+
+ Fire Dynamics Simulator
+
+ Current Date     : October 11, 2026  19:18:04
+ Revision         : FDS-6.10.1-0-g12efa16-release
+ Revision Date    : Wed Apr 2 17:38:58 2025 -0400
+ Compiler         : Intel(R) Fortran Compiler for applications running on Intel(R) 64, Version 2025.1.0 Build 20250317
+ Compilation Date : Fri-04/04/2025-08:49-AM
+
+ Number of MPI Processes:  1
+
+ MPI version: 3.1
+ MPI library version: Intel(R) MPI Library 2021.6 for Windows* OS
+
+ Hypre library version: v2.32.0
+ Sundials library version: v6.7.0
+
+ Job TITLE        : Results viewer fixture
+ Job ID string    : rroom
+
+
+ Grid Dimensions, Mesh     1
+
+   Cells in the X Direction            10
+   Cells in the Y Direction            20
+   Cells in the Z Direction            15
+   Number of Grid Cells              3000
+
+
+ Physical Dimensions, Mesh     1
+
+   Length (m)                       1.500
+   Width  (m)                       3.000
+   Height (m)                       2.250
+
+ Grid Dimensions, Mesh     2
+
+   Cells in the X Direction            10
+   Cells in the Y Direction            20
+   Cells in the Z Direction            15
+   Number of Grid Cells              3000
+
+
+ Physical Dimensions, Mesh     2
+
+   Length (m)                       1.500
+   Width  (m)                       3.000
+   Height (m)                       2.250
+
+ Miscellaneous Parameters
+
+   Total Number of Grid Cells        6000
+   Maximum Cell Aspect Ratio        1.000
+   Initial Time Step (s)            0.160
+   CFL Velocity Norm                    2
+   Simulation Start Time (s)          0.0
+   Simulation End Time (s)            6.0
+   Background Pressure (Pa)     101325.00
+   Ambient Temperature (C)          20.00
+
+   3D Cartesian
+   VLES Calculation
+   Eddy Viscosity Model:  Deardorff (C_DEARDORFF = 0.10)
+   Surface INERT Eddy Viscosity Model:  WALE (C_WALE = 0.60)
+   Surface BURNER_SURF Eddy Viscosity Model:  WALE (C_WALE = 0.60)
+   Turbulent Prandtl Number:         0.50
+   Turbulent Schmidt Number:         0.50
+
+
+ Pressure solver information
+
+   Solver:                            FFT
+   Velocity tolerance (m/s):    5.000E-02
+   Press eqn res tol (1/s^2):   8.889E+02
+   Max pressure iterations:            10
+
+
+ Background Stratification
+
+      Z (m)     P_0 (Pa)    TMP_0 (C)
+   ------------------------------------
+        2.17    101299.50     20.00
+        2.02    101301.25     20.00
+        1.88    101303.01     20.00
+        1.72    101304.77     20.00
+        1.57    101306.53     20.00
+        1.42    101308.29     20.00
+        1.27    101310.05     20.00
+        1.12    101311.80     20.00
+        0.97    101313.56     20.00
+        0.82    101315.32     20.00
+        0.68    101317.08     20.00
+        0.52    101318.84     20.00
+        0.38    101320.60     20.00
+        0.22    101322.36     20.00
+        0.07    101324.11     20.00
+
+
+ Mass Fraction Transformation Matrix to Convert Species Mixtures (Columns) to Primitive Species (Rows)
+
+                         AIR       PROPANE   PRODUCTS  WATER VA
+   NITROGEN              0.762470  0.000000  0.715203  0.000000
+   OXYGEN                0.230997  0.000000  0.000000  0.000000
+   CARBON DIOXIDE        0.000591  0.000000  0.174816  0.000000
+   CARBON MONOXIDE       0.000000  0.000000  0.000000  0.000000
+   SOOT                  0.000000  0.000000  0.003100  0.000000
+   HYDROGEN              0.000000  0.000000  0.000000  0.000000
+   HYDROGEN CYANIDE      0.000000  0.000000  0.000000  0.000000
+   WATER VAPOR           0.005941  0.000000  0.106882  1.000000
+   PROPANE               0.000000  1.000000  0.000000  0.000000
+
+
+ Primitive Species Information
+
+   NITROGEN
+   Gas Species
+   Molecular Weight (g/mol)                28.01340
+   Ambient Density (kg/m^3)                1.165
+           Enthalpy of Formation (J/kg)  0.000E+00
+
+   OXYGEN
+   Gas Species
+   Molecular Weight (g/mol)                31.99880
+   Ambient Density (kg/m^3)                1.330
+           Enthalpy of Formation (J/kg)  0.000E+00
+
+   CARBON DIOXIDE
+   Gas Species
+   Molecular Weight (g/mol)                44.00950
+   Ambient Density (kg/m^3)                1.830
+           Enthalpy of Formation (J/kg) -8.941E+06
+
+   CARBON MONOXIDE
+   Gas Species
+   Molecular Weight (g/mol)                28.01010
+   Ambient Density (kg/m^3)                1.164
+           Enthalpy of Formation (J/kg) -3.946E+06
+
+   SOOT
+   Gas Species
+   Molecular Weight (g/mol)                12.01070
+   Ambient Density (kg/m^3)                0.499
+           Enthalpy of Formation (J/kg)  0.000E+00
+
+   HYDROGEN
+   Gas Species
+   Molecular Weight (g/mol)                 2.01588
+   Ambient Density (kg/m^3)                0.084
+           Enthalpy of Formation (J/kg)  0.000E+00
+
+   HYDROGEN CYANIDE
+   Gas Species
+   Molecular Weight (g/mol)                27.02534
+   Ambient Density (kg/m^3)                1.123
+           Enthalpy of Formation (J/kg)  4.924E+06
+
+   WATER VAPOR
+   Gas Species
+   Molecular Weight (g/mol)                18.01500
+   Ambient Density (kg/m^3)                0.749
+           Enthalpy of Formation (J/kg) -1.342E+07
+
+   PROPANE
+   Gas Species
+   Molecular Weight (g/mol)                44.09562
+   Ambient Density (kg/m^3)                1.833
+           Enthalpy of Formation (J/kg) -2.374E+06
+
+
+ Tracked (Lumped) Species Information
+
+   AIR
+   Molecular Weight (g/mol)            28.75198
+   Ambient Density (kg/m^3)            1.195
+   Initial Mass Fraction               1.000
+   Enthalpy of Formation (J/kg)     -8.504E+04
+
+   Sub Species                    Mass Fraction     Mole Fraction
+   NITROGEN                       7.624699E-01      7.825726E-01
+   OXYGEN                         2.309974E-01      2.075588E-01
+   CARBON DIOXIDE                 5.914650E-04      3.864118E-04
+   WATER VAPOR                    5.941209E-03      9.482183E-03
+ 
+     Viscosity (kg/m/s) Ambient,  293 K:  1.796E-05
+                                  500 K:  2.612E-05
+                                 1000 K:  4.125E-05
+                                 1500 K:  5.371E-05
+                                 2000 K:  6.476E-05
+   Therm. Cond. (W/m/K) Ambient,  293 K:  2.556E-02
+                                  500 K:  3.814E-02
+                                 1000 K:  6.686E-02
+                                 1500 K:  9.249E-02
+                                 2000 K:  1.153E-01
+        Enthalpy (J/kg) Ambient,  293 K: -9.012E+04
+                                  500 K:  1.222E+05
+                                 1000 K:  6.721E+05
+                                 1500 K:  1.270E+06
+                                 2000 K:  1.896E+06
+    Spec. Heat (J/kg/K) Ambient,  293 K:  1.016E+03
+                                  500 K:  1.042E+03
+                                 1000 K:  1.156E+03
+                                 1500 K:  1.229E+03
+                                 2000 K:  1.270E+03
+   Diff. Coeff. (m^2/s) Ambient,  293 K:  1.991E-05
+                                  500 K:  4.961E-05
+                                 1000 K:  1.580E-04
+                                 1500 K:  3.095E-04
+                                 2000 K:  4.984E-04
+     Gibbs Energy Amb. (kJ/mol),  293 K: -5.873E+01
+                                  500 K: -1.007E+02
+                                 1000 K: -2.117E+02
+                                 1500 K: -3.312E+02
+                                 2000 K: -4.568E+02
+
+   PROPANE
+   Molecular Weight (g/mol)            44.09562
+   Ambient Density (kg/m^3)            1.833
+   Initial Mass Fraction               0.000
+   Enthalpy of Formation (J/kg)     -1.070E+06
+
+   Sub Species                    Mass Fraction     Mole Fraction
+   PROPANE                        1.000000E+00      1.000000E+00
+ 
+     Viscosity (kg/m/s) Ambient,  293 K:  8.079E-06
+                                  500 K:  1.310E-05
+                                 1000 K:  2.234E-05
+                                 1500 K:  2.955E-05
+                                 2000 K:  3.574E-05
+   Therm. Cond. (W/m/K) Ambient,  293 K:  1.821E-02
+                                  500 K:  4.581E-02
+                                 1000 K:  1.212E-01
+                                 1500 K:  1.890E-01
+                                 2000 K:  2.465E-01
+        Enthalpy (J/kg) Ambient,  293 K: -1.079E+06
+                                  500 K: -6.423E+05
+                                 1000 K:  1.027E+06
+                                 1500 K:  3.204E+06
+                                 2000 K:  5.639E+06
+    Spec. Heat (J/kg/K) Ambient,  293 K:  1.646E+03
+                                  500 K:  2.553E+03
+                                 1000 K:  3.960E+03
+                                 1500 K:  4.669E+03
+                                 2000 K:  5.034E+03
+   Diff. Coeff. (m^2/s) Ambient,  293 K:  1.110E-05
+                                  500 K:  2.862E-05
+                                 1000 K:  9.316E-05
+                                 1500 K:  1.833E-04
+                                 2000 K:  2.954E-04
+     Gibbs Energy Amb. (kJ/mol),  293 K: -1.839E+02
+                                  500 K: -2.447E+02
+                                 1000 K: -4.295E+02
+                                 1500 K: -6.584E+02
+                                 2000 K: -9.217E+02
+
+   PRODUCTS
+   Molecular Weight (g/mol)            28.01593
+   Ambient Density (kg/m^3)            1.165
+   Initial Mass Fraction               0.000
+   Enthalpy of Formation (J/kg)     -2.998E+06
+
+   Sub Species                    Mass Fraction     Mole Fraction
+   NITROGEN                       7.152026E-01      7.152671E-01
+   CARBON DIOXIDE                 1.748157E-01      1.112856E-01
+   CARBON MONOXIDE                0.000000E+00      0.000000E+00
+   SOOT                           3.099701E-03      7.230302E-03
+   HYDROGEN CYANIDE               0.000000E+00      0.000000E+00
+   WATER VAPOR                    1.068820E-01      1.662170E-01
+ 
+     Viscosity (kg/m/s) Ambient,  293 K:  1.609E-05
+                                  500 K:  2.385E-05
+                                 1000 K:  3.888E-05
+                                 1500 K:  5.138E-05
+                                 2000 K:  6.239E-05
+   Therm. Cond. (W/m/K) Ambient,  293 K:  2.338E-02
+                                  500 K:  3.616E-02
+                                 1000 K:  6.717E-02
+                                 1500 K:  9.643E-02
+                                 2000 K:  1.227E-01
+        Enthalpy (J/kg) Ambient,  293 K: -3.003E+06
+                                  500 K: -2.772E+06
+                                 1000 K: -2.160E+06
+                                 1500 K: -1.480E+06
+                                 2000 K: -7.589E+05
+    Spec. Heat (J/kg/K) Ambient,  293 K:  1.091E+03
+                                  500 K:  1.145E+03
+                                 1000 K:  1.301E+03
+                                 1500 K:  1.408E+03
+                                 2000 K:  1.472E+03
+   Diff. Coeff. (m^2/s) Ambient,  293 K:  1.956E-05
+                                  500 K:  4.968E-05
+                                 1000 K:  1.605E-04
+                                 1500 K:  3.156E-04
+                                 2000 K:  5.090E-04
+     Gibbs Energy Amb. (kJ/mol),  293 K: -1.517E+02
+                                  500 K: -1.937E+02
+                                 1000 K: -3.058E+02
+                                 1500 K: -4.276E+02
+                                 2000 K: -5.562E+02
+
+   WATER VAPOR
+   Molecular Weight (g/mol)            18.01528
+   Ambient Density (kg/m^3)            0.749
+   Initial Mass Fraction               0.000
+   Enthalpy of Formation (J/kg)     -1.342E+07
+
+   Sub Species                    Mass Fraction     Mole Fraction
+   WATER VAPOR                    1.000000E+00      1.000000E+00
+ 
+     Viscosity (kg/m/s) Ambient,  293 K:  1.052E-05
+                                  500 K:  1.770E-05
+                                 1000 K:  3.583E-05
+                                 1500 K:  5.206E-05
+                                 2000 K:  6.615E-05
+   Therm. Cond. (W/m/K) Ambient,  293 K:  1.961E-02
+                                  500 K:  3.460E-02
+                                 1000 K:  8.212E-02
+                                 1500 K:  1.367E-01
+                                 2000 K:  1.900E-01
+        Enthalpy (J/kg) Ambient,  293 K: -1.343E+07
+                                  500 K: -1.304E+07
+                                 1000 K: -1.198E+07
+                                 1500 K: -1.075E+07
+                                 2000 K: -9.369E+06
+    Spec. Heat (J/kg/K) Ambient,  293 K:  1.863E+03
+                                  500 K:  1.955E+03
+                                 1000 K:  2.292E+03
+                                 1500 K:  2.627E+03
+                                 2000 K:  2.873E+03
+   Diff. Coeff. (m^2/s) Ambient,  293 K:  2.095E-05
+                                  500 K:  5.775E-05
+                                 1000 K:  1.976E-04
+                                 1500 K:  3.947E-04
+                                 2000 K:  6.404E-04
+     Gibbs Energy Amb. (kJ/mol),  293 K: -2.972E+02
+                                  500 K: -3.382E+02
+                                 1000 K: -4.486E+02
+                                 1500 K: -5.696E+02
+                                 2000 K: -6.986E+02
+ 
+   Liq. Enthalpy (J/kg)     Melt  273 K: -1.598E+07
+                                  323 K: -1.577E+07
+                            Boil  373 K: -1.556E+07
+ 
+   Liq. Spec. Heat (J/kg/K) Melt  273 K:  4.228E+03
+                                  323 K:  4.181E+03
+                            Boil  373 K:  4.217E+03
+ 
+   Heat of Vapor. (J/kg)    Melt  273 K:  2.501E+06
+                                  323 K:  2.385E+06
+                            Boil  373 K:  2.269E+06
+
+
+ Gas Phase Reaction Information
+
+   Solver Details:  
+
+      ODE Solver:  EXPLICIT EULER
+
+      Fuel                                           Heat of Combustion (kJ/kg)
+      PROPANE                                                        46000.0000
+      EPUMO2:                                                        13161.1599
+
+      Primitive Species Stoich. Coeff.
+      Species ID                                                          Molar
+      NITROGEN                                                         0.000029
+      OXYGEN                                                          -4.816432
+      CARBON DIOXIDE                                                   2.816436
+      SOOT                                                             0.183568
+      WATER VAPOR                                                      4.000007
+      PROPANE                                                         -1.000000
+
+      Tracked (Lumped) Species Stoich. Coeff.
+      Species ID                                             Molar         Mass
+      AIR                                               -23.205145   -15.130615
+      PROPANE                                            -1.000000    -1.000000
+      PRODUCTS                                           25.388753    16.130615
+
+      Reaction Kinetics
+
+      Fast chemistry
+
+      Extinction Model:  EXTINCTION 1
+      Auto-Ignition Temperature (C):            -273.1
+      Critical Flame Temperature (C):           1447.0
+
+      Prescribed Radiative Fraction:             0.350
+
+
+ Material Information
+
+
+ Surface Conditions
+
+   0 INERT (DEFAULT)
+
+   1 BURNER_SURF
+     HRR Per Unit Area (kW/m2)        500.0
+     PROPANE Mass Flux (kg/s/m2)   1.087E-02
+
+   2 OPEN
+     Passive Vent to Atmosphere
+
+   3 MIRROR
+     Symmetry Plane
+
+   4 INTERPOLATED
+
+   5 PERIODIC
+
+   6 HVAC
+
+   7 MASSLESS TRACER
+
+   8 DROPLET
+
+   9 MASSLESS TARGET
+
+  10 PERIODIC FLOW ONLY
+
+
+ Lagrangian Particle Classes
+
+   1 DROPS
+     SURFace ID: DROPLET
+     # Reals: 83
+     # Integers: 20
+     # Logicals: 6
+
+
+ PROPerty Information
+
+   1 HEAT_DET_PROP
+     RTI (m-s)^1/2                    5.0
+     Activation Temperature (C)      74.0
+     Smokeview ID                heat_detector
+
+
+ Cut-off Density and Temperature
+
+    Minimum Temperature:  -259.1 C
+    Maximum Temperature:  2726.8 C
+    Minimum Density:  1.195E-01 kg/m3
+    Maximum Density:  7.677E+01 kg/m3
+
+
+ Device Information
+
+   1 ID: HEAT_DET
+     QUANTITY: LINK TEMPERATURE
+     Coordinates (X,Y,Z):    1.498500E+00    1.500000E+00    2.100000E+00
+     TEMPORAL STATISTIC: TIME AVERAGE
+  Property ID: HEAT_DET_PROP
+   2 ID: TC_060
+     QUANTITY: TEMPERATURE
+     Coordinates (X,Y,Z):    1.498500E+00    1.500000E+00    6.000000E-01
+     TEMPORAL STATISTIC: TIME AVERAGE
+   3 ID: TC_120
+     QUANTITY: TEMPERATURE
+     Coordinates (X,Y,Z):    1.498500E+00    1.500000E+00    1.200000E+00
+     TEMPORAL STATISTIC: TIME AVERAGE
+   4 ID: TC_180
+     QUANTITY: TEMPERATURE
+     Coordinates (X,Y,Z):    1.498500E+00    1.500000E+00    1.800000E+00
+     TEMPORAL STATISTIC: TIME AVERAGE
+
+
+ PLOT3D Information
+
+   1 Quantity: TEMPERATURE
+   2 Quantity: U-VELOCITY
+   3 Quantity: V-VELOCITY
+   4 Quantity: W-VELOCITY
+   5 Quantity: HRRPUV
+
+
+ Isosurface File Information
+
+   1 Quantity: TEMPERATURE, VALUE(s): 100.000
+
+
+ Slice File Information, Mesh     1
+
+   1 Nodes:   0  10  10  10   0  15, Quantity: TEMPERATURE
+   2 Nodes:   7   7   0  20   0  15, Quantity: TEMPERATURE
+   3 Nodes:   0  10  10  10   0  15, Quantity: VELOCITY
+   4 Nodes:   0  10  10  10   0  15, Quantity: U-VELOCITY
+   5 Nodes:   0  10  10  10   0  15, Quantity: V-VELOCITY
+   6 Nodes:   0  10  10  10   0  15, Quantity: W-VELOCITY
+   7 Nodes:   0  10   0  20   0  15, Quantity: TEMPERATURE
+   8 Nodes:   0  10   0  20   0  15, Quantity: SOOT DENSITY
+
+
+ Slice File Information, Mesh     2
+
+   1 Nodes:   0  10  10  10   0  15, Quantity: TEMPERATURE
+   2 Nodes:   0  10  10  10   0  15, Quantity: VELOCITY
+   3 Nodes:   0  10  10  10   0  15, Quantity: U-VELOCITY
+   4 Nodes:   0  10  10  10   0  15, Quantity: V-VELOCITY
+   5 Nodes:   0  10  10  10   0  15, Quantity: W-VELOCITY
+   6 Nodes:   0  10   0  20   0  15, Quantity: TEMPERATURE
+   7 Nodes:   0  10   0  20   0  15, Quantity: SOOT DENSITY
+
+
+ Boundary File Information
+
+   1 Quantity: WALL TEMPERATURE
+
+
+ Radiation Model Information
+
+   Number of control angles  104
+   Time step increment         3
+   Angle increment             5
+   Theta band N_phi   Solid angle
+     1:        4     0.120
+     2:       12     0.114
+     3:       16     0.127
+     4:       20     0.120
+     5:       20     0.120
+     6:       16     0.127
+     7:       12     0.114
+     8:        4     0.120
+   Using gray gas absorption.
+   Mean beam length  1.000E-01 m
+ 
+ 
+
+ Run Time Diagnostics
+
+       Time Step        1   October 11, 2026  19:18:04
+       Step Size:  0.160E+00 s, Total Time:    0.15964 s
+       Pressure Iterations: 1
+       Maximum Velocity Error:  0.18E-02 on Mesh 1 at (10,9,2)
+       Maximum Pressure Error:  0.13E-05 on Mesh 2 at (8,5,1)
+       ---------------------------------------------------------------
+       Mesh    1
+       Max CFL number:  0.25E-01 at (7,17,14)
+       Max divergence:  0.14E-05 at (10,10,9)
+       Min divergence: -0.59E-04 at (9,8,1)
+       Max VN number :  0.14E-01 at (6,5,11)
+       No. of Lagrangian Particles:  75
+       Mesh    2
+       Max CFL number:  0.25E-01 at (8,12,9)
+       Max divergence:  0.14E-05 at (1,11,10)
+       Min divergence: -0.59E-04 at (2,13,1)
+       Max VN number :  0.23E-01 at (6,4,4)
+       No. of Lagrangian Particles:  75
+ 
+       Time Step        2   October 11, 2026  19:18:04
+       Step Size:  0.160E+00 s, Total Time:    0.31928 s
+       Pressure Iterations: 1
+       Maximum Velocity Error:  0.79E-02 on Mesh 1 at (10,11,2)
+       Maximum Pressure Error:  0.98E-05 on Mesh 1 at (9,11,2)
+       ---------------------------------------------------------------
+       Mesh    1
+       Max CFL number:  0.25E-01 at (7,17,14)
+       Max divergence:  0.60E-01 at (9,10,2)
+       Min divergence: -0.98E-06 at (9,9,13)
+       Max VN number :  0.14E-01 at (6,5,11)
+       No. of Lagrangian Particles:  75
+       Mesh    2
+       Max CFL number:  0.25E-01 at (8,12,9)
+       Max divergence:  0.51E-01 at (2,9,2)
+       Min divergence: -0.11E-05 at (2,2,7)
+       Max VN number :  0.15E-01 at (8,3,9)
+       No. of Lagrangian Particles:  75
+ 
+       Time Step        3   October 11, 2026  19:18:04
+       Step Size:  0.160E+00 s, Total Time:    0.47891 s
+       Pressure Iterations: 1
+       Maximum Velocity Error:  0.68E-02 on Mesh 1 at (10,13,1)
+       Maximum Pressure Error:  0.37E-02 on Mesh 1 at (8,9,1)
+       ---------------------------------------------------------------
+       Mesh    1
+       Max CFL number:  0.25E-01 at (7,17,14)
+       Max divergence:  0.12E+00 at (8,12,1)
+       Min divergence: -0.95E-06 at (2,6,10)
+       Max VN number :  0.14E-01 at (6,5,11)
+       No. of Lagrangian Particles:  75
+       Mesh    2
+       Max CFL number:  0.25E-01 at (8,12,9)
+       Max divergence:  0.11E+00 at (3,12,1)
+       Min divergence: -0.41E-03 at (1,10,2)
+       Max VN number :  0.15E-01 at (8,3,9)
+       No. of Lagrangian Particles:  75
+ 
+       Time Step        4   October 11, 2026  19:18:04
+       Step Size:  0.160E+00 s, Total Time:    0.63855 s
+       Pressure Iterations: 1
+       Maximum Velocity Error:  0.40E-01 on Mesh 1 at (10,11,2)
+       Maximum Pressure Error:  0.77E-01 on Mesh 1 at (9,10,2)
+       ---------------------------------------------------------------
+       Mesh    1
+       Max CFL number:  0.38E-01 at (10,13,1)
+       Max divergence:  0.32E+00 at (9,10,2)
+       Min divergence: -0.95E-06 at (2,6,10)
+       Max VN number :  0.13E-01 at (9,6,5)
+       No. of Lagrangian Particles:  75
+       Mesh    2
+       Max CFL number:  0.36E-01 at (3,12,1)
+       Max divergence:  0.31E+00 at (2,9,2)
+       Min divergence: -0.10E-05 at (2,2,7)
+       Max VN number :  0.15E-01 at (8,3,9)
+       No. of Lagrangian Particles:  75
+ 
+       Time Step        5   October 11, 2026  19:18:04
+       Step Size:  0.160E+00 s, Total Time:    0.79819 s
+       Pressure Iterations: 1
+       Maximum Velocity Error:  0.44E-01 on Mesh 1 at (10,10,2)
+       Maximum Pressure Error:  0.34E+00 on Mesh 1 at (9,10,2)
+       ---------------------------------------------------------------
+       Mesh    1
+       Max CFL number:  0.99E-01 at (9,10,2)
+       Max divergence:  0.30E+00 at (9,13,1)
+       Min divergence: -0.47E-02 at (9,9,2)
+       Max VN number :  0.16E-01 at (9,9,3)
+       No. of Lagrangian Particles:  73
+       Mesh    2
+       Max CFL number:  0.87E-01 at (2,10,2)
+       Max divergence:  0.34E+00 at (2,13,1)
+       Min divergence: -0.41E-02 at (2,10,2)
+       Max VN number :  0.14E-01 at (8,3,9)
+       No. of Lagrangian Particles:  77
+ 
+       Time Step        6   October 11, 2026  19:18:04
+       Step Size:  0.160E+00 s, Total Time:    0.95783 s
+       Pressure Iterations: 4
+       Maximum Velocity Error:  0.45E-01 on Mesh 1 at (10,11,2)
+       Maximum Pressure Error:  0.16E+01 on Mesh 1 at (9,10,2)
+       ---------------------------------------------------------------
+       Mesh    1
+       Max CFL number:  0.14E+00 at (9,8,1)
+       Max divergence:  0.25E+01 at (10,10,2)
+       Min divergence: -0.34E-02 at (10,13,2)
+       Max VN number :  0.20E-01 at (9,9,3)
+       No. of Lagrangian Particles:  72
+       Mesh    2
+       Max CFL number:  0.13E+00 at (2,13,1)
+       Max divergence:  0.22E+01 at (1,11,2)
+       Min divergence: -0.81E-03 at (3,12,2)
+       Max VN number :  0.20E-01 at (3,13,1)
+       No. of Lagrangian Particles:  78
+ 
+       Time Step        7   October 11, 2026  19:18:05
+       Step Size:  0.160E+00 s, Total Time:    1.11746 s
+       Pressure Iterations: 6
+       Maximum Velocity Error:  0.26E-01 on Mesh 1 at (10,11,2)
+       Maximum Pressure Error:  0.16E+02 on Mesh 1 at (9,11,2)
+       ---------------------------------------------------------------
+       Mesh    1
+       Max CFL number:  0.58E+00 at (10,10,2)
+       Max divergence:  0.11E+01 at (8,11,1)
+       Min divergence: -0.30E-02 at (8,9,3)
+       Max VN number :  0.11E+00 at (10,10,2)
+       No. of Lagrangian Particles:  72
+       Mesh    2
+       Max CFL number:  0.54E+00 at (1,11,2)
+       Max divergence:  0.14E+01 at (3,10,1)
+       Min divergence: -0.39E-02 at (2,8,3)
+       Max VN number :  0.96E-01 at (1,11,2)
+       No. of Lagrangian Particles:  78
+ 
+       Time Step        8   October 11, 2026  19:18:05
+       Step Size:  0.160E+00 s, Total Time:    1.27710 s
+       Pressure Iterations: 5
+       Maximum Velocity Error:  0.41E-01 on Mesh 1 at (10,11,2)
+       Maximum Pressure Error:  0.74E+01 on Mesh 1 at (9,11,2)
+       ---------------------------------------------------------------
+       Mesh    1
+       Max CFL number:  0.42E+00 at (8,11,1)
+       Max divergence:  0.22E+01 at (10,11,2)
+       Min divergence: -0.14E-02 at (8,13,2)
+       Max VN number :  0.69E-01 at (9,9,3)
+       No. of Lagrangian Particles:  68
+       Mesh    2
+       Max CFL number:  0.43E+00 at (3,10,1)
+       Max divergence:  0.23E+01 at (1,10,2)
+       Min divergence: -0.76E-06 at (5,14,14)
+       Max VN number :  0.65E-01 at (2,9,3)
+       No. of Lagrangian Particles:  81
+ 
+       Time Step        9   October 11, 2026  19:18:05
+       Step Size:  0.160E+00 s, Total Time:    1.43674 s
+       Pressure Iterations: 4
+       Maximum Velocity Error:  0.42E-01 on Mesh 1 at (10,10,3)
+       Maximum Pressure Error:  0.19E+02 on Mesh 2 at (1,10,2)
+       ---------------------------------------------------------------
+       Mesh    1
+       Max CFL number:  0.80E+00 at (10,10,2)
+       Max divergence:  0.11E+01 at (8,9,1)
+       Min divergence: -0.75E+00 at (10,10,2)
+       Max VN number :  0.15E+00 at (10,10,2)
+       No. of Lagrangian Particles:  68
+       Mesh    2
+       Max CFL number:  0.76E+00 at (2,12,2)
+       Max divergence:  0.11E+01 at (3,9,1)
+       Min divergence: -0.96E+00 at (1,10,2)
+       Max VN number :  0.14E+00 at (2,9,3)
+       No. of Lagrangian Particles:  80
+ 
+       Time Step       10   October 11, 2026  19:18:05
+       Step Size:  0.117E+00 s, Total Time:    1.55325 s
+       Pressure Iterations: 4
+       Maximum Velocity Error:  0.37E-01 on Mesh 1 at (10,10,3)
+       Maximum Pressure Error:  0.76E+01 on Mesh 2 at (1,10,2)
+       ---------------------------------------------------------------
+       Mesh    1
+       Max CFL number:  0.78E+00 at (8,11,2)
+       Max divergence:  0.13E+01 at (10,11,2)
+       Min divergence: -0.57E-02 at (10,13,4)
+       Max VN number :  0.15E+00 at (9,9,3)
+       No. of Lagrangian Particles:  69
+       Mesh    2
+       Max CFL number:  0.81E+00 at (3,10,2)
+       Max divergence:  0.14E+01 at (1,10,2)
+       Min divergence: -0.15E-02 at (1,13,4)
+       Max VN number :  0.16E+00 at (2,12,3)
+       No. of Lagrangian Particles:  79
+ 
+       Time Step       20   October 11, 2026  19:18:06
+       Step Size:  0.437E-01 s, Total Time:    2.18127 s
+       Pressure Iterations: 3
+       Maximum Velocity Error:  0.31E-01 on Mesh 1 at (10,11,6)
+       Maximum Pressure Error:  0.19E+02 on Mesh 1 at (10,10,8)
+       ---------------------------------------------------------------
+       Mesh    1
+       Max CFL number:  0.93E+00 at (10,10,8)
+       Max divergence:  0.17E+01 at (8,11,1)
+       Min divergence: -0.99E+00 at (10,10,8)
+       Max VN number :  0.29E+00 at (10,10,7)
+       No. of Lagrangian Particles:  50
+       Mesh    2
+       Max CFL number:  0.94E+00 at (1,11,7)
+       Max divergence:  0.17E+01 at (3,10,1)
+       Min divergence: -0.58E+00 at (1,11,7)
+       Max VN number :  0.20E+00 at (1,11,7)
+       No. of Lagrangian Particles:  58
+ 
+       Time Step       30   October 11, 2026  19:18:07
+       Step Size:  0.287E-01 s, Total Time:    2.50328 s
+       Pressure Iterations: 3
+       Maximum Velocity Error:  0.49E-01 on Mesh 1 at (10,11,11)
+       Maximum Pressure Error:  0.17E+02 on Mesh 2 at (1,11,12)
+       ---------------------------------------------------------------
+       Mesh    1
+       Max CFL number:  0.99E+00 at (10,11,10)
+       Max divergence:  0.23E+01 at (9,12,2)
+       Min divergence: -0.73E+00 at (10,10,12)
+       Max VN number :  0.21E+00 at (10,11,9)
+       No. of Lagrangian Particles:  37
+       Mesh    2
+       Max CFL number:  0.98E+00 at (1,10,10)
+       Max divergence:  0.22E+01 at (2,12,2)
+       Min divergence: -0.67E+00 at (1,11,6)
+       Max VN number :  0.25E+00 at (1,11,11)
+       No. of Lagrangian Particles:  46
+ 
+       Time Step       40   October 11, 2026  19:18:08
+       Step Size:  0.217E-01 s, Total Time:    2.74551 s
+       Pressure Iterations: 4
+       Maximum Velocity Error:  0.30E-01 on Mesh 1 at (10,10,15)
+       Maximum Pressure Error:  0.32E+02 on Mesh 1 at (10,10,10)
+       ---------------------------------------------------------------
+       Mesh    1
+       Max CFL number:  0.92E+00 at (10,11,11)
+       Max divergence:  0.26E+01 at (9,13,1)
+       Min divergence: -0.69E+00 at (10,10,9)
+       Max VN number :  0.21E+00 at (10,11,14)
+       No. of Lagrangian Particles:  24
+       Mesh    2
+       Max CFL number:  0.92E+00 at (1,10,11)
+       Max divergence:  0.26E+01 at (2,8,1)
+       Min divergence: -0.79E+00 at (1,11,14)
+       Max VN number :  0.19E+00 at (1,10,14)
+       No. of Lagrangian Particles:  36
+ 
+       Time Step       50   October 11, 2026  19:18:09
+       Step Size:  0.217E-01 s, Total Time:    2.96299 s
+       Pressure Iterations: 3
+       Maximum Velocity Error:  0.50E-01 on Mesh 1 at (10,10,13)
+       Maximum Pressure Error:  0.22E+02 on Mesh 2 at (1,11,12)
+       ---------------------------------------------------------------
+       Mesh    1
+       Max CFL number:  0.91E+00 at (10,10,14)
+       Max divergence:  0.27E+01 at (10,8,1)
+       Min divergence: -0.12E+01 at (10,10,4)
+       Max VN number :  0.18E+00 at (10,10,14)
+       No. of Lagrangian Particles:  17
+       Mesh    2
+       Max CFL number:  0.88E+00 at (1,11,13)
+       Max divergence:  0.27E+01 at (3,11,1)
+       Min divergence: -0.14E+01 at (1,11,4)
+       Max VN number :  0.17E+00 at (1,11,13)
+       No. of Lagrangian Particles:  26
+ 
+       Time Step       60   October 11, 2026  19:18:10
+       Step Size:  0.239E-01 s, Total Time:    3.18482 s
+       Pressure Iterations: 4
+       Maximum Velocity Error:  0.26E-01 on Mesh 1 at (10,10,13)
+       Maximum Pressure Error:  0.38E+02 on Mesh 2 at (1,10,10)
+       ---------------------------------------------------------------
+       Mesh    1
+       Max CFL number:  0.87E+00 at (10,10,13)
+       Max divergence:  0.30E+01 at (9,12,2)
+       Min divergence: -0.12E+01 at (10,10,5)
+       Max VN number :  0.18E+00 at (10,10,13)
+       No. of Lagrangian Particles:  11
+       Mesh    2
+       Max CFL number:  0.90E+00 at (1,11,14)
+       Max divergence:  0.30E+01 at (2,12,2)
+       Min divergence: -0.11E+01 at (1,11,7)
+       Max VN number :  0.20E+00 at (1,11,13)
+       No. of Lagrangian Particles:  20
+ 
+       Time Step       70   October 11, 2026  19:18:11
+       Step Size:  0.207E-01 s, Total Time:    3.41434 s
+       Pressure Iterations: 4
+       Maximum Velocity Error:  0.31E-01 on Mesh 1 at (10,10,15)
+       Maximum Pressure Error:  0.67E+02 on Mesh 2 at (2,10,13)
+       ---------------------------------------------------------------
+       Mesh    1
+       Max CFL number:  0.80E+00 at (10,11,13)
+       Max divergence:  0.31E+01 at (9,9,2)
+       Min divergence: -0.94E+00 at (10,11,5)
+       Max VN number :  0.15E+00 at (9,11,11)
+       No. of Lagrangian Particles:  7
+       Mesh    2
+       Max CFL number:  0.87E+00 at (1,10,14)
+       Max divergence:  0.31E+01 at (2,12,2)
+       Min divergence: -0.10E+01 at (1,11,11)
+       Max VN number :  0.20E+00 at (1,10,14)
+       No. of Lagrangian Particles:  8
+ 
+       Time Step       80   October 11, 2026  19:18:12
+       Step Size:  0.181E-01 s, Total Time:    3.60581 s
+       Pressure Iterations: 4
+       Maximum Velocity Error:  0.28E-01 on Mesh 1 at (10,10,13)
+       Maximum Pressure Error:  0.43E+02 on Mesh 2 at (1,9,13)
+       ---------------------------------------------------------------
+       Mesh    1
+       Max CFL number:  0.78E+00 at (10,11,13)
+       Max divergence:  0.32E+01 at (9,9,2)
+       Min divergence: -0.10E+01 at (10,11,8)
+       Max VN number :  0.14E+00 at (10,11,13)
+       No. of Lagrangian Particles:  5
+       Mesh    2
+       Max CFL number:  0.87E+00 at (1,10,14)
+       Max divergence:  0.32E+01 at (2,12,2)
+       Min divergence: -0.12E+01 at (1,10,13)
+       Max VN number :  0.18E+00 at (1,10,14)
+       No. of Lagrangian Particles:  6
+ 
+       Time Step       90   October 11, 2026  19:18:13
+       Step Size:  0.181E-01 s, Total Time:    3.78704 s
+       Pressure Iterations: 4
+       Maximum Velocity Error:  0.36E-01 on Mesh 1 at (10,11,15)
+       Maximum Pressure Error:  0.44E+02 on Mesh 1 at (9,10,13)
+       ---------------------------------------------------------------
+       Mesh    1
+       Max CFL number:  0.82E+00 at (10,11,13)
+       Max divergence:  0.32E+01 at (9,9,2)
+       Min divergence: -0.12E+01 at (10,11,10)
+       Max VN number :  0.18E+00 at (9,12,13)
+       No. of Lagrangian Particles:  3
+       Mesh    2
+       Max CFL number:  0.84E+00 at (1,10,15)
+       Max divergence:  0.32E+01 at (2,9,2)
+       Min divergence: -0.96E+00 at (1,10,4)
+       Max VN number :  0.16E+00 at (1,11,14)
+       No. of Lagrangian Particles:  4
+ 
+       Time Step      100   October 11, 2026  19:18:14
+       Step Size:  0.181E-01 s, Total Time:    3.96828 s
+       Pressure Iterations: 3
+       Maximum Velocity Error:  0.39E-01 on Mesh 1 at (10,9,14)
+       Maximum Pressure Error:  0.34E+02 on Mesh 1 at (9,11,12)
+       ---------------------------------------------------------------
+       Mesh    1
+       Max CFL number:  0.84E+00 at (10,11,13)
+       Max divergence:  0.32E+01 at (9,9,2)
+       Min divergence: -0.10E+01 at (10,10,4)
+       Max VN number :  0.17E+00 at (10,11,14)
+       No. of Lagrangian Particles:  1
+       Mesh    2
+       Max CFL number:  0.77E+00 at (1,10,15)
+       Max divergence:  0.33E+01 at (2,9,2)
+       Min divergence: -0.14E+01 at (1,10,5)
+       Max VN number :  0.17E+00 at (2,12,14)
+       No. of Lagrangian Particles:  2
+ 
+       Time Step      200   October 11, 2026  19:18:24
+       Step Size:  0.161E-01 s, Total Time:    5.85303 s
+       Pressure Iterations: 4
+       Maximum Velocity Error:  0.28E-01 on Mesh 2 at (0,10,15)
+       Maximum Pressure Error:  0.55E+02 on Mesh 1 at (10,10,15)
+       ---------------------------------------------------------------
+       Mesh    1
+       Max CFL number:  0.84E+00 at (10,10,13)
+       Max divergence:  0.32E+01 at (9,12,2)
+       Min divergence: -0.15E+01 at (10,10,9)
+       Max VN number :  0.19E+00 at (10,10,14)
+       Mesh    2
+       Max CFL number:  0.85E+00 at (1,11,13)
+       Max divergence:  0.32E+01 at (2,12,2)
+       Min divergence: -0.12E+01 at (1,10,11)
+       Max VN number :  0.16E+00 at (1,11,14)
+ 
+       Time Step      209   October 11, 2026  19:18:25
+       Step Size:  0.119E-01 s, Total Time:    6.00000 s
+       Pressure Iterations: 3
+       Maximum Velocity Error:  0.31E-01 on Mesh 1 at (10,10,12)
+       Maximum Pressure Error:  0.41E+02 on Mesh 1 at (10,10,14)
+       ---------------------------------------------------------------
+       Mesh    1
+       Max CFL number:  0.59E+00 at (10,10,14)
+       Max divergence:  0.33E+01 at (9,12,2)
+       Min divergence: -0.12E+01 at (10,10,13)
+       Max VN number :  0.14E+00 at (10,10,13)
+       Mesh    2
+       Max CFL number:  0.57E+00 at (1,10,13)
+       Max divergence:  0.33E+01 at (2,9,2)
+       Min divergence: -0.12E+01 at (1,10,12)
+       Max VN number :  0.11E+00 at (1,11,10)
+ 
+
+
+ DEVICE Activation Times
+
+         1    HEAT_DET                  T           3.624
+
+
+ Time Stepping Wall Clock Time (s):       21.527
+ Total Elapsed Wall Clock Time (s):       27.817
+
+STOP: FDS completed successfully (CHID: rroom)

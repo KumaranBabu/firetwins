@@ -1,0 +1,14 @@
+&HEAD CHID='multi_mesh', TITLE='Multi-Mesh MPI Test' /
+&TIME T_END=30.0 /
+&MISC TMPA=20.0 /
+
+&MESH ID='mesh_01', IJK=20,20,10, XB=0.0,4.0,0.0,4.0,0.0,2.0 /
+&MESH ID='mesh_02', IJK=20,20,10, XB=4.0,8.0,0.0,4.0,0.0,2.0 /
+
+&SURF ID='burner', HRRPUA=250.0, COLOR='RED' /
+&OBST ID='block1', XB=1.0,2.0,1.0,2.0,0.0,0.5, SURF_ID='INERT' /
+
+&DEVC ID='tc_01', XYZ=2.0,2.0,1.0, QUANTITY='TEMPERATURE' /
+&DEVC ID='tc_02', XYZ=6.0,2.0,1.0, QUANTITY='TEMPERATURE' /
+
+&TAIL /

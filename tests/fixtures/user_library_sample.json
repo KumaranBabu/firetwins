@@ -1,0 +1,26 @@
+{
+  "format": "pyfds-library",
+  "version": 1,
+  "categories": {
+    "materials": {
+      "test_foam": {
+        "description": "test foam",
+        "fields": {
+          "density": 30.0,
+          "conductivity": 0.04,
+          "specific_heat": 1.4
+        }
+      }
+    },
+    "heat_detectors": {
+      "test_heat_detector": {
+        "description": "test",
+        "fields": {
+          "quantity": "LINK TEMPERATURE",
+          "activation_temperature": 60.0,
+          "rti": 5.0
+        }
+      }
+    }
+  }
+}

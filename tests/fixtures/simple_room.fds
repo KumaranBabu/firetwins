@@ -1,0 +1,32 @@
+&HEAD CHID='simple_room', TITLE='Simple Room Fire Test' /
+&TIME T_END=60.0, T_BEGIN=0.0 /
+&MISC TMPA=20.0, HUMIDITY=40.0 /
+&DUMP DT_SLCF=1.0, DT_DEVC=1.0 /
+
+&MESH ID='mesh_01', IJK=20,20,10, XB=0.0,4.0,0.0,4.0,0.0,2.0 /
+
+&SURF ID='fire', HRRPUA=500.0, TAU_Q=-1.0, COLOR='RED' /
+&SURF ID='inert_wall', COLOR='GRAY 40' /
+
+&OBST ID='floor', XB=0.0,4.0,0.0,4.0,0.0,0.1, SURF_ID='inert_wall' /
+&OBST ID='north_wall', XB=0.0,4.0,3.9,4.0,0.0,2.0, SURF_ID='inert_wall' /
+&OBST ID='south_wall', XB=0.0,4.0,0.0,0.1,0.0,2.0, SURF_ID='inert_wall' /
+&OBST ID='east_wall', XB=3.9,4.0,0.0,4.0,0.0,2.0, SURF_ID='inert_wall' /
+&OBST ID='west_wall', XB=0.0,0.1,0.0,4.0,0.0,2.0, SURF_ID='inert_wall' /
+&OBST ID='burner', XB=1.5,2.5,1.5,2.5,0.1,0.2, SURF_ID='fire' /
+
+&VENT ID='ceiling_open', XB=0.0,4.0,0.0,4.0,2.0,2.0, SURF_ID='OPEN' /
+
+&DEVC ID='tc_center', XYZ=2.0,2.0,1.5, QUANTITY='TEMPERATURE' /
+&DEVC ID='tc_ceiling', XYZ=2.0,2.0,1.9, QUANTITY='TEMPERATURE' /
+&DEVC ID='hrr_total', XYZ=0.0,0.0,0.0, QUANTITY='HRR' /
+
+&SLCF PBZ=1.0, QUANTITY='TEMPERATURE', MESH_ID='mesh_01' /
+&SLCF PBZ=1.0, QUANTITY='VELOCITY', MESH_ID='mesh_01' /
+&BNDF QUANTITY='WALL TEMPERATURE' /
+
+&RAMP ID='tau_fire', T=0.0, F=0.0 /
+&RAMP ID='tau_fire', T=30.0, F=1.0 /
+&RAMP ID='tau_fire', T=60.0, F=1.0 /
+
+&TAIL /

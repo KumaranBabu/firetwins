@@ -53,14 +53,14 @@ KNOWN_VIOLATIONS: set[tuple[str, str]] = {
     ("gui/main_window/actions_draw.py", "automation"), ("gui/main_window/actions_draw.py", "domain"),
     ("gui/main_window/actions_edit.py", "automation"), ("gui/main_window/actions_results.py", "results"),
     ("gui/main_window/actions_tools_help.py", "io"), ("gui/main_window/actions_transform.py", "automation"),
-    ("gui/hvac_network_editor.py", "automation"),
+    ("gui/hvac_network_editor.py", "automation"), ("gui/hvac_network_editor_items.py", "automation"),
 }
 
 OVERSIZE_BASELINE = {   # path relative to src/pyfds -> allowed max lines (never raise)
             
     
 }
-PYVISTA_BASELINE = {"domain/geometry_tools.py"}   # lazy import for CSG booleans (move to infrastructure)
+PYVISTA_BASELINE = {"domain/geometry_tools_common.py"}   # lazy import for CSG booleans (move to infrastructure)
 
 
 def _modules():

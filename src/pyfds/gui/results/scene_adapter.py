@@ -7,36 +7,30 @@ unless asked to apply one.
 """
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Tuple
-
 import numpy as np
 import pyvista as pv
 
 from pyfds.api.viz import model as vm
-from pyfds.api.viz import (ErrorBoxes, GeometryBoxes, GridSurface, PointCloud, RectilinearVolume,
-                                          TriMesh, VectorField)
+from .quality import apply_quality
 
-from .quality import apply_quality, volume_mapper
+from .scene_adapter_common import (  # noqa: F401  (re-exported)
+    BACKGROUND,
+    _box_mesh,
+    _lut,
+)
+from .scene_adapter_extras import (  # noqa: F401  (re-exported)
+    SceneAdapterExtrasMixin,
+)
+from .scene_adapter_items import (  # noqa: F401  (re-exported)
+    SceneAdapterItemsMixin,
+)
 
-BACKGROUND = "#1c1e22"
-
-
-def _lut(bar, name: str = "q") -> pv.LookupTable:
-    tab = (bar.table() * 255).astype(np.uint8)
-    lut = pv.LookupTable(values=tab, scalar_range=(bar.lo, bar.hi), n_values=len(tab))
-    lut.below_range_color = None
-    lut.above_range_color = None
-    return lut
-
-
-def _box_mesh(boxes) -> Optional[pv.PolyData]:
-    parts = [pv.Box(bounds=b) for b in boxes if b[1] >= b[0] and b[3] >= b[2] and b[5] >= b[4]]
-    if not parts:
-        return None
-    return parts[0] if len(parts) == 1 else parts[0].merge(parts[1:], merge_points=False)
+from .scene_adapter_common import (  # noqa: F401  (re-exported)
+    _box_mesh,
+)
 
 
-class SceneAdapter:
+class SceneAdapter(SceneAdapterItemsMixin, SceneAdapterExtrasMixin):
     def __init__(self, plotter: pv.Plotter) -> None:
         self.pl = plotter
         self.pl.set_background(BACKGROUND)
@@ -152,209 +146,6 @@ class SceneAdapter:
                                                       title_font_size=9, label_font_size=9, color="white", fmt="%.4g"))
         actor.mapper.lookup_table = _lut(bar)
         actor.mapper.scalar_range = (bar.lo, bar.hi)
-
-    def _draw_one(self, node, prim, bars: Dict[str, Any], viz: vm.ResultsVisualization) -> int:
-        pl = self.pl
-        mode = viz.rendering_mode
-        wire = mode == "wireframe"
-        if isinstance(prim, GeometryBoxes):
-            mesh = _box_mesh(prim.boxes)
-            if mesh is None:
-                return 0
-            if prim.kind == "mesh":                      # a computational mesh is only an outline, never a solid
-                pl.add_mesh(mesh, color="#5c6b7a", style="wireframe", line_width=1, pickable=False, name=f"{node.id}#{prim.kind}")
-                return 1
-            if prim.kind == "open_vent":                 # the open sides of the domain: a faint outline, so the room stays visible
-                pl.add_mesh(mesh, color="#c97b3a", style="wireframe", line_width=1, opacity=0.5, pickable=False,
-                            name=f"{node.id}#{prim.kind}")
-                return 1
-            if prim.kind == "vent":
-                pl.add_mesh(mesh, color="#c97b3a", style="wireframe" if wire else "surface", opacity=0.6, name=f"{node.id}#{prim.kind}")
-                return 1
-            pl.add_mesh(mesh, color="#9aa4b2", style="wireframe" if wire else "surface",
-                        show_edges=mode.endswith("outlines") or wire, edge_color="#222222", opacity=1.0, name=f"{node.id}#{prim.kind}")
-            return 1
-        if isinstance(prim, ErrorBoxes):
-            mesh = _box_mesh(prim.boxes)
-            if mesh is not None:
-                pl.add_mesh(mesh, color="red", style="wireframe", line_width=2, name=node.id)
-                return 1
-            return 0
-        bar = bars.get(getattr(prim, "quantity", ""))
-        if isinstance(prim, GridSurface):
-            grid = pv.StructuredGrid(prim.x, prim.y, prim.z)
-            grid["v"] = prim.values.ravel(order="F")
-            self._add_scalar(grid, bar, node.id)
-            return 1
-        if isinstance(prim, TriMesh):
-            if len(prim.faces) == 0:
-                return 0
-            mesh = pv.PolyData(prim.vertices, np.column_stack([np.full(len(prim.faces), 3), prim.faces]).ravel())
-            if prim.values is not None and bar is not None:
-                mesh["v"] = prim.values
-                self._add_scalar(mesh, bar, node.id)
-            else:
-                pl.add_mesh(mesh, color="#e0b040", opacity=0.6, smooth_shading=True, name=node.id)
-            return 1
-        if isinstance(prim, PointCloud):
-            cloud = pv.PolyData(prim.points)
-            if prim.values is not None and bar is not None:
-                cloud["v"] = prim.values
-                actor = pl.add_mesh(cloud, scalars="v", point_size=max(prim.diameter, 3.0) if prim.diameter > 1 else 4.0,
-                                    render_points_as_spheres=True, show_scalar_bar=False, name=node.id)
-                actor.mapper.lookup_table = _lut(bar)
-                actor.mapper.scalar_range = (bar.lo, bar.hi)
-            else:
-                pl.add_mesh(cloud, color="#6cc6ff", point_size=4.0, render_points_as_spheres=True, name=node.id)
-            return 1
-        if isinstance(prim, VectorField):
-            if len(prim.points) == 0:
-                return 0
-            cloud = pv.PolyData(prim.points)
-            cloud["vec"] = prim.vectors
-            speed = np.linalg.norm(prim.vectors, axis=1)
-            cloud["v"] = prim.values if prim.values is not None else speed
-            scale = float(np.nanmax(speed)) or 1.0
-            arrows = cloud.glyph(orient="vec", scale=False, factor=0.15 * max(viz.slice_vectors.get(node.quantity + "|" + node.label,
-                                 vm.SliceVectorProps()).factor, 1e-6))
-            if arrows.n_points:
-                self._add_scalar(arrows, bar, node.id, array="v", fallback=cloud["v"])
-            return 1
-        if isinstance(prim, RectilinearVolume):
-            return self._volume(node, prim, bar, viz)
-        return 0
-
-    def _add_scalar(self, mesh, bar, name: str, array: str = "v", fallback=None) -> None:
-        if bar is None:
-            self.pl.add_mesh(mesh, color="#c0c0c0", name=name)
-            return
-        if array not in mesh.array_names and fallback is not None:
-            mesh[array] = np.resize(fallback, mesh.n_points)
-        actor = self.pl.add_mesh(mesh, scalars=array, show_scalar_bar=False, nan_opacity=0.0, name=name,
-                                 show_edges=False, interpolate_before_map=not self._flat)
-        actor.mapper.lookup_table = _lut(bar)
-        actor.mapper.scalar_range = (bar.lo, bar.hi)
-
-    def _volume(self, node, vol: RectilinearVolume, bar, viz: vm.ResultsVisualization) -> int:
-        grid = pv.RectilinearGrid(vol.x, vol.y, vol.z)
-        sp = viz.smoke3d
-        mapper = "fixed_point" if self.fast_volumes else volume_mapper(viz.rendering)
-        compat = mapper == "fixed_point"
-        if vol.kind == "smoke" and vol.extinction is not None:
-            dx = vol.cell_size()
-            alpha = (1.0 - np.exp(-vol.extinction * sp.smoke_opacity * sp.smoke_brightness * dx * 2.0))
-            grid["a"] = np.clip(alpha, 0, 1).ravel(order="F")
-            grid = self._uniform(grid, vol) if compat else grid
-            self.pl.add_volume(grid, scalars="a", cmap="gray_r", opacity="linear", clim=(0, 1), show_scalar_bar=False,
-                               name=node.id, shade=False, mapper=mapper)
-            self._jitter(node.id, viz)
-            return 1
-        if vol.kind == "fire":
-            grid["h"] = vol.values.ravel(order="F")
-            hi = float(np.nanmax(vol.values)) or 1.0
-            grid = self._uniform(grid, vol) if compat else grid
-            self.pl.add_volume(grid, scalars="h", cmap="hot", opacity="linear", clim=(0, hi * sp.fire_brightness or hi),
-                               show_scalar_bar=False, name=node.id, shade=False, mapper=mapper)
-            self._jitter(node.id, viz)
-            return 1
-        # plain scalar volume: shown as its outline plus a mid-plane so something readable is there
-        grid["v"] = vol.values.ravel(order="F")
-        self.pl.add_mesh(grid.outline(), color="#777777", name=node.id + "/outline")
-        if bar is not None:
-            mid = grid.slice(normal="y", origin=[(vol.x[0] + vol.x[-1]) / 2, (vol.y[0] + vol.y[-1]) / 2, (vol.z[0] + vol.z[-1]) / 2])
-            if mid.n_points:
-                self._add_scalar(mid, bar, node.id, array="v")
-        return 1
-
-    @staticmethod
-    def _uniform(grid, vol: RectilinearVolume):
-        """The software volume mapper needs a uniform grid: resample at the finest cell size."""
-        h = min(float(np.diff(a).min()) for a in (vol.x, vol.y, vol.z) if len(a) > 1)
-        dims = [max(int(round((a[-1] - a[0]) / h)) + 1, 2) for a in (vol.x, vol.y, vol.z)]
-        img = pv.ImageData(dimensions=dims, spacing=(h, h, h), origin=(vol.x[0], vol.y[0], vol.z[0]))
-        return img.sample(grid)
-
-    def _skybox(self, viz: vm.ResultsVisualization) -> str:
-        """Draw the sky behind the model (View > Edit Skybox). Returns what was drawn, or why nothing was."""
-        sb = viz.skybox
-        pl = self.pl
-        try:
-            pl.remove_environment_texture()
-        except Exception:
-            pass
-        if sb.kind == "none" or not sb.show:
-            return "none"
-        try:
-            if sb.kind == "predefined":
-                pl.set_background("#3b5f8f", top="#c4dcf2")
-                return "gradient"
-            tex = self._sky_texture(sb)
-            pl.set_environment_texture(tex)
-            r = pl.renderer
-            if sb.z_rotation and hasattr(r, "SetEnvironmentRight"):
-                import math
-                a = math.radians(sb.z_rotation)
-                r.SetEnvironmentRight(math.cos(a), math.sin(a), 0.0)
-            if viz.rendering.image_based_lighting and hasattr(r, "SetUseImageBasedLighting"):
-                r.SetUseImageBasedLighting(True)
-            return "texture"
-        except Exception as exc:
-            pl.add_text(f"skybox: {exc}", position="lower_right", font_size=7, name="skybox_error")
-            return f"error: {exc}"
-
-    @staticmethod
-    def _sky_texture(sb):
-        import tempfile
-        from pathlib import Path
-        from pyfds.api.viz import panorama
-        if sb.kind == "image360":
-            return pv.read_texture(sb.files[0])
-        if sb.kind == "split_cubemap":
-            return pv.cubemap_from_filenames(list(sb.files))
-        if sb.kind == "cubemap":
-            from PIL import Image
-            faces = panorama.cross_to_faces(np.asarray(Image.open(sb.files[0]).convert("RGB")))
-            tmp = Path(tempfile.mkdtemp(prefix="skybox_"))
-            names = []
-            for f in ("+x", "-x", "+y", "-y", "+z", "-z"):
-                q = tmp / (("p" if f[0] == "+" else "n") + f[1] + ".png")
-                Image.fromarray(np.ascontiguousarray(faces[f])).save(q)
-                names.append(str(q))
-            return pv.cubemap_from_filenames(names)
-        raise ValueError(f"unknown skybox type {sb.kind}")
-
-    def _jitter(self, name: str, viz) -> None:
-        """Reduce Banding: jitter the ray start so the layered look of volume rendering is broken up."""
-        actor = self.pl.renderer.actors.get(name)
-        mapper = getattr(actor, "mapper", None)
-        for obj in (mapper, getattr(mapper, "_mapper", None)):
-            if obj is not None and hasattr(obj, "SetUseJittering"):
-                obj.SetUseJittering(bool(viz.rendering.reduce_banding))
-                return
-
-    def _annotations(self, viz: vm.ResultsVisualization) -> int:
-        from pyfds.api.viz import annotations as an
-        n = 0
-        if viz.show_dimensions:
-            for i, d in enumerate(viz.dimensions):
-                try:
-                    g = an.dimension_geometry(d, viz.general.dimension_precision)
-                except ValueError:
-                    continue
-                lines = [g.start, g.end] + [p for e in g.extension for p in e]
-                self.pl.add_lines(np.array([g.start, g.end]), color="yellow", width=2, name=f"dim_{i}")
-                self.pl.add_point_labels([g.text_at], [g.text], font_size=12, text_color="yellow", shape=None,
-                                         show_points=False, name=f"dimt_{i}")
-                n += 2
-        if viz.show_labels:
-            for i, lab in enumerate(viz.labels):
-                at = lab.position or lab.anchor
-                self.pl.add_point_labels([at], [lab.text], font_size=12, text_color="white", shape_color="#333333",
-                                         show_points=lab.position is None, name=f"lab_{i}")
-                if lab.position is not None:
-                    self.pl.add_lines(np.array([lab.anchor, lab.position]), color="white", width=1, name=f"labl_{i}")
-                n += 1
-        return n
 
 
 def _blur_times(viewer, t: float, samples: int = 5):

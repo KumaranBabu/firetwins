@@ -1,0 +1,28 @@
+# Conda environment for PyFDS:   conda env create -f environment.yml   then   conda activate pyfds
+# Tested with Python 3.10, PySide6 6.12, PyVista 0.49, VTK 9.3, NumPy 2.2.
+name: pyfds
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.10,<3.13
+  - pydantic>=2.0
+  - numpy>=1.20
+  - pyside6>=6.5
+  - pyvista>=0.44
+  - pyvistaqt>=0.11
+  - vtk>=9.3
+  - scipy>=1.9
+  - matplotlib-base>=3.5
+  - pillow>=10.0
+  - imageio>=2.30
+  - imageio-ffmpeg>=0.4.9
+  - python-gmsh>=4.11
+  - pytest>=7.0
+  - pip
+  - pip:
+      # not needed for the viewer or the tests; uncomment what you use
+      # - anthropic>=0.40          # AI assistant panel
+      # - netgen-mesher>=6.2       # extra mesh generators
+      # - tetgen>=0.6
+      # - wildmeshing>=0.4
+      - -e .                       # install pyfds itself from this folder (run the command in E:\firetwins)

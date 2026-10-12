@@ -1,0 +1,21 @@
+# PyFDS requirements, in conda format (name>=version, one per line):
+#   conda install -c conda-forge --file requirements.txt
+# or build a whole environment in one step with environment.yml:
+#   conda env create -f environment.yml
+python>=3.10,<3.13
+pydantic>=2.0
+numpy>=1.20
+# desktop application and 3D viewer
+pyside6>=6.5
+pyvista>=0.44
+pyvistaqt>=0.11
+vtk>=9.3
+scipy>=1.9
+matplotlib-base>=3.5
+pillow>=10.0
+imageio>=2.30
+imageio-ffmpeg>=0.4.9
+# meshing (optional)
+python-gmsh>=4.11
+# tests
+pytest>=7.0

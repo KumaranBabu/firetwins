@@ -48,6 +48,7 @@ QFileDialog.getOpenFileName = staticmethod(lambda *a, **k: (str(SMV), "Smokeview
 win.open_results()
 pump(1.0)
 v = win.viewer
+v.set_colorbar("TEMPERATURE", range_mode="custom", minimum=20.0, maximum=900.0)   # the fine-mesh plume is narrow and hot: fix the colours at 20 to 900 C
 for nid in ("geometry/fds_actual", SL, FIRE):
     v.activate(nid)
 win.sync(True)

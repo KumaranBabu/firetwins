@@ -145,8 +145,13 @@ class ResultsDataset:
             v = v[np.isfinite(v)]
             if v.size > 2_000_000:
                 v = v[np.random.default_rng(0).choice(v.size, 2_000_000, replace=False)]
-            stats = (QuantityStats(float(v.min()), float(v.max()), float(np.percentile(v, 1)),
-                                   float(np.percentile(v, 99)), int(v.size)) if v.size else QuantityStats(0, 1, 0, 1, 0))
+            stats = QuantityStats(0, 1, 0, 1, 0)
+            if v.size:
+                lo, hi = float(v.min()), float(v.max())
+                p1, p99 = float(np.percentile(v, 1)), float(np.percentile(v, 99))
+                if p99 - p1 < 0.01 * (hi - lo):          # a sparse quantity (flame: zero almost everywhere): the middle 98 % is empty
+                    p1, p99 = lo, hi
+                stats = QuantityStats(lo, hi, p1, p99, int(v.size))
         self._stats[key] = stats
         self._save_stats(key, mine, stats)
         return stats

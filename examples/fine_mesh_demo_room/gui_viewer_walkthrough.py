@@ -130,6 +130,7 @@ win.open_results()
 pump(1.5)
 shot(win, "v04_results_loaded")
 v = win.viewer
+v.set_colorbar("TEMPERATURE", range_mode="custom", minimum=20.0, maximum=900.0)   # the fine-mesh plume is narrow and hot: fix the colours at 20 to 900 C
 v.activate("geometry/fds_actual")
 win.sync(True)
 shot(win, "v05_geometry_on")

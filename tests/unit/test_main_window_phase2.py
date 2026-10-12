@@ -23,7 +23,7 @@ pytest.importorskip("PySide6")
 
 from PySide6.QtWidgets import QApplication, QDialog  # noqa: E402
 
-import pyfds.gui.main_window as mw  # noqa: E402
+from tests.mw_proxy import main_window_mod as mw  # noqa: E402
 
 
 @pytest.fixture(scope="module", autouse=True)

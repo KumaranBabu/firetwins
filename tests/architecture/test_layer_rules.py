@@ -50,13 +50,13 @@ ALLOWED: dict[str, set[str]] = {
 KNOWN_VIOLATIONS: set[tuple[str, str]] = {
     ("cli/main.py", "domain"), ("cli/main.py", "execution"),
     ("cli/main.py", "results"), ("cli/main.py", "smokeview"),
-    ("gui/main_window.py", "automation"), ("gui/main_window.py", "domain"),
-    ("gui/main_window.py", "io"), ("gui/main_window.py", "results"),
+    ("gui/main_window/actions_draw.py", "automation"), ("gui/main_window/actions_draw.py", "domain"),
+    ("gui/main_window/actions_edit.py", "automation"), ("gui/main_window/actions_results.py", "results"),
+    ("gui/main_window/actions_tools_help.py", "io"), ("gui/main_window/actions_transform.py", "automation"),
     ("gui/hvac_network_editor.py", "automation"),
 }
 
 OVERSIZE_BASELINE = {   # path relative to src/pyfds -> allowed max lines (never raise)
-    "gui/main_window.py": 3300,          # G4
             
     
 }

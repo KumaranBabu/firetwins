@@ -56,7 +56,7 @@ def no_real_qsettings(monkeypatch):
     .pytest_tmp/.../case.fds paths from test_save_as_writes_fds_file runs
     mixed in with the user's actual saved project)."""
     try:
-        import pyfds.gui.main_window as mw
+        from tests.mw_proxy import main_window_mod as mw
     except ImportError:
         yield
         return

@@ -100,7 +100,7 @@ def test_viewport_degrades_to_label_under_offscreen_platform():
 
 def test_edit_properties_via_menu_action_is_undoable(monkeypatch):
     from PySide6.QtWidgets import QDialog
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     obst = window.api.obstructions.add_obstruction(xb=[0, 1, 0, 1, 0, 1], name="box1")
@@ -132,7 +132,7 @@ def test_edit_properties_via_menu_action_is_undoable(monkeypatch):
 
 
 def test_edit_properties_noop_when_nothing_selected(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     called = {"dialog": False}
@@ -157,7 +157,7 @@ def test_edit_properties_noop_when_nothing_selected(monkeypatch):
 
 def test_double_click_on_tree_item_opens_property_editor(monkeypatch):
     from PySide6.QtWidgets import QDialog
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     obst = window.api.obstructions.add_obstruction(xb=[0, 1, 0, 1, 0, 1], name="box1")
@@ -242,7 +242,7 @@ def test_new_project_resets_status_bar():
 
 def test_model_menu_add_entity_creates_mesh_via_dispatcher(monkeypatch):
     from PySide6.QtWidgets import QDialog
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
 
@@ -266,7 +266,7 @@ def test_model_menu_add_entity_creates_mesh_via_dispatcher(monkeypatch):
 
 
 def test_simulation_parameters_dialog_prefills_current_values(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     window.api.project.params.t_end = 999.0
@@ -296,7 +296,7 @@ def test_simulation_parameters_dialog_prefills_current_values(monkeypatch):
 
 def test_simulation_parameters_dialog_applies_via_dispatcher(monkeypatch):
     from PySide6.QtWidgets import QDialog
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
 
@@ -322,7 +322,7 @@ def test_simulation_parameters_dialog_applies_via_dispatcher(monkeypatch):
 
 def test_output_menu_add_slice_appears_in_explorer(monkeypatch):
     from PySide6.QtWidgets import QDialog
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
 
@@ -351,7 +351,7 @@ def test_output_menu_add_slice_appears_in_explorer(monkeypatch):
 
 def test_hvac_menu_add_node_and_duct_appear_in_explorer(monkeypatch):
     from PySide6.QtWidgets import QDialog
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
 
@@ -394,7 +394,7 @@ def test_hvac_menu_add_node_and_duct_appear_in_explorer(monkeypatch):
 
 def test_init_particle_prof_menu_actions_appear_in_explorer(monkeypatch):
     from PySide6.QtWidgets import QDialog
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
 
@@ -452,7 +452,7 @@ def test_init_particle_prof_menu_actions_appear_in_explorer(monkeypatch):
 
 def test_model_menu_add_vent_and_hole(monkeypatch):
     from PySide6.QtWidgets import QDialog
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
 
@@ -490,7 +490,7 @@ def test_model_menu_add_vent_and_hole(monkeypatch):
 
 def test_devices_menu_add_device_creates_generic_sensor(monkeypatch):
     from PySide6.QtWidgets import QDialog
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
 
@@ -516,7 +516,7 @@ def test_devices_menu_add_device_creates_generic_sensor(monkeypatch):
 
 def test_model_menu_add_entity_shows_error_on_missing_required_args(monkeypatch):
     from PySide6.QtWidgets import QDialog, QMessageBox
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
 
@@ -588,7 +588,7 @@ def test_delete_selected_noop_when_category_row_selected():
 # ── Validate / Auto-fix ──────────────────────────────────────────────────────
 
 def test_validate_shows_report_dialog(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     shown = {}
@@ -610,7 +610,7 @@ def test_validate_shows_report_dialog(monkeypatch):
 
 
 def test_auto_fix_refreshes_explorer_and_shows_report(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     shown = {}
@@ -672,7 +672,7 @@ def test_new_from_template_cancelled_does_nothing(monkeypatch):
 
 def test_run_simulation_success_shows_completion_dialog(monkeypatch, tmp_path):
     import concurrent.futures
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
     from pyfds.automation.orchestrator import OrchestratorResult
 
     window = _make_window()
@@ -696,7 +696,7 @@ def test_run_simulation_success_shows_completion_dialog(monkeypatch, tmp_path):
 
 def test_run_simulation_failure_shows_warning(monkeypatch, tmp_path):
     import concurrent.futures
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
     from pyfds.automation.orchestrator import OrchestratorResult
 
     window = _make_window()
@@ -718,7 +718,7 @@ def test_run_simulation_failure_shows_warning(monkeypatch, tmp_path):
 
 
 def test_run_simulation_prompts_for_binary_when_not_found_and_cancel_aborts(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     monkeypatch.setattr(main_window_mod.shutil, "which", lambda x: None)
@@ -741,7 +741,7 @@ def test_run_simulation_prompts_for_binary_when_not_found_and_cancel_aborts(monk
 
 def test_run_simulation_configures_binary_when_user_provides_path(monkeypatch, tmp_path):
     import concurrent.futures
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
     from pyfds.automation.orchestrator import OrchestratorResult
 
     window = _make_window()
@@ -767,7 +767,7 @@ def test_run_simulation_configures_binary_when_user_provides_path(monkeypatch, t
 
 def test_run_simulation_uses_bundled_solver_without_prompting(monkeypatch, tmp_path):
     import concurrent.futures
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
     from pyfds.automation.orchestrator import OrchestratorResult
 
     window = _make_window()
@@ -801,7 +801,7 @@ def test_run_simulation_uses_bundled_solver_without_prompting(monkeypatch, tmp_p
 
 def test_run_simulation_passes_num_processes_through(monkeypatch, tmp_path):
     import concurrent.futures
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
     from pyfds.automation.orchestrator import OrchestratorResult
 
     window = _make_window()
@@ -823,7 +823,7 @@ def test_run_simulation_passes_num_processes_through(monkeypatch, tmp_path):
 
 
 def test_run_simulation_cancelled_at_process_count_does_not_run(monkeypatch, tmp_path):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     monkeypatch.setattr(main_window_mod.shutil, "which", lambda x: "/usr/bin/fds")
@@ -993,7 +993,7 @@ def _write_fake_devc_csv(out_dir, chid="room_fire"):
 
 
 def test_open_smokeview_results_launches_non_blocking(monkeypatch, tmp_path):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     smv_path = str(tmp_path / "case.smv")
@@ -1009,7 +1009,7 @@ def test_open_smokeview_results_launches_non_blocking(monkeypatch, tmp_path):
 
 
 def test_open_smokeview_results_cancelled_does_nothing(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     monkeypatch.setattr(main_window_mod.QFileDialog, "getOpenFileName", lambda *a, **k: ("", ""))
@@ -1025,7 +1025,7 @@ def test_open_smokeview_results_cancelled_does_nothing(monkeypatch):
 
 def _patch_export_animation(monkeypatch, window, *, smv="case.smv", out="a.mp4",
                             accepted=True, values=None, render=None):
-    import pyfds.gui.main_window as mod
+    from tests.mw_proxy import main_window_mod as mod
 
     monkeypatch.setattr(mod.QFileDialog, "getOpenFileName", lambda *a, **k: (smv, ""))
     monkeypatch.setattr(mod.QFileDialog, "getSaveFileName", lambda *a, **k: (out, ""))
@@ -1106,7 +1106,7 @@ def test_export_animation_exception_shows_critical(monkeypatch):
 
 
 def test_view_time_history_shows_figure_dialog(monkeypatch, tmp_path):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     window.api.new(chid="room_fire")
@@ -1134,7 +1134,7 @@ def test_view_time_history_shows_figure_dialog(monkeypatch, tmp_path):
 
 
 def test_view_time_history_no_devices_shows_info(monkeypatch, tmp_path):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     window.api.new(chid="empty_case")
@@ -1151,7 +1151,7 @@ def test_view_time_history_no_devices_shows_info(monkeypatch, tmp_path):
 
 
 def test_archive_and_restore_results_round_trip(monkeypatch, tmp_path):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     window.api.new(chid="room_fire")
@@ -1188,7 +1188,7 @@ def test_archive_and_restore_results_round_trip(monkeypatch, tmp_path):
 
 
 def test_restore_results_cancelled_does_nothing(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     monkeypatch.setattr(main_window_mod.QFileDialog, "getOpenFileName", lambda *a, **k: ("", ""))
@@ -1348,7 +1348,7 @@ def test_cancel_draw_mode_unchecks_all_draw_actions():
 
 
 def test_box_footprint_picked_creates_entity_via_dispatcher(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     monkeypatch.setattr(
@@ -1368,7 +1368,7 @@ def test_box_footprint_picked_creates_entity_via_dispatcher(monkeypatch):
 
 
 def test_box_footprint_picked_dispatches_to_correct_tool_for_vent_and_hole(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     monkeypatch.setattr(
@@ -1387,7 +1387,7 @@ def test_box_footprint_picked_dispatches_to_correct_tool_for_vent_and_hole(monke
 
 
 def test_box_footprint_picked_cancelled_at_z_min_creates_nothing(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     monkeypatch.setattr(
@@ -1402,7 +1402,7 @@ def test_box_footprint_picked_cancelled_at_z_min_creates_nothing(monkeypatch):
 
 
 def test_box_footprint_picked_cancelled_at_z_max_creates_nothing(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
 
@@ -1418,7 +1418,7 @@ def test_box_footprint_picked_cancelled_at_z_max_creates_nothing(monkeypatch):
 
 
 def test_box_footprint_picked_unchecks_draw_actions_even_when_cancelled(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     window._draw_actions["add_obstruction"].setChecked(True)
@@ -1461,7 +1461,7 @@ def test_find_entity_by_name_no_match_returns_none():
 
 
 def test_on_find_selects_matching_row(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     window.api.obstructions.add_obstruction(xb=[0, 1, 0, 1, 0, 1], name="target_box")
@@ -1474,7 +1474,7 @@ def test_on_find_selects_matching_row(monkeypatch):
 
 
 def test_on_find_shows_message_when_nothing_matches(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     monkeypatch.setattr(main_window_mod.QInputDialog, "getText", lambda *a, **k: ("nope", True))
@@ -1490,7 +1490,7 @@ def test_on_find_shows_message_when_nothing_matches(monkeypatch):
 # ── Quick wins: Convert to Blocks ────────────────────────────────────────────
 
 def test_convert_to_blocks_calls_voxelize_and_reports_count(monkeypatch, tmp_path):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     stl_path = str(tmp_path / "shape.stl")
@@ -1506,7 +1506,7 @@ def test_convert_to_blocks_calls_voxelize_and_reports_count(monkeypatch, tmp_pat
 
 
 def test_convert_to_blocks_cancelled_does_nothing(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     monkeypatch.setattr(main_window_mod.QFileDialog, "getOpenFileName", lambda *a, **k: ("", ""))
@@ -1520,7 +1520,7 @@ def test_convert_to_blocks_cancelled_does_nothing(monkeypatch):
 
 
 def test_convert_to_blocks_error_shows_critical(monkeypatch, tmp_path):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     monkeypatch.setattr(main_window_mod.QFileDialog, "getOpenFileName", lambda *a, **k: (str(tmp_path / "x.stl"), ""))
@@ -1540,7 +1540,7 @@ def test_convert_to_blocks_error_shows_critical(monkeypatch, tmp_path):
 # ── Quick wins: Export database ──────────────────────────────────────────────
 
 def test_export_db_materials_writes_file(monkeypatch, tmp_path):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     out_path = str(tmp_path / "materials.json")
@@ -1555,7 +1555,7 @@ def test_export_db_materials_writes_file(monkeypatch, tmp_path):
 
 
 def test_export_db_cancelled_does_nothing(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     monkeypatch.setattr(main_window_mod.QFileDialog, "getSaveFileName", lambda *a, **k: ("", ""))
@@ -1569,7 +1569,7 @@ def test_export_db_cancelled_does_nothing(monkeypatch):
 
 
 def test_export_db_all_writes_folder(monkeypatch, tmp_path):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     out_dir = str(tmp_path / "db_export")
@@ -1587,7 +1587,7 @@ def test_export_db_all_writes_folder(monkeypatch, tmp_path):
 # ── Quick wins: Resume simulation ────────────────────────────────────────────
 
 def test_resume_simulation_success_shows_completion_dialog(monkeypatch, tmp_path):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
     from pyfds.automation.orchestrator import OrchestratorResult
 
     window = _make_window()
@@ -1615,7 +1615,7 @@ def test_resume_simulation_success_shows_completion_dialog(monkeypatch, tmp_path
 
 
 def test_resume_simulation_failure_shows_warning(monkeypatch, tmp_path):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
     from pyfds.automation.orchestrator import OrchestratorResult
 
     window = _make_window()
@@ -1636,7 +1636,7 @@ def test_resume_simulation_failure_shows_warning(monkeypatch, tmp_path):
 
 
 def test_resume_simulation_cancelled_at_file_picker_does_nothing(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     monkeypatch.setattr(main_window_mod.QFileDialog, "getOpenFileName", lambda *a, **k: ("", ""))
@@ -1650,7 +1650,7 @@ def test_resume_simulation_cancelled_at_file_picker_does_nothing(monkeypatch):
 
 
 def test_resume_simulation_cancelled_at_process_count_does_nothing(monkeypatch, tmp_path):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     monkeypatch.setattr(main_window_mod.QFileDialog, "getOpenFileName", lambda *a, **k: (str(tmp_path / "c.fds"), ""))
@@ -1667,7 +1667,7 @@ def test_resume_simulation_cancelled_at_process_count_does_nothing(monkeypatch, 
 # ── Quick wins: OpenMP environment ───────────────────────────────────────────
 
 def test_openmp_environment_sets_thread_count_and_is_undoable(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     monkeypatch.setattr(main_window_mod.QInputDialog, "getInt", lambda *a, **k: (4, True))
@@ -1681,7 +1681,7 @@ def test_openmp_environment_sets_thread_count_and_is_undoable(monkeypatch):
 
 
 def test_openmp_environment_zero_means_auto_unset(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     window.api.project.misc.openmp_threads = 8
@@ -1694,7 +1694,7 @@ def test_openmp_environment_zero_means_auto_unset(monkeypatch):
 
 
 def test_openmp_environment_cancelled_does_nothing(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     monkeypatch.setattr(main_window_mod.QInputDialog, "getInt", lambda *a, **k: (4, False))
@@ -1708,7 +1708,7 @@ def test_openmp_environment_cancelled_does_nothing(monkeypatch):
 # ── Quick wins: Open Results Folder ──────────────────────────────────────────
 
 def test_open_results_folder_opens_url(monkeypatch, tmp_path):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     monkeypatch.setattr(main_window_mod.QFileDialog, "getExistingDirectory", lambda *a, **k: str(tmp_path))
@@ -1722,7 +1722,7 @@ def test_open_results_folder_opens_url(monkeypatch, tmp_path):
 
 
 def test_open_results_folder_cancelled_does_nothing(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     monkeypatch.setattr(main_window_mod.QFileDialog, "getExistingDirectory", lambda *a, **k: "")
@@ -1738,7 +1738,7 @@ def test_open_results_folder_cancelled_does_nothing(monkeypatch):
 # ── Quick wins: Help menu ────────────────────────────────────────────────────
 
 def test_open_doc_opens_existing_file(monkeypatch, tmp_path):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     doc = tmp_path / "guide.pdf"
@@ -1753,7 +1753,7 @@ def test_open_doc_opens_existing_file(monkeypatch, tmp_path):
 
 
 def test_open_doc_missing_file_shows_message(monkeypatch, tmp_path):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     missing = tmp_path / "does_not_exist.pdf"
@@ -1770,7 +1770,7 @@ def test_open_doc_missing_file_shows_message(monkeypatch, tmp_path):
 
 
 def test_about_dialog_does_not_raise(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     monkeypatch.setattr(main_window_mod.QMessageBox, "about", lambda *a, **k: None)
@@ -1783,7 +1783,7 @@ def test_about_dialog_does_not_raise(monkeypatch):
 
 def test_new_scenario_appears_in_explorer(monkeypatch):
     from PySide6.QtWidgets import QDialog
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
 
@@ -1811,7 +1811,7 @@ def test_new_scenario_appears_in_explorer(monkeypatch):
 
 def test_clone_scenario_via_dialog(monkeypatch):
     from PySide6.QtWidgets import QDialog
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     window.api.scenarios.create("low_hrr")
@@ -1834,7 +1834,7 @@ def test_clone_scenario_via_dialog(monkeypatch):
 
 
 def test_clone_scenario_with_no_scenarios_shows_info(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     shown = {}
@@ -1848,7 +1848,7 @@ def test_clone_scenario_with_no_scenarios_shows_info(monkeypatch):
 
 def test_apply_scenario_dialog_applies_by_name(monkeypatch):
     from PySide6.QtWidgets import QInputDialog
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     obst = window.api.obstructions.add_obstruction(xb=[0, 1, 0, 1, 0, 1], name="obst1")
@@ -1866,7 +1866,7 @@ def test_apply_scenario_dialog_applies_by_name(monkeypatch):
 
 
 def test_apply_scenario_already_active_shows_critical(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     window.api.scenarios.create("a")
@@ -1898,7 +1898,7 @@ def test_reset_scenario_restores_values(monkeypatch):
 
 
 def test_reset_scenario_with_none_active_shows_info(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     shown = {}
@@ -1912,7 +1912,7 @@ def test_reset_scenario_with_none_active_shows_info(monkeypatch):
 
 def test_set_scenario_override_via_context_menu_flow(monkeypatch):
     from PySide6.QtWidgets import QDialog
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     obst = window.api.obstructions.add_obstruction(xb=[0, 1, 0, 1, 0, 1], name="obst1")
@@ -1938,7 +1938,7 @@ def test_set_scenario_override_via_context_menu_flow(monkeypatch):
 
 
 def test_export_scenarios_writes_folder(monkeypatch, tmp_path):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     window.api.obstructions.add_obstruction(xb=[0, 1, 0, 1, 0, 1], name="obst1")
@@ -1972,7 +1972,7 @@ def test_scenario_context_menu_has_apply_clone_override_delete():
 
 
 def test_delete_selected_scenario_via_generic_delete_path(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     window.api.scenarios.create("low_hrr")
@@ -1990,7 +1990,7 @@ def test_delete_selected_scenario_via_generic_delete_path(monkeypatch):
 
 def test_define_floor_appears_in_explorer(monkeypatch):
     from PySide6.QtWidgets import QDialog
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
 
@@ -2017,7 +2017,7 @@ def test_define_floor_appears_in_explorer(monkeypatch):
 
 
 def test_auto_assign_floors_reports_count(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     window.api.floors.define_floor("Ground", 0.0, 3.0)
@@ -2033,7 +2033,7 @@ def test_auto_assign_floors_reports_count(monkeypatch):
 
 
 def test_auto_assign_floors_with_no_floors_shows_info(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     shown = {}
@@ -2047,7 +2047,7 @@ def test_auto_assign_floors_with_no_floors_shows_info(monkeypatch):
 
 def test_assign_to_floor_uses_tree_selection(monkeypatch):
     from PySide6.QtWidgets import QInputDialog
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     window.api.floors.define_floor("Ground", 0.0, 3.0)
@@ -2064,7 +2064,7 @@ def test_assign_to_floor_uses_tree_selection(monkeypatch):
 
 
 def test_assign_to_floor_no_selection_shows_info(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     window.api.floors.define_floor("Ground", 0.0, 3.0)
@@ -2078,7 +2078,7 @@ def test_assign_to_floor_no_selection_shows_info(monkeypatch):
 
 
 def test_export_then_import_floors_round_trip(monkeypatch, tmp_path):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     obst = window.api.obstructions.add_obstruction(xb=[0, 1, 0, 1, 0, 1], name="ground_box")
@@ -2117,7 +2117,7 @@ def test_floor_context_menu_has_properties_and_delete_but_not_rename():
 
 
 def test_delete_selected_floor_via_generic_delete_path(monkeypatch):
-    import pyfds.gui.main_window as main_window_mod
+    from tests.mw_proxy import main_window_mod
 
     window = _make_window()
     window.api.floors.define_floor("Ground", 0.0, 3.0)

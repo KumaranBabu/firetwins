@@ -1,0 +1,275 @@
+{
+  "format": "pyfds-visualization",
+  "version": 1,
+  "results": "gui_run/demo_room.smv",
+  "active": [
+    "geometry/fds_actual",
+    "root/FDS Results/3D Smoke/SOOT DENSITY/Mesh 1",
+    "root/FDS Results/3D Smoke/HRRPUV/Mesh 1",
+    "root/FDS Results/Plot3D/TEMPERATURE/Isosurfaces/Isosurface 1",
+    "root/FDS Results/2D Slices/TEMPERATURE/SLICE_T_Y (Y = 2.4)/Mesh 1"
+  ],
+  "geometry_set": "fds_actual",
+  "rendering_mode": "wireframe",
+  "camera": {
+    "position": [
+      10.350750661738596,
+      -5.100750661738596,
+      6.750536186956141
+    ],
+    "target": [
+      3.0,
+      2.25,
+      1.5
+    ],
+    "up": [
+      0.0,
+      0.0,
+      1.0
+    ],
+    "fov_deg": 45.0,
+    "zoom": 1.0,
+    "projection": "perspective",
+    "navigation": "orbit"
+  },
+  "views": [
+    {
+      "name": "View",
+      "origin": "pyfds",
+      "viewpoint": {
+        "position": [
+          10.350750661738596,
+          -5.100750661738596,
+          6.750536186956141
+        ],
+        "target": [
+          3.0,
+          2.25,
+          1.5
+        ],
+        "up": [
+          0,
+          0,
+          1
+        ],
+        "fov_deg": 45.0,
+        "zoom": 1.0,
+        "projection": "perspective",
+        "navigation": "orbit"
+      },
+      "tour": null,
+      "section_box": null
+    },
+    {
+      "name": "Detector view",
+      "origin": "pyfds",
+      "viewpoint": {
+        "position": [
+          10.350750661738596,
+          -5.100750661738596,
+          6.750536186956141
+        ],
+        "target": [
+          3.0,
+          2.25,
+          1.5
+        ],
+        "up": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "fov_deg": 45.0,
+        "zoom": 1.0,
+        "projection": "perspective",
+        "navigation": "orbit"
+      },
+      "tour": null,
+      "section_box": null
+    }
+  ],
+  "active_view": "Detector view",
+  "fds": {
+    "time_offset": 0.0,
+    "interpolate": true,
+    "obscure_types": [
+      "slices2d"
+    ],
+    "colorbars": {
+      "TEMPERATURE": {
+        "range_mode": "percentile_rounded",
+        "minimum": null,
+        "maximum": null,
+        "truncate": false,
+        "hide_below": null,
+        "hide_above": null,
+        "color_source": "colormap",
+        "colormap": "turbo",
+        "invert": false,
+        "color": "#000000",
+        "opacity_source": "constant",
+        "opacity": 1.0,
+        "opacity_at_min": 0.0,
+        "opacity_at_max": 0.75,
+        "feather_threshold": 0.25,
+        "n_colors": 256,
+        "highlight_enabled": false,
+        "highlight_value": 0.0,
+        "highlight_width": 0.0,
+        "highlight_color": "#ffffff"
+      },
+      "HRRPUV": {
+        "range_mode": "percentile_rounded",
+        "minimum": null,
+        "maximum": null,
+        "truncate": false,
+        "hide_below": null,
+        "hide_above": null,
+        "color_source": "colormap",
+        "colormap": "turbo",
+        "invert": false,
+        "color": "#000000",
+        "opacity_source": "gradient",
+        "opacity": 1.0,
+        "opacity_at_min": 0.0,
+        "opacity_at_max": 0.75,
+        "feather_threshold": 0.25,
+        "n_colors": 256,
+        "highlight_enabled": false,
+        "highlight_value": 0.0,
+        "highlight_width": 0.0,
+        "highlight_color": "#ffffff"
+      }
+    }
+  },
+  "smoke3d": {
+    "preset": "default",
+    "fire_rendering": "radiant",
+    "sampling_factor": 1.0,
+    "fire_brightness": 1.0,
+    "smoke_brightness": 1.0,
+    "smoke_opacity": 1.0,
+    "smoke_determines_fire_transparency": true,
+    "transparency_distance": 0.5,
+    "hrrpuv_cutoff": null,
+    "smoke_color": "#000000",
+    "mass_extinction": 8700.0
+  },
+  "data3d": {},
+  "slice_vectors": {},
+  "particles": {},
+  "data3d_points": [],
+  "data3d_slices": [],
+  "data3d_isos": [
+    {
+      "id": "Isosurface 1",
+      "group": "root/FDS Results/Plot3D/TEMPERATURE",
+      "quantity": "TEMPERATURE",
+      "value": 300.0
+    }
+  ],
+  "dimensions": [
+    {
+      "p1": [
+        0.6,
+        0.6,
+        0.0
+      ],
+      "p2": [
+        5.4,
+        0.6,
+        0.0
+      ],
+      "mode": "feature",
+      "offset": 0.0
+    }
+  ],
+  "labels": [
+    {
+      "text": "Burner",
+      "anchor": [
+        3.0,
+        2.4,
+        0.5
+      ],
+      "position": null
+    }
+  ],
+  "show_dimensions": true,
+  "show_labels": true,
+  "floors": {
+    "floors": [],
+    "layout": "vertical",
+    "separation": 0.0,
+    "clip_walls": false,
+    "wall_height": 2.0,
+    "visible": null
+  },
+  "skybox": {
+    "kind": "none",
+    "files": [],
+    "z_rotation": 0.0,
+    "show": true,
+    "compress_textures": false
+  },
+  "timelines": {
+    "reference_time": "2000-01-01T00:00:00",
+    "display_format": "regional",
+    "fds_offset": 0.0,
+    "view_timeline": "automatic",
+    "begin": 0.0,
+    "end": 0.0
+  },
+  "units": {
+    "temperature": "C",
+    "concentration": "mol/mol",
+    "mass_fraction": "kg/kg"
+  },
+  "time_display": "time",
+  "motion_blur": false,
+  "csv_files": [
+    {
+      "path": "E:\\firetwins\\examples\\demo_room_fire\\gui_run\\demo_room_hrr.csv",
+      "csv_type": "FDS heat release",
+      "time_column": 1,
+      "header_rows": 2,
+      "description_row": 2,
+      "quantity_row": null,
+      "unit_row": 1
+    },
+    {
+      "path": "E:\\firetwins\\examples\\demo_room_fire\\gui_run\\demo_room_devc.csv",
+      "csv_type": "FDS devices",
+      "time_column": 1,
+      "header_rows": 2,
+      "description_row": 2,
+      "quantity_row": null,
+      "unit_row": 1
+    }
+  ],
+  "general": {
+    "one_geometry_at_a_time": true,
+    "show_previous_on_open": true,
+    "allow_multiple_quantities": true,
+    "allow_conflicting_results": true,
+    "begin_playback_on_activation": false,
+    "dimension_precision": 3
+  },
+  "rendering": {
+    "level_of_detail": true,
+    "vertex_buffers": true,
+    "async_frames": true,
+    "ambient_occlusion": false,
+    "antialiasing": "smaa_1x",
+    "anisotropic_filtering": 1,
+    "image_based_lighting": false,
+    "slice_renderer": "hardware",
+    "data3d_slice_renderer": "hardware",
+    "smoke_renderer": "hardware",
+    "data3d_renderer": "hardware",
+    "reduce_banding": true,
+    "advanced_lighting": false
+  },
+  "playback_speed": 1.0,
+  "playback_loop": false
+}

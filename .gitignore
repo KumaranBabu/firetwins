@@ -19,19 +19,15 @@ dist/
 .claude/
 tmp_async_test/
 
-# Example cases: keep the scripts and the small model files, drop everything FDS and the viewer produce
+# Example cases: the older command-line run of the first demo is superseded by gui_run/
 examples/*/run/
-examples/*/gui/
-examples/*/gui_run/
-examples/*/gui_results/
-examples/*/gui_viewer/
 examples/*/results/
-examples/*/gui_viewer_shots/
-examples/**/*.pdf
-examples/**/*.html
-examples/**/*.mp4
-examples/**/*.png
-examples/**/*.pyfdsv
+examples/**/*.pyfcache
+examples/**/*.pyfstats
+# generated copies of the manuals (the PDFs are kept; manual_body.html and manual_template.html are the sources)
+examples/*/USER_MANUAL.html
+examples/*/fine_mesh_manual.html
+examples/*/user_manual_postprocessing.html
 
 # FDS / Smokeview output anywhere
 *.smv
@@ -55,3 +51,14 @@ Thumbs.db
 # ...but the test fixtures are small and the tests need them
 !tests/fixtures/
 !tests/fixtures/**
+
+# ...and the two demo-room cases are kept whole, with their FDS results, screenshots, films and PDF manuals (client trials)
+!examples/demo_room_fire/gui_run/
+!examples/demo_room_fire/gui_run/**
+!examples/fine_mesh_demo_room/gui_run/
+!examples/fine_mesh_demo_room/gui_run/**
+!examples/*/gui_results/**
+!examples/*/gui_viewer/**
+!examples/*/gui/**
+examples/**/*.pyfcache
+examples/**/*.pyfstats

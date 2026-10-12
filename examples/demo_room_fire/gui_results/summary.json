@@ -1,0 +1,21 @@
+{
+  "peak_hrr_kw": 370.0,
+  "detector_trip_s": 11.0,
+  "thermocouples_20s": {
+    "TC_060": 707.0,
+    "TC_120": 432.0,
+    "TC_180": 302.0,
+    "TC_230": 280.0
+  },
+  "probes_20s": {
+    "above burner 1.2 m": [
+      414.8
+    ],
+    "under ceiling": [
+      229.1
+    ],
+    "doorway": [
+      45.1
+    ]
+  }
+}

@@ -37,6 +37,7 @@ from .menus_run_results import MenusRunResultsMixin
 from .menus_tools_help import MenusToolsHelpMixin
 from .panels import PanelsMixin
 from .workspaces import WorkspacesMixin
+from .central_tabs import CentralTabsMixin
 from .placeholders import PlaceholderMixin
 
 
@@ -59,6 +60,7 @@ class MainWindow(
     PlaceholderMixin,
     PanelsMixin,
     WorkspacesMixin,
+    CentralTabsMixin,
     QMainWindow,
 ):
     """Primary application window. The AI panel is one optional dock among many."""
@@ -84,7 +86,7 @@ class MainWindow(
         self.addDockWidget(Qt.LeftDockWidgetArea, self.explorer_dock)
 
         self.viewport_widget = self._build_viewport_widget()
-        self.setCentralWidget(self.viewport_widget)
+        self._build_central_tabs()
         if hasattr(self.viewport_widget, "entity_picked"):
             self.viewport_widget.entity_picked.connect(self.explorer.select_entity)
         if hasattr(self.viewport_widget, "selection_changed"):
@@ -96,6 +98,7 @@ class MainWindow(
         self.addDockWidget(Qt.RightDockWidgetArea, self.agent_dock)
         self._build_panels()
         self._build_extra_panels()
+        self._build_cursor_label()
 
         self._build_menu()
         from pyfds.gui.extras import install_extras
@@ -201,6 +204,8 @@ class MainWindow(
         self.output_panel.shutdown()
         if getattr(self, "_persist_layout", False):
             self.save_layout()
+        if self._results_window is not None:
+            self._results_window.close()
         if hasattr(self.viewport_widget, "shutdown"):
             self.viewport_widget.shutdown()
         for sub_id in self._status_sub_ids + self._panel_sub_ids:

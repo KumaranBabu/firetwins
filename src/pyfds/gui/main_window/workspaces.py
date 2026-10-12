@@ -73,6 +73,8 @@ class WorkspacesMixin:
             self.messages_tabs.setCurrentWidget(tab)
         if name == "results":
             self.results_panel.refresh()
+        if name == "model":
+            self.show_model_tab()
         self.statusBar().showMessage(f"Workspace: {name}.", 4000)
 
     # -- layout persistence (real application only; tests never touch the settings) ---------------

@@ -89,6 +89,7 @@ class Viewport3D(QWidget):
     #: Z range and calls the dispatcher with the same tool_name any other
     #: "Add..." menu action uses.
     box_footprint_picked = Signal(str, float, float, float, float)
+    cursor_moved = Signal(object)      # (x, y, z) in model coordinates under the mouse, or None when it leaves
 
     def __init__(self, api: FdsApi, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
@@ -107,6 +108,9 @@ class Viewport3D(QWidget):
 
         self._sub_ids = [api.subscribe(t, self._on_scene_event) for t in _REFRESH_EVENTS]
         self._camera_sub_id = api.subscribe(EventType.VIEWPORT_CAMERA_CHANGED, self._on_camera_event)
+
+        from .viewport_cursor import install_cursor_tracking
+        install_cursor_tracking(self.plotter, self.cursor_moved.emit)
 
         self.refresh()
         self.plotter.reset_camera()  # sensible initial framing only, once

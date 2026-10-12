@@ -155,3 +155,34 @@ def test_status_labels_follow_selection_and_run(win, tmp_path):
     win._update_run_label()
     assert win.run_label.text() == "Run: running 25%"
     win.run_panel.timer.stop()
+
+
+def test_results_open_in_a_tab_beside_the_model(win, monkeypatch):
+    from pyfds.gui.results.window import ResultsWindow
+    opened = []
+    monkeypatch.setattr(ResultsWindow, "open_results", lambda self, smv=None: opened.append(smv))
+    assert win.view_tabs.count() == 1
+    first = win.show_results_tab("a.smv")
+    assert win.view_tabs.count() == 2 and win.view_tabs.currentWidget() is first and opened == ["a.smv"]
+    assert win._results_window is first and not first.isWindow()
+    assert win.show_results_tab("b.smv") is first and win.view_tabs.count() == 2     # reused, not duplicated
+    win.show_model_tab()
+    assert win.view_tabs.currentWidget() is win.viewport_widget
+    win._on_close_view_tab(0)                                                      # the Model tab cannot be closed
+    assert win.view_tabs.count() == 2
+    win._on_close_view_tab(1)
+    assert win.view_tabs.count() == 1 and win._results_window is None
+
+
+def test_cursor_label_formats_and_clears(win):
+    win._update_cursor_label((1.0, 2.5, 0.0))
+    assert win.cursor_label.text() == "x 1.00  y 2.50  z 0.00 m"
+    win._update_cursor_label(None)
+    assert win.cursor_label.text() == ""
+
+
+def test_ray_floor_point():
+    from pyfds.gui.viewport_cursor import ray_floor_point
+    assert ray_floor_point((0, 0, 10), (2, 4, -10)) == (1.0, 2.0, 0.0)
+    assert ray_floor_point((0, 0, 5), (1, 1, 5)) is None          # parallel to the floor
+    assert ray_floor_point((0, 0, 5), (1, 1, 9)) is None          # floor is behind the ray

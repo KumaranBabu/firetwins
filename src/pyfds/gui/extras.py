@@ -141,13 +141,7 @@ def install_extras(w) -> None:
             results.addAction(act)
 
     def results_window(smv: Optional[str] = None) -> None:
-        from .results.window import ResultsWindow
-        win = ResultsWindow(api, w)
-        win.setAttribute(Qt.WA_DeleteOnClose)
-        w._results_window = win
-        win.show()
-        if smv:
-            win.open_results(smv)
+        w.show_results_tab(smv)               # a tab next to the 3D model (see central_tabs.py)
 
     if results is not None:
         act3d = QAction("&View Results (3D)...", results)

@@ -30,6 +30,7 @@ class PanelsMixin:
         self.messages_dock.setObjectName("MessagesDock")
         self.messages_dock.setWidget(self.messages_tabs)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.messages_dock)
+        self.resizeDocks([self.messages_dock], [210], Qt.Vertical)   # keep the 3D view the biggest area
         self.messages_dock.hide()                 # opens when a validation or a run produces something
 
         self.explorer.itemSelectionChanged.connect(self._on_selection_changed)
@@ -47,6 +48,8 @@ class PanelsMixin:
         """A command changed the model: refresh the form unless the user is typing in it."""
         if not self.properties_panel.isAncestorOf(self.focusWidget()):
             self.properties_panel.reload()
+        if hasattr(self, "layers_panel"):
+            self.layers_panel.sync()
 
     # -- Messages ----------------------------------------------------------------------------------
     def _show_messages(self, panel) -> None:

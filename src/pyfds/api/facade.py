@@ -313,6 +313,11 @@ class FdsApi:
         """``with api.transaction("Build room", actor="agent"):`` -> ONE undo step."""
         return self.history.transaction(label, actor)
 
+    def fds_text(self) -> str:
+        """The FDS input file the current project would be written as (preview, nothing is saved)."""
+        from pyfds.io.fds_writer import FdsWriter
+        return FdsWriter().to_string(self._project)
+
     def info(self) -> str:
         """Return a human-readable summary of the current project."""
         p = self._project

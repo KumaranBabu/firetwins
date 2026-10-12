@@ -45,9 +45,13 @@ class MenusToolsHelpMixin:
 
         panels_menu = window_menu.addMenu("Show &Panels")
         panels_menu.addAction(self.explorer_dock.toggleViewAction())
+        panels_menu.addAction(self.layers_dock.toggleViewAction())
         panels_menu.addAction(self.properties_dock.toggleViewAction())
         panels_menu.addAction(self.messages_dock.toggleViewAction())
         panels_menu.addAction(self.agent_dock.toggleViewAction())
+        workspaces = window_menu.addMenu("&Workspaces")
+        for label, key in (("&Model", "model"), ("&Run", "run"), ("&Results", "results")):
+            workspaces.addAction(label, lambda k=key: self._apply_workspace(k))
         window_menu.addAction("&Layouts...", self._on_layouts)
         window_menu.addAction("&Workspace...", self._on_workspace)
         window_menu.addSeparator()

@@ -32,7 +32,7 @@ def _field(panel, name):
 def test_panels_exist_and_have_toggles(win):
     assert win.properties_dock.windowTitle() == "Properties"
     assert win.messages_dock.windowTitle() == "Messages"
-    assert win.messages_tabs.count() == 2
+    assert win.messages_tabs.count() == 4
     titles = [a.text().replace("&", "") for a in win.menuBar().actions()]
     assert "Window" in titles
     assert win.properties_dock.toggleViewAction().text() == "Properties"
@@ -95,4 +95,63 @@ def test_monitor_menu_uses_the_panel(win, tmp_path):
     win.api.project.chid = "case"
     win._show_run_monitor()
     assert win.messages_tabs.currentWidget() is win.run_panel and not win.messages_dock.isHidden()
+    win.run_panel.timer.stop()
+
+
+def test_layers_panel_toggles_viewport_flags(win):
+    from pyfds.core.viewport import VisibilityFlags
+    from PySide6.QtCore import Qt
+    panel = win.layers_panel
+    item = panel._items[VisibilityFlags.OBSTRUCTIONS]
+    item.setCheckState(Qt.Unchecked)
+    assert not win.api.viewport.state.is_visible(VisibilityFlags.OBSTRUCTIONS)
+    panel.set_all(True)
+    assert win.api.viewport.state.is_visible(VisibilityFlags.OBSTRUCTIONS) and item.checkState() == Qt.Checked
+    win.api.viewport.set_visibility(VisibilityFlags.VENTS, False)
+    panel.sync()
+    assert panel._items[VisibilityFlags.VENTS].checkState() == Qt.Unchecked
+
+
+def test_output_panel_previews_fds_and_logs(win):
+    import logging
+    win.output_panel.refresh_fds()
+    assert "&HEAD" in win.output_panel.fds.toPlainText()
+    logging.getLogger("pyfds.test").info("hello panel")
+    assert "hello panel" in win.output_panel.log.toPlainText()
+
+
+def test_results_panel_lists_and_opens(app, tmp_path):
+    from pyfds.gui.panels.results_panel import ResultsPanel, find_result_sets
+    (tmp_path / "run1").mkdir()
+    (tmp_path / "run1" / "case.smv").write_text("x")
+    assert [p.name for p in find_result_sets(str(tmp_path))] == ["case.smv"]
+    opened = []
+    panel = ResultsPanel(lambda: str(tmp_path), opened.append)
+    assert panel.list.count() == 1 and panel.open_button.isEnabled()
+    panel.open_selected()
+    assert opened and opened[0].endswith("case.smv")
+    empty = ResultsPanel(lambda: None, opened.append)
+    assert empty.list.count() == 0 and not empty.open_button.isEnabled()
+
+
+def test_workspaces_show_the_right_panels(win):
+    win.show()
+    win._apply_workspace("run")
+    assert not win.messages_dock.isHidden() and win.messages_tabs.currentWidget() is win.run_panel
+    assert win.properties_dock.isHidden()
+    win._apply_workspace("model")
+    assert not win.properties_dock.isHidden() and not win.layers_dock.isHidden()
+    win._apply_workspace("results")
+    assert win.messages_tabs.currentWidget() is win.results_panel and win.properties_dock.isHidden()
+
+
+def test_status_labels_follow_selection_and_run(win, tmp_path):
+    ob = win.api.obstructions.add_obstruction([0, 1, 0, 1, 0, 1], name="BOX")
+    win.explorer.refresh()
+    win.explorer.select_entity("obstructions", ob)
+    assert win.selection_label.text() == "1 selected"
+    (tmp_path / "case.out").write_text("Total Time: 5.0 s\n")
+    win.run_panel.watch(str(tmp_path), "case", 20.0)
+    win._update_run_label()
+    assert win.run_label.text() == "Run: running 25%"
     win.run_panel.timer.stop()

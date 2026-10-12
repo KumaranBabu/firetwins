@@ -1,5 +1,6 @@
-"""Results-viewer data tools: views / tours / section boxes, floors, annotations, capture planning, CSV loading,
-timelines and Data3D (points, slices, isosurfaces)."""
+"""Results-viewer data tools: views / tours / section boxes, floors, annotations, capture planning, CSV loading, (part 1 of 2)."""
+
+
 from __future__ import annotations
 
 import json
@@ -26,7 +27,6 @@ FIX = Path(__file__).parent.parent / "fixtures" / "results_room"
 def vp(x=0.0):
     return vm.Viewpoint(position=(x, 0, 0))
 
-
 # -- tours ---------------------------------------------------------------------------------------------------
 def tour3():
     t = vm.Tour()
@@ -45,7 +45,6 @@ def test_camera_follows_keyframes_with_smooth_and_stationary_transitions():
     with pytest.raises(ValueError):
         vw.camera_at(vm.Tour(), 0)
 
-
 def test_tour_repeat_with_delay():
     t = tour3()
     t.repeat, t.repeat_delay = True, 10.0
@@ -55,7 +54,6 @@ def test_tour_repeat_with_delay():
     t2 = tour3()
     t2.repeat = True                                                            # no delay: straight to the start again
     assert vw.camera_at(t2, 20.5).position[0] == pytest.approx(0.0, abs=2.0) or vw.camera_at(t2, 20.5).position[0] < 30
-
 
 def test_keyframe_editing():
     t = tour3()
@@ -72,7 +70,6 @@ def test_keyframe_editing():
     with pytest.raises(IndexError):
         vw.remove_keyframes(t, [7])
 
-
 def test_shift_keyframes_stays_between_neighbours():
     t = tour3()
     vw.shift_keyframes(t, [1], new_time=12.0)
@@ -87,7 +84,6 @@ def test_shift_keyframes_stays_between_neighbours():
         vw.shift_keyframes(t, [1])
     with pytest.raises(ValueError):
         vw.shift_keyframes(t, [])
-
 
 def test_duplicate_keyframes_modes():
     t = tour3()
@@ -105,7 +101,6 @@ def test_duplicate_keyframes_modes():
                 lambda: vw.duplicate_keyframes(tour3(), [], "end_of_tour"), lambda: vw.duplicate_keyframes(tour3(), [9])):
         with pytest.raises((ValueError, IndexError)):
             bad()
-
 
 # -- views and section boxes --------------------------------------------------------------------------------------
 def test_views_lifecycle():
@@ -139,7 +134,6 @@ def test_views_lifecycle():
     with pytest.raises(ValueError):
         vw.set_section_box(viz, "From PyroSim", vw.new_section_box((0, 1, 0, 1, 0, 1)))
 
-
 def test_section_box_planes_clip_and_validate():
     box = vw.new_section_box((0, 4, 0, 3, 0, 2.5), enabled_planes=("x_min", "z_max"))
     assert box.active() == {"x_min": 0.0, "z_max": 2.5}
@@ -163,7 +157,6 @@ def test_section_box_planes_clip_and_validate():
     vw.set_section_box(viz, "A", None)
     assert vw.active_section(viz) is None and vw.active_tour(viz) is None
 
-
 def test_views_export_and_import_keep_names_unique():
     viz = vm.ResultsVisualization()
     vw.new_view(viz, "Door")
@@ -178,7 +171,6 @@ def test_views_export_and_import_keep_names_unique():
     for bad in ("nope", json.dumps({"x": 1})):
         with pytest.raises(ValueError):
             vw.import_views(other, bad)
-
 
 # -- floors -----------------------------------------------------------------------------------------------
 def test_floor_assignment_and_layouts():
@@ -203,7 +195,6 @@ def test_floor_assignment_and_layouts():
     assert moved[0, 0] == 1 and moved[1, 0] == 12 and moved[2, 1] == pytest.approx(1.0 - 6.0)    # 2x2 grid, row-major
     assert [n for n, _ in h.labels()] == ["Floor 1", "Floor 2", "Floor 3"]
 
-
 def test_floor_visibility_and_wall_clipping():
     s = vm.FloorSettings(floors=[0.0, 3.0], clip_walls=True, wall_height=1.0)
     lay = fl.FloorLayout(s, (0, 5, 0, 5, 0, 6))
@@ -219,7 +210,6 @@ def test_floor_visibility_and_wall_clipping():
         fl.FloorLayout(vm.FloorSettings(layout="diagonal"), (0, 1, 0, 1, 0, 1))
     assert not fl.FloorLayout(vm.FloorSettings(), (0, 1, 0, 1, 0, 1)).active
 
-
 # -- annotations -----------------------------------------------------------------------------------------------
 def test_dimensions_measure_along_feature_or_axis():
     g = an.dimension_geometry(vm.Dimension((0, 0, 0), (3, 4, 0)))
@@ -233,7 +223,6 @@ def test_dimensions_measure_along_feature_or_axis():
     for bad in (vm.Dimension((1, 1, 1), (1, 1, 1)), vm.Dimension((0, 0, 0), (0, 4, 0), "along_x"), vm.Dimension((0, 0, 0), (1, 0, 0), "diag")):
         with pytest.raises(ValueError):
             an.dimension_geometry(bad)
-
 
 def test_annotation_lists():
     viz = vm.ResultsVisualization()
@@ -251,7 +240,6 @@ def test_annotation_lists():
         with pytest.raises(ValueError):
             bad()
 
-
 # -- capture planning ----------------------------------------------------------------------------------------------
 def test_screenshot_plans_and_file_names(tmp_path):
     (s,) = cap.single(str(tmp_path / "a.png"), 5.0)
@@ -264,7 +252,6 @@ def test_screenshot_plans_and_file_names(tmp_path):
     for bad in (lambda: cap.multiple("x.png", 0, 10, 0), lambda: cap.multiple("x.png", 5, 1, 1)):
         with pytest.raises(ValueError):
             bad()
-
 
 def test_tsv_screenshots_with_quoting(tmp_path):
     text = 'time\tx\n0.0\tTop\tFront\n30.0\t"Floor 0"\tLeft\n120.0\tTop\n\n'.split("\n", 1)[1]
@@ -279,7 +266,6 @@ def test_tsv_screenshots_with_quoting(tmp_path):
         cap.parse_tsv("abc\tTop")
     assert cap.safe_name('a/b:c"d') == "a_b_c_d"
 
-
 def test_movie_plan():
     p = cap.movie_plan("m.mp4", 0, 10, fps=10, speed=2.0, size=(1281, 721))
     assert p.times[:3] == [0.0, 0.2, 0.4] and p.times[-1] == pytest.approx(10.0) and p.size == (1280, 720) and len(p.times) == 51
@@ -287,7 +273,6 @@ def test_movie_plan():
         with pytest.raises(ValueError):
             bad()
     assert Path(cap.frame_path("d", "s", 7)).name == "s_00007.png"
-
 
 def test_command_line_options(tmp_path):
     r = cap.parse_cli(["-screenshot", "-ssname", "shots/a.png", "-sswidth", "1280", "-ssheight", "720", "-ssview", "Entrance",
@@ -306,7 +291,6 @@ def test_command_line_options(tmp_path):
         with pytest.raises(ValueError):
             cap.parse_cli(bad)
 
-
 # -- CSV -----------------------------------------------------------------------------------------------------------
 def test_load_real_fds_csv_files():
     for name, series in (("rroom_hrr.csv", "HRR"), ("rroom_devc.csv", "TC_120")):
@@ -317,7 +301,6 @@ def test_load_real_fds_csv_files():
         assert len(s.times) > 5 and np.all(np.diff(s.times) > 0)
     hrr = next(x for x in cl.load(cl.guess_type(str(FIX / "rroom_hrr.csv"))).series if x.description == "HRR")
     assert hrr.unit == "kW" and hrr.values.max() > 100
-
 
 def test_load_csv_header_layouts(tmp_path):
     p = tmp_path / "a.csv"
@@ -331,7 +314,6 @@ def test_load_csv_header_layouts(tmp_path):
     d2 = cl.load(vm.CsvFileRef(str(q), "custom", 1, 1, 1, None, None))
     assert [(s.description, s.quantity, s.unit) for s in d2.series] == [("Door01", "Flowrate", "occs/s"), ("Door01", "Width", "m")]
     assert cl.preview(str(p), rows=2, cols=2) == [["Time", "Region00"], ["Time", "Density"]]
-
 
 def test_load_csv_problems(tmp_path):
     p = tmp_path / "c.csv"
@@ -349,7 +331,6 @@ def test_load_csv_problems(tmp_path):
     with pytest.raises(ValueError, match="decrease"):
         cl.load(vm.CsvFileRef(str(p), "custom", 1, 1, 1, None, None))
 
-
 def test_export_series_union_of_times(tmp_path):
     a = cl.TimeSeries("A", "", "kW", np.array([0.0, 1.0, 2.0]), np.array([0.0, 10.0, 20.0]))
     b = cl.TimeSeries("B", "temp", "C", np.array([0.5, 2.0]), np.array([100.0, 200.0]))
@@ -364,71 +345,3 @@ def test_export_series_union_of_times(tmp_path):
     for bad in (lambda: cl.export([], str(out)), lambda: cl.export([a], str(out), ";")):
         with pytest.raises(ValueError):
             bad()
-
-
-# -- timelines ---------------------------------------------------------------------------------------------------
-def test_timelines_and_time_display():
-    tl = vm.Timelines(reference_time="2018-06-03T15:47:00", display_format="iso8601")
-    assert tm.format_clock(tl, 90) == "2018-06-03 15:48:30"
-    assert tm.format_elapsed(125.5) == "2:05.5" and tm.format_elapsed(-3.0) == "-0:03.0"
-    assert tm.overlay_text(tl, "none", 5) == "" and tm.overlay_text(tl, "time", 61) == "1:01.0"
-    assert tm.overlay_text(tl, "date_time", 0).startswith("2018-06-03 15:47")
-    tm.set_reference(tl, datetime(2003, 3, 23, 15, 0, 0))
-    assert tl.reference_time == "2003-03-23T15:00:00"
-    assert tm.view_range(tl, (0, 20), None) == (0, 20) and tm.view_range(tl, (0, 20), (5, 9)) == (5, 9)
-    tl.view_timeline, tl.begin, tl.end = "custom", 2, 8
-    assert tm.view_range(tl, (0, 20), (5, 9)) == (2, 8)
-    tl.end = 1
-    with pytest.raises(ValueError):
-        tm.view_range(tl, None, None)
-    assert tm.check(vm.Timelines(reference_time="soon", display_format="x", view_timeline="y")) and not tm.check(vm.Timelines())
-    with pytest.raises(ValueError):
-        tm.overlay_text(vm.Timelines(), "weird", 1)
-
-
-# -- Data3D ----------------------------------------------------------------------------------------------------
-def sphere_volume(n=31, r=0.7):
-    ax = np.linspace(-1, 1, n)
-    X, Y, Z = np.meshgrid(ax, ax, ax, indexing="ij")
-    return RectilinearVolume("v", "DIST", "m", ax, ax, ax, np.sqrt(X ** 2 + Y ** 2 + Z ** 2))
-
-
-def test_data3d_points_and_slices():
-    v = sphere_volume()
-    assert d3.sample_point(v, (0.5, 0, 0)) == pytest.approx(0.5, abs=0.01)
-    assert math.isnan(d3.sample_point(v, (5, 0, 0))) and d3.inside(v, (0, 0, 0)) and not d3.inside(v, (2, 0, 0))
-    assert d3.point_series([v, v], (0, 0, 0.3)).shape == (2,)
-    with pytest.raises(ValueError):
-        d3.sample_point(v, (0, 0))
-    s = d3.slice_plane(v, (0, 0, 0), (0, 0, 1))
-    assert s.axis == "z" and s.position == 0.0 and np.nanmin(s.values) < 0.05 and np.nanmax(s.values) > 1.2
-    tilted = d3.slice_plane(v, (0, 0, 0), (1, 1, 1))
-    assert tilted.axis is None and np.isfinite(tilted.values).any()
-    assert d3.slice_plane(v, (0, 0, 5), (0, 0, 1)) is None
-    with pytest.raises(ValueError):
-        d3.slice_plane(v, (0, 0, 0), (0, 0, 0))
-
-
-def test_isosurface_of_a_sphere_has_the_right_area_and_radius():
-    v = sphere_volume(n=41)
-    m = d3.isosurface(v, 0.7)
-    assert len(m.faces) > 500 and m.level == 0.7
-    r = np.linalg.norm(m.vertices, axis=1)
-    assert r.min() > 0.67 and r.max() < 0.73
-    tri = m.vertices[m.faces]
-    area = 0.5 * np.linalg.norm(np.cross(tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0]), axis=1).sum()
-    assert area == pytest.approx(4 * math.pi * 0.7 ** 2, rel=0.03)
-    assert len(d3.isosurface(v, 99.0).faces) == 0 and len(d3.isosurface(v, -1.0).faces) == 0
-
-
-def test_isosurface_on_the_real_fire_volume():
-    from pyfds.results.viz.dataset import ResultsDataset
-    from pyfds.results.viz.fds_run import parse_smv
-    from pyfds.results.viz.tree import build_tree
-    run = parse_smv(str(FIX / "rroom.smv"))
-    viz = vm.ResultsVisualization()
-    root = build_tree(run, viz)
-    leaf = root.find("root/FDS Results/3D Slices/TEMPERATURE/T_3D/Mesh 1")
-    (vol,) = ResultsDataset(run, viz, use_cache=False).primitives(leaf, 6.0)
-    m = d3.isosurface(vol, 100.0)
-    assert len(m.faces) > 50 and m.vertices[:, 2].min() >= 0 and m.vertices[:, 0].max() <= 1.5 + 1e-9

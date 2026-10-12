@@ -1,12 +1,6 @@
-"""
-Unit tests — Phase 2 results modules.
+"""Unit tests — Phase 2 results modules. (part 1 of 1). (part 2 of 3)."""
 
-Covers:
-  - Plot3DReader / Plot3DResult
-  - ParticleReader / ParticleResult / ParticleClass / ParticleFrame
-  - plotters (smoke tests — verify Figure objects returned, no visual check)
-  - SimulationReport / ReportSection
-"""
+
 from __future__ import annotations
 
 import io
@@ -17,34 +11,23 @@ from unittest.mock import MagicMock
 import numpy as np
 import pytest
 
-# ---------------------------------------------------------------------------
-# Helpers — Fortran binary record construction
-# ---------------------------------------------------------------------------
 
 def _fr(data: bytes) -> bytes:
     """Wrap bytes in a Fortran unformatted record."""
     n = struct.pack("<i", len(data))
     return n + data + n
 
-
 def _str30(s: str) -> bytes:
     """Encode s as a 30-char padded ASCII string (not wrapped in record)."""
     return s.encode("ascii").ljust(30)[:30]
-
 
 def _str_record(s: str) -> bytes:
     """Single 30-char string wrapped in Fortran record."""
     return _fr(_str30(s))
 
-
 def _str_block_record(strings: List[str]) -> bytes:
     """Multiple 30-char strings concatenated and wrapped in one record."""
     return _fr(b"".join(_str30(s) for s in strings))
-
-
-# ---------------------------------------------------------------------------
-# Fixtures — .q (Plot3D) binary
-# ---------------------------------------------------------------------------
 
 @pytest.fixture
 def fake_plot3d_file(tmp_path):
@@ -78,11 +61,6 @@ def fake_plot3d_file(tmp_path):
     path = tmp_path / "case_01.q"
     path.write_bytes(buf.getvalue())
     return str(path)
-
-
-# ---------------------------------------------------------------------------
-# Fixtures — .prt5 (Particle) binary
-# ---------------------------------------------------------------------------
 
 @pytest.fixture
 def fake_prt5_file(tmp_path):
@@ -138,103 +116,17 @@ def fake_prt5_file(tmp_path):
     path.write_bytes(buf.getvalue())
     return str(path)
 
+@pytest.fixture
+def mock_matplotlib(monkeypatch):
+    """Provide a real matplotlib Figure if available, else skip."""
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+        return plt
+    except ImportError:
+        pytest.skip("matplotlib not installed")
 
-# ---------------------------------------------------------------------------
-# TestPlot3DReader
-# ---------------------------------------------------------------------------
-
-class TestPlot3DReader:
-
-    def test_read_returns_plot3d_result(self, fake_plot3d_file):
-        from pyfds.results.plot3d_reader import Plot3DReader, Plot3DResult
-        result = Plot3DReader.read(fake_plot3d_file)
-        assert isinstance(result, Plot3DResult)
-
-    def test_quantities_parsed(self, fake_plot3d_file):
-        from pyfds.results.plot3d_reader import Plot3DReader
-        result = Plot3DReader.read(fake_plot3d_file)
-        assert "TEMPERATURE" in result.quantities
-        assert "PRESSURE" in result.quantities
-
-    def test_units_parsed(self, fake_plot3d_file):
-        from pyfds.results.plot3d_reader import Plot3DReader
-        result = Plot3DReader.read(fake_plot3d_file)
-        assert result.units[0] == "C"
-        assert result.units[1] == "Pa"
-
-    def test_shape_correct(self, fake_plot3d_file):
-        from pyfds.results.plot3d_reader import Plot3DReader
-        result = Plot3DReader.read(fake_plot3d_file)
-        assert result.shape == (3, 3, 2)
-
-    def test_n_frames(self, fake_plot3d_file):
-        from pyfds.results.plot3d_reader import Plot3DReader
-        result = Plot3DReader.read(fake_plot3d_file)
-        assert result.n_frames == 3
-
-    def test_times_monotonic(self, fake_plot3d_file):
-        from pyfds.results.plot3d_reader import Plot3DReader
-        result = Plot3DReader.read(fake_plot3d_file)
-        assert list(result.times) == [0.0, 1.0, 2.0]
-
-    def test_data_shape(self, fake_plot3d_file):
-        from pyfds.results.plot3d_reader import Plot3DReader
-        result = Plot3DReader.read(fake_plot3d_file)
-        # (n_frames, n_qty, ni, nj, nk)
-        assert result.data.shape == (3, 2, 3, 3, 2)
-
-    def test_n_quantities_property(self, fake_plot3d_file):
-        from pyfds.results.plot3d_reader import Plot3DReader
-        result = Plot3DReader.read(fake_plot3d_file)
-        assert result.n_quantities == 2
-
-    def test_quantity_index(self, fake_plot3d_file):
-        from pyfds.results.plot3d_reader import Plot3DReader
-        result = Plot3DReader.read(fake_plot3d_file)
-        assert result.quantity_index("TEMPERATURE") == 0
-        assert result.quantity_index("PRESSURE") == 1
-        assert result.quantity_index("MISSING") is None
-
-    def test_get_quantity(self, fake_plot3d_file):
-        from pyfds.results.plot3d_reader import Plot3DReader
-        result = Plot3DReader.read(fake_plot3d_file)
-        temp = result.get_quantity("TEMPERATURE")
-        assert temp is not None
-        assert temp.shape == (3, 3, 3, 2)  # (n_frames, ni, nj, nk)
-
-    def test_get_quantity_missing_returns_none(self, fake_plot3d_file):
-        from pyfds.results.plot3d_reader import Plot3DReader
-        result = Plot3DReader.read(fake_plot3d_file)
-        assert result.get_quantity("VELOCITY") is None
-
-    def test_frame_method(self, fake_plot3d_file):
-        from pyfds.results.plot3d_reader import Plot3DReader
-        result = Plot3DReader.read(fake_plot3d_file)
-        f = result.frame(0)
-        assert f.shape == (2, 3, 3, 2)
-
-    def test_iter_frames_yields_pairs(self, fake_plot3d_file):
-        from pyfds.results.plot3d_reader import Plot3DReader
-        frames = list(Plot3DReader.iter_frames(fake_plot3d_file))
-        assert len(frames) == 3
-        for t, arr in frames:
-            assert isinstance(t, float)
-            assert arr.shape == (2, 3, 3, 2)
-
-    def test_nonexistent_file_raises(self):
-        from pyfds.results.plot3d_reader import Plot3DReader
-        with pytest.raises((FileNotFoundError, OSError)):
-            Plot3DReader.read("/no/such/file.q")
-
-    def test_source_file_stored(self, fake_plot3d_file):
-        from pyfds.results.plot3d_reader import Plot3DReader
-        result = Plot3DReader.read(fake_plot3d_file)
-        assert fake_plot3d_file in result.source_file or result.source_file != ""
-
-
-# ---------------------------------------------------------------------------
-# TestParticleReader
-# ---------------------------------------------------------------------------
 
 class TestParticleReader:
 
@@ -318,23 +210,6 @@ class TestParticleReader:
         from pyfds.results.particle_reader import ParticleReader
         result = ParticleReader.read(fake_prt5_file)
         assert result.chid == "test_case"
-
-
-# ---------------------------------------------------------------------------
-# TestPlotters — smoke tests (verify Figure returned, no rendering)
-# ---------------------------------------------------------------------------
-
-@pytest.fixture
-def mock_matplotlib(monkeypatch):
-    """Provide a real matplotlib Figure if available, else skip."""
-    try:
-        import matplotlib
-        matplotlib.use("Agg")
-        import matplotlib.pyplot as plt
-        return plt
-    except ImportError:
-        pytest.skip("matplotlib not installed")
-
 
 class TestPlotters:
 
@@ -420,153 +295,3 @@ class TestPlotters:
         fig = plot_multi_quantity(mock_result)
         import matplotlib.figure
         assert isinstance(fig, matplotlib.figure.Figure)
-
-
-# ---------------------------------------------------------------------------
-# TestSimulationReport
-# ---------------------------------------------------------------------------
-
-class TestReportSection:
-
-    def test_add_row_and_text(self):
-        from pyfds.results.report import ReportSection
-        sec = ReportSection("Test Section")
-        sec.add_row("FDS version", "6.9.1")
-        sec.add_note("Check this value.")
-        text = sec.as_text()
-        assert "Test Section" in text
-        assert "6.9.1" in text
-        assert "Check this value." in text
-
-    def test_html_escaping(self):
-        from pyfds.results.report import ReportSection
-        sec = ReportSection("Safe <Section>")
-        sec.add_row("key", "<value>")
-        h = sec.as_html()
-        assert "&lt;Section&gt;" in h
-        assert "&lt;value&gt;" in h
-
-    def test_as_html_has_table(self):
-        from pyfds.results.report import ReportSection
-        sec = ReportSection("Stats")
-        sec.add_row("A", "1")
-        h = sec.as_html()
-        assert "<table>" in h
-        assert "<th>" in h
-
-
-class TestSimulationReport:
-
-    @pytest.fixture
-    def stats(self):
-        from pyfds.results.reader import SimulationStats
-        return SimulationStats(
-            chid="test_case",
-            fds_version="6.9.1",
-            t_end=60.0,
-            t_reached=60.0,
-            wall_time_seconds=12.34,
-            completed=True,
-        )
-
-    def test_repr_shows_title(self, stats):
-        from pyfds.results.report import SimulationReport
-        rpt = SimulationReport(stats=stats, title="My Report")
-        assert "My Report" in repr(rpt)
-
-    def test_as_text_contains_title(self, stats):
-        from pyfds.results.report import SimulationReport
-        rpt = SimulationReport(stats=stats, title="Room Fire")
-        text = rpt.as_text()
-        assert "Room Fire" in text
-
-    def test_as_text_contains_stats(self, stats):
-        from pyfds.results.report import SimulationReport
-        rpt = SimulationReport(stats=stats)
-        text = rpt.as_text()
-        assert "6.9.1" in text
-        assert "60" in text
-
-    def test_completed_yes_in_report(self, stats):
-        from pyfds.results.report import SimulationReport
-        rpt = SimulationReport(stats=stats)
-        text = rpt.as_text()
-        assert "Yes" in text
-
-    def test_incomplete_simulation_note(self):
-        from pyfds.results.report import SimulationReport
-        from pyfds.results.reader import SimulationStats
-        s = SimulationStats(completed=False, t_end=60.0, t_reached=30.0)
-        rpt = SimulationReport(stats=s)
-        text = rpt.as_text()
-        assert "partial" in text.lower() or "No" in text
-
-    def test_as_html_is_valid_structure(self, stats):
-        from pyfds.results.report import SimulationReport
-        rpt = SimulationReport(stats=stats, title="HTML Test")
-        h = rpt.as_html()
-        assert "<!DOCTYPE html>" in h
-        assert "<html" in h
-        assert "HTML Test" in h
-        assert "</html>" in h
-
-    def test_device_summary_included(self, stats, fake_devc_csv):
-        from pyfds.results.reader import DeviceReader
-        from pyfds.results.report import SimulationReport
-        results = DeviceReader.read(fake_devc_csv)
-        rpt = SimulationReport(stats=stats, device_results=results)
-        text = rpt.as_text()
-        assert "tc_center" in text
-
-    def test_validation_report_duck_typed(self, stats):
-        from pyfds.results.report import SimulationReport
-        issue = MagicMock()
-        issue.severity = "WARNING"
-        issue.message = "Mesh aspect ratio exceeds 5:1"
-        val = MagicMock()
-        val.issues = [issue]
-        rpt = SimulationReport(stats=stats, validation_report=val)
-        text = rpt.as_text()
-        assert "Mesh aspect ratio" in text
-
-    def test_no_issues_shows_clean_note(self, stats):
-        from pyfds.results.report import SimulationReport
-        val = MagicMock()
-        val.issues = []
-        rpt = SimulationReport(stats=stats, validation_report=val)
-        text = rpt.as_text()
-        assert "No validation issues" in text
-
-    def test_add_custom_section(self, stats):
-        from pyfds.results.report import SimulationReport, ReportSection
-        sec = ReportSection("Custom")
-        sec.add_row("peak_temp", "850 C")
-        rpt = SimulationReport(stats=stats)
-        rpt.add_section(sec)
-        text = rpt.as_text()
-        assert "Custom" in text
-        assert "850 C" in text
-
-    def test_save_text_file(self, stats, tmp_path):
-        from pyfds.results.report import SimulationReport
-        rpt = SimulationReport(stats=stats, title="SaveTest")
-        out = tmp_path / "report.txt"
-        rpt.save(str(out), fmt="text")
-        content = out.read_text(encoding="utf-8")
-        assert "SaveTest" in content
-
-    def test_save_html_file(self, stats, tmp_path):
-        from pyfds.results.report import SimulationReport
-        rpt = SimulationReport(stats=stats, title="HTMLSave")
-        out = tmp_path / "report.html"
-        rpt.save(str(out), fmt="html")
-        content = out.read_text(encoding="utf-8")
-        assert "<!DOCTYPE html>" in content
-        assert "HTMLSave" in content
-
-    def test_no_stats_report_still_renders(self):
-        from pyfds.results.report import SimulationReport
-        rpt = SimulationReport()
-        text = rpt.as_text()
-        assert isinstance(text, str)
-        assert len(text) > 0

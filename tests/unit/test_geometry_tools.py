@@ -1,4 +1,6 @@
-"""Unit tests — pyfds.domain.geometry_tools (GeometryTools)."""
+"""Unit tests — pyfds.domain.geometry_tools (GeometryTools). (part 1 of 1)."""
+
+
 from __future__ import annotations
 
 import math
@@ -9,18 +11,10 @@ from pyfds.domain.geometry_tools import GeometryTools
 from pyfds.domain.model import Geom
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
 def _bounds(geom):
     """Return ((xmin,xmax),(ymin,ymax),(zmin,zmax))."""
     return GeometryTools.bounds(geom)
 
-
-# ---------------------------------------------------------------------------
-# box_geom
-# ---------------------------------------------------------------------------
 
 class TestBoxGeom:
     def test_vertex_count(self):
@@ -60,11 +54,6 @@ class TestBoxGeom:
         g = GeometryTools.box_geom([0, 1, 0, 1, 0, 1])
         for a, b, c in g.faces:
             assert a != b and b != c and a != c
-
-
-# ---------------------------------------------------------------------------
-# sphere
-# ---------------------------------------------------------------------------
 
 class TestSphere:
     def test_vertex_count_formula(self):
@@ -108,11 +97,6 @@ class TestSphere:
         for face in g.faces:
             assert all(0 <= idx < n for idx in face)
 
-
-# ---------------------------------------------------------------------------
-# cylinder
-# ---------------------------------------------------------------------------
-
 class TestCylinder:
     def test_vertex_count_with_caps(self):
         n = 8
@@ -154,11 +138,6 @@ class TestCylinder:
         for face in g.faces:
             assert all(0 <= idx < n for idx in face)
 
-
-# ---------------------------------------------------------------------------
-# cone
-# ---------------------------------------------------------------------------
-
 class TestCone:
     def test_vertex_count_with_cap(self):
         n = 8
@@ -188,11 +167,6 @@ class TestCone:
         n = len(g.verts)
         for face in g.faces:
             assert all(0 <= idx < n for idx in face)
-
-
-# ---------------------------------------------------------------------------
-# extrude_polygon
-# ---------------------------------------------------------------------------
 
 class TestExtrudePolygon:
     def test_vertex_count_square(self):
@@ -232,11 +206,6 @@ class TestExtrudePolygon:
         for face in g.faces:
             assert all(0 <= idx < n for idx in face)
 
-
-# ---------------------------------------------------------------------------
-# merge
-# ---------------------------------------------------------------------------
-
 class TestMerge:
     def test_vertex_count_is_sum(self):
         a = GeometryTools.box_geom([0, 1, 0, 1, 0, 1])
@@ -272,15 +241,6 @@ class TestMerge:
         assert m.name == "Combined"
         assert m.surf_id == "WOOD"
 
-
-# ---------------------------------------------------------------------------
-# bounds utility
-# ---------------------------------------------------------------------------
-
-# ---------------------------------------------------------------------------
-# Negative / degenerate parameter validation
-# ---------------------------------------------------------------------------
-
 class TestParameterValidation:
     def test_sphere_zero_radius_raises(self):
         with pytest.raises(ValueError, match="radius"):
@@ -309,11 +269,6 @@ class TestParameterValidation:
     def test_cone_zero_radius_raises(self):
         with pytest.raises(ValueError, match="radius"):
             GeometryTools.cone((0, 0, 0), 0.0, 1.0)
-
-
-# ---------------------------------------------------------------------------
-# Degenerate / edge cases
-# ---------------------------------------------------------------------------
 
 class TestEdgeCases:
     def test_box_geom_zero_volume_does_not_crash(self):
@@ -349,11 +304,6 @@ class TestEdgeCases:
         assert xmin == pytest.approx(-1e12)
         assert xmax == pytest.approx(1e12)
 
-
-# ---------------------------------------------------------------------------
-# bounds utility
-# ---------------------------------------------------------------------------
-
 class TestBounds:
     def test_empty_geom_returns_zeros(self):
         g = Geom(name="e", surf_id="INERT", verts=[], faces=[])
@@ -365,11 +315,6 @@ class TestBounds:
         assert xmin == pytest.approx(-1.0) and xmax == pytest.approx(2.0)
         assert ymin == pytest.approx(-3.0) and ymax == pytest.approx(4.0)
         assert zmin == pytest.approx(-5.0) and zmax == pytest.approx(6.0)
-
-
-# ---------------------------------------------------------------------------
-# boolean CSG (union / difference / intersection via pyvista/VTK)
-# ---------------------------------------------------------------------------
 
 class TestBoolean:
     def _volume(self, geom):

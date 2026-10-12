@@ -1,14 +1,6 @@
-"""
-Automated regression coverage for the HVAC Network Editor
-(``pyfds.gui.hvac_network_editor``).
+"""Automated regression coverage for the HVAC Network Editor (part 1 of 1)."""
 
-Same headless approach as ``test_main_window_phase2.py``: no real GUI here
-(Qt runs on the offscreen platform), so item drags/clicks are exercised by
-calling the dialog's own methods directly (``add_node_at``, ``_commit_move``,
-``handle_canvas_click``, ...) rather than simulating real QGraphicsScene
-mouse events — the same "call the handler, assert on api/project state"
-style the rest of this app's GUI tests already use.
-"""
+
 from __future__ import annotations
 
 import os
@@ -33,21 +25,19 @@ def qapp():
     app = QApplication.instance() or QApplication([])
     yield app
 
-
 def _make_dialog():
     from pyfds.api import FdsApi
     return HvacNetworkEditorDialog(FdsApi())
 
+class _Accepted:
+    def exec(self):
+        return QDialog.Accepted
 
-# ── Naming helper ────────────────────────────────────────────────────────
 
 def test_next_free_name_skips_existing():
     assert _next_free_name(set(), "Node") == "Node 1"
     assert _next_free_name({"Node 1"}, "Node") == "Node 2"
     assert _next_free_name({"Node 1", "Node 2"}, "Node") == "Node 3"
-
-
-# ── Node / duct creation ─────────────────────────────────────────────────
 
 def test_add_node_at_creates_named_node_at_position():
     dlg = _make_dialog()
@@ -57,14 +47,12 @@ def test_add_node_at_creates_named_node_at_position():
     assert node.name in dlg._node_items
     dlg.close()
 
-
 def test_add_node_auto_increments_names():
     dlg = _make_dialog()
     n1 = dlg.add_node_at(0, 0)
     n2 = dlg.add_node_at(10, 0)
     assert (n1.name, n2.name) == ("Node 1", "Node 2")
     dlg.close()
-
 
 def test_add_duct_links_nodes_by_name():
     dlg = _make_dialog()
@@ -80,7 +68,6 @@ def test_add_duct_links_nodes_by_name():
     assert item.node_item_b.node is b
     dlg.close()
 
-
 def test_handle_canvas_click_add_node_tool_places_node():
     dlg = _make_dialog()
     dlg.set_tool("add_node")
@@ -90,7 +77,6 @@ def test_handle_canvas_click_add_node_tool_places_node():
     node = dlg.api.hvac_nodes.all()[0]
     assert (node.x, node.y) == (5.0, 6.0)
     dlg.close()
-
 
 def test_handle_canvas_click_add_duct_tool_two_click_flow():
     dlg = _make_dialog()
@@ -111,7 +97,6 @@ def test_handle_canvas_click_add_duct_tool_two_click_flow():
     assert dlg.tool == "select"
     dlg.close()
 
-
 def test_handle_canvas_click_add_duct_tool_cancels_on_empty_click():
     dlg = _make_dialog()
     a = dlg.add_node_at(0, 0)
@@ -125,9 +110,6 @@ def test_handle_canvas_click_add_duct_tool_cancels_on_empty_click():
     assert dlg.tool == "select"
     assert dlg.api.hvac_ducts.all() == []
     dlg.close()
-
-
-# ── Drag-to-move ─────────────────────────────────────────────────────────
 
 def test_node_drag_commits_single_undoable_move():
     dlg = _make_dialog()
@@ -143,7 +125,6 @@ def test_node_drag_commits_single_undoable_move():
     assert (node.x, node.y) == (0.0, 0.0)
     dlg.close()
 
-
 def test_node_drag_with_no_movement_commits_nothing():
     dlg = _make_dialog()
     node = dlg.add_node_at(0, 0)
@@ -158,7 +139,6 @@ def test_node_drag_with_no_movement_commits_nothing():
     assert dlg.api.hvac_nodes.all() == []
     dlg.close()
 
-
 def test_duct_line_follows_node_drag_before_commit():
     dlg = _make_dialog()
     a = dlg.add_node_at(0, 0)
@@ -171,9 +151,6 @@ def test_duct_line_follows_node_drag_before_commit():
     assert duct_item.line().p1().y() == 50 or duct_item.line().p2().y() == 50
     dlg.close()
 
-
-# ── Delete ───────────────────────────────────────────────────────────────
-
 def test_delete_selected_removes_node(monkeypatch):
     dlg = _make_dialog()
     node = dlg.add_node_at(0, 0)
@@ -184,7 +161,6 @@ def test_delete_selected_removes_node(monkeypatch):
     dlg.delete_selected()
     assert dlg.api.hvac_nodes.all() == []
     dlg.close()
-
 
 def test_delete_selected_removes_duct(monkeypatch):
     dlg = _make_dialog()
@@ -200,7 +176,6 @@ def test_delete_selected_removes_duct(monkeypatch):
     assert dlg.api.hvac_nodes.all() != []  # nodes untouched by a duct delete
     dlg.close()
 
-
 def test_delete_selected_declines_on_no(monkeypatch):
     dlg = _make_dialog()
     node = dlg.add_node_at(0, 0)
@@ -210,9 +185,6 @@ def test_delete_selected_declines_on_no(monkeypatch):
     dlg.delete_selected()
     assert len(dlg.api.hvac_nodes.all()) == 1
     dlg.close()
-
-
-# ── Properties ───────────────────────────────────────────────────────────
 
 def test_edit_entity_properties_applies_changed_fields(monkeypatch):
     dlg = _make_dialog()
@@ -233,9 +205,6 @@ def test_edit_entity_properties_applies_changed_fields(monkeypatch):
     assert node.x == 99.0
     dlg.close()
 
-
-# ── Fan / Damper / Filter attachment ─────────────────────────────────────
-
 def test_add_component_requires_duct_selection(monkeypatch):
     dlg = _make_dialog()
     informed = []
@@ -243,7 +212,6 @@ def test_add_component_requires_duct_selection(monkeypatch):
     dlg._on_add_component("add_fan", "Fan")
     assert informed
     dlg.close()
-
 
 def test_add_component_prefills_duct_id_and_dispatches(monkeypatch):
     dlg = _make_dialog()
@@ -272,9 +240,6 @@ def test_add_component_prefills_duct_id_and_dispatches(monkeypatch):
     assert dlg.api.fans.all()[0].duct_id == duct.name
     dlg.close()
 
-
-# ── Auto-layout ──────────────────────────────────────────────────────────
-
 def test_auto_layout_only_moves_origin_nodes():
     dlg = _make_dialog()
     a = dlg.add_node_at(0, 0)
@@ -284,7 +249,6 @@ def test_auto_layout_only_moves_origin_nodes():
     assert (a.x, a.y) != (0, 0) or len(dlg.api.hvac_nodes.all()) == 2
     dlg.close()
 
-
 def test_auto_layout_is_noop_with_no_origin_nodes():
     dlg = _make_dialog()
     node = dlg.add_node_at(10, 10)
@@ -292,7 +256,6 @@ def test_auto_layout_is_noop_with_no_origin_nodes():
     dlg.auto_layout()
     assert (node.x, node.y) == before
     dlg.close()
-
 
 def test_auto_layout_undoable_as_one_group():
     dlg = _make_dialog()
@@ -305,9 +268,6 @@ def test_auto_layout_undoable_as_one_group():
     dlg.api.history.undo()
     assert (room.x, room.y) != moved
     dlg.close()
-
-
-# ── Diagnostics ──────────────────────────────────────────────────────────
 
 def test_run_diagnostics_shows_report_and_colors_green_when_converged(monkeypatch):
     dlg = _make_dialog()
@@ -340,7 +300,6 @@ def test_run_diagnostics_shows_report_and_colors_green_when_converged(monkeypatc
     assert dlg._duct_items[duct.name].pen().color() == _OK_COLOR
     dlg.close()
 
-
 def test_run_diagnostics_colors_red_when_not_converged(monkeypatch):
     dlg = _make_dialog()
     a = dlg.add_node_at(0, 0)
@@ -362,7 +321,6 @@ def test_run_diagnostics_colors_red_when_not_converged(monkeypatch):
     assert dlg._duct_items[duct.name].pen().color() == _WARN_COLOR
     dlg.close()
 
-
 def test_run_diagnostics_reports_solver_error(monkeypatch):
     dlg = _make_dialog()
 
@@ -376,21 +334,12 @@ def test_run_diagnostics_reports_solver_error(monkeypatch):
     assert critical
     dlg.close()
 
-
-class _Accepted:
-    def exec(self):
-        return QDialog.Accepted
-
-
-# ── Live refresh ─────────────────────────────────────────────────────────
-
 def test_scene_refreshes_on_external_mutation():
     dlg = _make_dialog()
     assert dlg._node_items == {}
     dlg.api.hvac_nodes.add_node(xyz=[1, 2, 0], name="External")
     assert "External" in dlg._node_items
     dlg.close()
-
 
 def test_scene_refresh_drops_duct_with_deleted_node():
     dlg = _make_dialog()

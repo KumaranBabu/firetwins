@@ -1,11 +1,6 @@
-"""
-Unit tests — Phase 3 remaining items:
-  1. ResultIndex archive/restore (to_dict / from_dict / save / load)
-  2. ResultsManager.archive() / restore()
-  3. plot_timeseries_interactive()
-  4. DB export (export_materials, export_surfaces, export_fuels, export_all)
-  5. EngineeringManager export wrappers
-"""
+"""Unit tests — Phase 3 remaining items: (part 1 of 1)."""
+
+
 from __future__ import annotations
 
 import json
@@ -19,10 +14,6 @@ matplotlib.use("Agg")   # headless; must be before any pyplot import
 import pytest
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
 def _make_minimal_index():
     """Return a ResultIndex with no files scanned (all defaults)."""
     from pyfds.results.indexer import ResultIndex
@@ -33,13 +24,11 @@ def _make_minimal_index():
     idx.particle_files = ["/some/output/test_case.prt5"]
     return idx
 
-
 def _make_mock_api():
     api = MagicMock()
     api.project.chid = "test_case"
     api.config = MagicMock()
     return api
-
 
 def _make_device_results():
     """Minimal fake device results dict with two channels."""
@@ -57,10 +46,6 @@ def _make_device_results():
         ),
     }
 
-
-# ===========================================================================
-# 1. ResultIndex archive / restore
-# ===========================================================================
 
 class TestResultIndexArchive:
 
@@ -157,11 +142,6 @@ class TestResultIndexArchive:
             restored = ResultIndex.load(path)
         assert restored.smv_filepath == "/some/output/test_case.smv"
 
-
-# ===========================================================================
-# 2. ResultsManager.archive() / restore()
-# ===========================================================================
-
 class TestResultsManagerArchiveRestore:
 
     def test_archive_without_index_raises(self):
@@ -208,11 +188,6 @@ class TestResultsManagerArchiveRestore:
             restored = mgr2.restore(path)
         assert restored.plot3d_files == ["/some/output/test_case.q"]
 
-
-# ===========================================================================
-# 3. plot_timeseries_interactive()
-# ===========================================================================
-
 class TestPlotTimeseriesInteractive:
 
     def test_returns_figure(self):
@@ -255,11 +230,6 @@ class TestPlotTimeseriesInteractive:
         from pyfds.api.controller import ResultsManager
         mgr = ResultsManager(_make_mock_api())
         assert mgr._infer_plot_kind({}) == "device_timeseries"
-
-
-# ===========================================================================
-# 4. DB Export — export_materials / export_surfaces / export_fuels / export_all
-# ===========================================================================
 
 class TestDbExportJson:
 
@@ -330,7 +300,6 @@ class TestDbExportJson:
             result = export_all(d, fmt="json", stem="mydb")
             assert Path(result["materials"]).name == "mydb_materials.json"
 
-
 class TestDbExportCsv:
 
     def test_export_materials_csv_has_header(self):
@@ -376,11 +345,6 @@ class TestDbExportCsv:
             for path in result.values():
                 assert Path(path).exists()
                 assert path.endswith(".csv")
-
-
-# ===========================================================================
-# 5. EngineeringManager export wrappers
-# ===========================================================================
 
 class TestEngineeringManagerExport:
 

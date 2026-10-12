@@ -21,7 +21,8 @@ from pathlib import Path
 import pytest
 
 SRC = Path(__file__).resolve().parents[2] / "src" / "pyfds"
-MAX_LINES = 1000          # ratchet target is ~600 (plan §4); lowered as monoliths are split
+REPO = Path(__file__).resolve().parents[2]
+MAX_LINES = 400           # every module stays small (docs/active_docs/FILE_SIZE_SPLIT_PLAN.md); split before adding more
 
 _LOW = {"core", "utils"}
 ALLOWED: dict[str, set[str]] = {
@@ -199,3 +200,17 @@ def test_oversize_baseline_not_stale():
         if n <= MAX_LINES:
             stale.append(rel)
     assert not stale, f"now under {MAX_LINES} lines; drop from OVERSIZE_BASELINE: {stale}"
+
+
+def test_tests_examples_and_tools_stay_small_too():
+    """The same limit applies to the test files, the example scripts and the tools."""
+    over = []
+    roots = [REPO / "tests", REPO / "examples", REPO / "tools"]
+    files = [f for r in roots if r.exists() for f in sorted(r.rglob("*.py"))] + [REPO / "main.py"]
+    for f in files:
+        if "__pycache__" in f.parts or not f.exists():
+            continue
+        n = len(f.read_text(encoding="utf-8").splitlines())
+        if n > MAX_LINES:
+            over.append(f"{f.relative_to(REPO).as_posix()}: {n} lines > {MAX_LINES}")
+    assert not over, f"split these files: {over}"

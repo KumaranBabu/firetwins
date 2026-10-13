@@ -9,6 +9,7 @@ from typing import Any, List, TYPE_CHECKING
 
 from .base import _CollectionManager
 from .generators import BuildingGenerators
+from .geom_import import GeomImportOps
 
 if TYPE_CHECKING:
     from .facade import FdsApi
@@ -83,7 +84,7 @@ class HoleManager(_CollectionManager):
         return hole
 
 
-class GeomManager(BuildingGenerators):
+class GeomManager(BuildingGenerators, GeomImportOps):
     """
     High-level geometry manager: STL import, parametric primitives, voxelization.
 
@@ -124,17 +125,6 @@ class GeomManager(BuildingGenerators):
         from pyfds.io.stl_importer import StlImporter
         from pyfds.automation.commands import AddEntityCommand
         geom = StlImporter.load(path, **kwargs)
-        self._api.history.execute(AddEntityCommand(self._project, geom))
-        return geom
-
-    def import_file(self, path: str, **options) -> Any:
-        """Import a CAD/mesh file (STL, OBJ, DXF 3DFACE) as a ``Geom`` (one undo step).
-
-        Options: ``units`` (file units: m, mm, cm, in, ft ...), ``up_axis`` (``"Y"`` for Y-up files),
-        ``translate``, ``scale``, ``surf_id``, ``name``."""
-        from pyfds.io.mesh_importers import import_geometry
-        from pyfds.automation.commands import AddEntityCommand
-        geom = import_geometry(path, **options)
         self._api.history.execute(AddEntityCommand(self._project, geom))
         return geom
 

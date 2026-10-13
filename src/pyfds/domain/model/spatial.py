@@ -126,6 +126,11 @@ class Geom(FdsEntity):
     read_binary: bool = False
     move_id: Optional[str] = None
     component_only: bool = False
+    #: Where the shape came from (CAD/BIM import). Editor data, never written to the FDS file.
+    bim_type: Optional[str] = None      # e.g. "IfcWall"
+    bim_name: Optional[str] = None      # the element's name in the source file
+    bim_storey: Optional[str] = None    # building storey it belongs to
+    source_file: Optional[str] = None
 
     def bbox(self) -> Optional[Tuple[float, float, float, float, float, float]]:
         # Base FdsEntity.bbox() only understands x_min../xyz-style entities —

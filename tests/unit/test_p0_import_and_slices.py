@@ -123,8 +123,8 @@ def test_dxf_errors(tmp_path):
 
 # -- registry ----------------------------------------------------------------------------------
 def test_registry_dispatch_and_refusals(api, tmp_path):
-    assert mi.supported_formats() == [".dxf", ".obj", ".stl"]
-    for name, msg in (("a.ifc", "not available yet"), ("a.xyz", "unknown file type")):
+    assert {".dxf", ".obj", ".stl"} <= set(mi.supported_formats())
+    for name, msg in (("a.fbx", "not available"), ("a.xyz", "unknown file type")):
         with pytest.raises(ValueError, match=msg):
             api.geom.import_file(str(tmp_path / name))
     with pytest.raises(FileNotFoundError):

@@ -71,13 +71,18 @@ TOOLS: List[ToolSpec] = [
 ]
 
 
+def _names(result):
+    """One name for a single shape, a list of names when a file (IFC) held several."""
+    return [g.name for g in result] if isinstance(result, (list, tuple)) else result.name
+
+
 # -- imports and slice images (IMP-02, RES-04) ------------------------------------------------------
 TOOLS.extend([
-    _spec("import_geometry_file", "Import a CAD/mesh file (STL, OBJ, DXF 3DFACE) as a GEOM. units: m, mm, cm, in, ft; "
-          "up_axis Y for Y-up files.",
+    _spec("import_geometry_file", "Import a CAD/BIM file (STL, OBJ, DXF 3DFACE, glTF/GLB, DAE, IFC) as GEOM(s); an IFC gives one per "
+          "element. units: m, mm, cm, in, ft; up_axis Y for Y-up files. Returns the shape name (a list for an IFC).",
           {"path": _STR, "units": _STR, "up_axis": {"type": "string", "enum": ["Y", "Z"]}, "surf_id": _STR,
            "name": _STR, "scale": _NUM, "translate": _PT3}, ["path"],
-          lambda api, path, **kw: api.geom.import_file(path, **kw).name),
+          lambda api, path, **kw: _names(api.geom.import_file(path, **kw))),
     _spec("render_slice_image", "Render one frame of a slice file (.sf) to a PNG with a colour bar.",
           {"slice_file": _STR, "filepath": _STR, "frame": {"type": "integer"}, "mesh": _STR, "colormap": _STR,
            "vmin": _NUM, "vmax": _NUM, "levels": {"type": "integer"}, "colorbar": {"type": "boolean"},

@@ -33,6 +33,26 @@ class Group:
     description: str = ""
 
 
+@dataclass
+class Background:
+    """A floor-plan image or PDF page shown under the model (never written to the FDS file).
+
+    The picture's lower-left corner sits at (*x*, *y*, *z*) and it is *width* metres wide; the height
+    follows from the picture's aspect ratio.
+    """
+    name: str
+    path: str
+    kind: str = "image"          # "image" or "pdf"
+    page: int = 0                # PDF page (0-based)
+    x: float = 0.0
+    y: float = 0.0
+    z: float = 0.0
+    width: float = 10.0
+    opacity: float = 0.5
+    visible: bool = True
+    floor: str = ""
+
+
 class EditorState:
     """Floors, groups and scenarios of one project."""
 
@@ -41,11 +61,12 @@ class EditorState:
         self.floors: Dict[str, Floor] = {}
         self.floor_assignments: Dict[str, str] = {}     # entity_uid -> floor name
         self.groups: Dict[str, Group] = {}
+        self.backgrounds: Dict[str, Background] = {}
         self.group_memberships: Dict[str, str] = {}     # entity_uid -> group name
         self.hidden: Set[str] = set()                   # entity uids hidden in the views
         self.hidden_types: Set[str] = set()             # collection names switched off ("vents", ...)
 
     def is_empty(self) -> bool:
-        return not (self.scenarios.all() or self.floors or self.groups
+        return not (self.scenarios.all() or self.floors or self.groups or self.backgrounds
                     or self.floor_assignments or self.group_memberships
                     or self.hidden or self.hidden_types)

@@ -4,8 +4,9 @@ Every importer returns a :class:`~pyfds.domain.model.Geom` (triangles only, vert
 applying ``units`` (file units -> metres), ``up_axis`` (``"Y"`` rotates a Y-up file to FDS's Z-up) and an
 optional translation, exactly like :class:`~pyfds.io.stl_importer.StlImporter`.
 
-Supported: ``.stl`` (ASCII/binary), ``.obj`` (Wavefront), ``.dxf`` (ASCII, ``3DFACE`` entities).
-Not yet: IFC, FBX, DWG, DAE, glTF - ``import_geometry`` says so rather than guessing.
+Supported: ``.stl`` (ASCII/binary), ``.obj`` (Wavefront), ``.dxf`` (ASCII, ``3DFACE`` entities), and,
+from ``mesh_importers_more`` / ``ifc_importer``, ``.gltf``/``.glb``, ``.dae`` and ``.ifc``.
+Not available: FBX and DWG (closed formats) - ``import_geometry`` says so rather than guessing.
 """
 from __future__ import annotations
 
@@ -160,21 +161,46 @@ def _load_stl(path, *, surf_id="INERT", name=None, units="m", up_axis="Z", trans
                    units=units, up_axis=up_axis, translate=translate, scale=scale, weld=False)
 
 
-#: extension -> loader; extend with ``IMPORTERS[".ext"] = fn`` (Strategy registry)
+#: extension -> loader; extend with ``IMPORTERS[".ext"] = fn`` (Strategy registry). A loader returns one
+#: ``Geom`` or, for formats that carry separate elements (IFC), a list of them.
 IMPORTERS: Dict[str, Callable] = {".stl": _load_stl, ".obj": ObjImporter.load, ".dxf": DxfImporter.load}
-_PLANNED = {".ifc", ".fbx", ".dwg", ".dae", ".gltf", ".glb"}
+_PLANNED = {".fbx": "FBX is a closed format", ".dwg": "DWG is a closed format"}
 
 
 def supported_formats() -> List[str]:
     return sorted(IMPORTERS)
 
 
-def import_geometry(path: str, **options):
-    """Load a CAD/mesh file by its extension; returns a ``Geom``."""
+def import_geometry_all(path: str, **options) -> list:
+    """Load a CAD/mesh file by its extension; returns a list of ``Geom`` (one for most formats, one per
+    building element for IFC)."""
     ext = Path(path).suffix.lower()
     if ext in IMPORTERS:
-        return IMPORTERS[ext](path, **options)
+        out = IMPORTERS[ext](path, **options)
+        return list(out) if isinstance(out, (list, tuple)) else [out]
     if ext in _PLANNED:
-        raise ValueError(f"{ext} import is not available yet; export the model as "
+        raise ValueError(f"{ext} import is not available ({_PLANNED[ext]}); export the model as "
                          f"{' / '.join(supported_formats())} and import that")
     raise ValueError(f"unknown file type {ext!r}; supported: {', '.join(supported_formats())}")
+
+
+def merge_geoms(geoms: list, name: str):
+    """One ``Geom`` holding all the shapes of *geoms* (vertex indices shifted)."""
+    from pyfds.domain.model import Geom
+    verts: List[Vec] = []
+    faces: List[Tuple[int, int, int]] = []
+    for g in geoms:
+        base = len(verts)
+        verts.extend(g.verts)
+        faces.extend((a + base, b + base, c + base) for a, b, c in g.faces)
+    return Geom(name=name, surf_id=geoms[0].surf_id, verts=verts, faces=faces)
+
+
+def import_geometry(path: str, **options):
+    """Load a CAD/mesh file by its extension; returns a single ``Geom`` (an IFC with several elements
+    is merged - use :func:`import_geometry_all` to keep them apart)."""
+    geoms = import_geometry_all(path, **options)
+    return geoms[0] if len(geoms) == 1 else merge_geoms(geoms, options.get("name") or Path(path).stem)
+
+
+from . import mesh_importers_more, ifc_importer  # noqa: E402,F401  (register .gltf/.glb/.dae/.ifc)

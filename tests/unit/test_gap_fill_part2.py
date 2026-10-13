@@ -83,9 +83,9 @@ class TestNewRulesRegistered:
         ]:
             assert expected in names, f"Rule '{expected}' not registered in default engine"
 
-    def test_total_rule_count_is_28(self):
+    def test_total_rule_count_is_31(self):
         engine = ValidationEngine.default()
-        assert len(engine.rules) == 28
+        assert len(engine.rules) == 31
 
 class TestNewEntityCollections:
     def test_wind_profiles_collection_exists(self):
@@ -239,8 +239,7 @@ class TestWriterHvacFilter:
         p = FdsProject()
         p.hvac_filters.append(HvacFilter(name="f1", duct_id="duct_01", efficiency=0.9))
         text = writer.generate_content(p)
-        assert "&FILTER" in text
-        assert "f1" in text
+        assert "&HVAC TYPE_ID='FILTER', ID='f1'" in text
 
     def test_filter_efficiency(self, writer):
         p = FdsProject()
@@ -260,11 +259,11 @@ class TestWriterHvacFilter:
         text = writer.generate_content(p)
         assert "CLEAN_LOSS=1.0" in text
 
-    def test_filter_ctrl_id(self, writer):
+    def test_filter_ctrl_id_is_not_an_fds_parameter(self, writer):
         p = FdsProject()
         p.hvac_filters.append(HvacFilter(name="f", duct_id="d1", ctrl_id="ctrl1"))
         text = writer.generate_content(p)
-        assert "CTRL_ID='ctrl1'" in text
+        assert "CTRL_ID" not in text
 
     def test_filter_omits_absent_clean_loss(self, writer):
         p = FdsProject()
@@ -275,36 +274,33 @@ class TestWriterHvacFilter:
 class TestWriterHvacLeakage:
     def test_leak_written(self, writer):
         p = FdsProject()
+        p.hvac_leakages.append(HvacLeakage(name="lk", vent_id="V1", vent2_id="V2", area=0.001))
+        text = writer.generate_content(p)
+        assert "&HVAC TYPE_ID='LEAK', ID='lk', VENT_ID='V1', VENT2_ID='V2', AREA=0.001 /" in text
+
+    def test_leak_without_vents_is_not_written(self, writer):
+        p = FdsProject()
         p.hvac_leakages.append(HvacLeakage(name="lk", zone_id_1="Z1", zone_id_2="Z2", area=0.001))
         text = writer.generate_content(p)
-        assert "&LEAK" in text
+        assert "&LEAK" not in text and "! leak path lk not written" in text
 
     def test_leak_zone_ids(self, writer):
         p = FdsProject()
         p.hvac_leakages.append(HvacLeakage(name="lk", zone_id_1="LOBBY", zone_id_2="CORRIDOR"))
-        text = writer.generate_content(p)
-        assert "LOBBY" in text
-        assert "CORRIDOR" in text
+        assert p.hvac_leakages[0].zone_id_1 == "LOBBY"      # kept in the model; FDS has no zone-to-zone leak record
 
     def test_leak_area(self, writer):
         p = FdsProject()
-        p.hvac_leakages.append(HvacLeakage(name="lk", zone_id_1="A", zone_id_2="B", area=0.005))
+        p.hvac_leakages.append(HvacLeakage(name="lk", zone_id_1="A", zone_id_2="B", area=0.005,
+                                           vent_id="V1", vent2_id="V2"))
         text = writer.generate_content(p)
         assert "AREA=0.005" in text
 
-    def test_leak_crack_id(self, writer):
+    def test_leak_keeps_crack_and_control_in_the_model_only(self, writer):
         p = FdsProject()
-        p.hvac_leakages.append(HvacLeakage(name="lk", zone_id_1="A", zone_id_2="B",
-                                             crack_id="crack1"))
+        p.hvac_leakages.append(HvacLeakage(name="lk", vent_id="V1", vent2_id="V2", crack_id="c", ctrl_id="k"))
         text = writer.generate_content(p)
-        assert "CRACK_ID='crack1'" in text
-
-    def test_leak_ctrl_id(self, writer):
-        p = FdsProject()
-        p.hvac_leakages.append(HvacLeakage(name="lk", zone_id_1="A", zone_id_2="B",
-                                             ctrl_id="ctrl1"))
-        text = writer.generate_content(p)
-        assert "CTRL_ID='ctrl1'" in text
+        assert "CRACK_ID" not in text and "CTRL_ID" not in text
 
 class TestWriterSurfaceP0Fixes:
     def test_geometry_cylindrical_written(self, writer):

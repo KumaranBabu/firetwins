@@ -91,6 +91,8 @@ class ParamBuilders:
         if max_lp is not None: p.misc.max_leak_paths = max_lp
         vn_max = self._flt(d, "VN_MAX")
         if vn_max is not None: p.misc.vn_max = vn_max
+        p.misc.visibility_factor = self._flt(d, "VISIBILITY_FACTOR")
+        p.misc.maximum_visibility = self._flt(d, "MAXIMUM_VISIBILITY")
 
     def _parse_pres(self, p: FdsProject, d: Dict) -> None:
         if "VELOCITY_TOLERANCE"      in d: p.pres.velocity_tolerance = float(d["VELOCITY_TOLERANCE"])

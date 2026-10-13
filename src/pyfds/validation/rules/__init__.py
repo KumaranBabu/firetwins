@@ -9,6 +9,7 @@ from .hvac import HvacNodeReferenceRule, HvacTopologyRule
 from .references import DanglingSurfaceRule, RampMonotonicityRule, ReferenceIntegrityRule, ControlFunctionRule, DuplicateIdRule, SurfaceLayerRule, CtrlLoopRule, FuelSpeciesRule, BackingValueRule
 from .geometry import HoleContainmentRule, ObstBoundsRule, VentCoplanarRule, DeviceBoundsRule, InitBoundsRule, SliceBoundsRule
 from .physics import SurfaceTypeRule, LiquidFuelRule, ComplexReactionRule
+from .systems import DeviceSystemRule, HvacLayoutRule, ParticleKindRule
 from ._common import _e, _w, _i, _is_poisson, _nearest_poisson  # noqa: F401
 
 __all__ = [
@@ -40,4 +41,7 @@ __all__ = [
     "SurfaceTypeRule",
     "LiquidFuelRule",
     "ComplexReactionRule",
+    "DeviceSystemRule",
+    "HvacLayoutRule",
+    "ParticleKindRule",
 ]

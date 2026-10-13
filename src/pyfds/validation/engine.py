@@ -292,6 +292,7 @@ class ValidationEngine:
             BackingValueRule, MeshAspectRatioRule, InitBoundsRule,
             SliceBoundsRule, CylindricalMeshRule,
             SurfaceTypeRule, LiquidFuelRule, ComplexReactionRule,
+            DeviceSystemRule, HvacLayoutRule, ParticleKindRule,
         )
         engine = cls()
         for rule_cls in [
@@ -307,6 +308,7 @@ class ValidationEngine:
             BackingValueRule, MeshAspectRatioRule, InitBoundsRule,
             SliceBoundsRule, CylindricalMeshRule,
             SurfaceTypeRule, LiquidFuelRule, ComplexReactionRule,
+            DeviceSystemRule, HvacLayoutRule, ParticleKindRule,
         ]:
             engine.add_rule(rule_cls())
         return engine

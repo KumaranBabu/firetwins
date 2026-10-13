@@ -8,11 +8,12 @@ import logging
 from typing import Any, List
 
 from .base import _CollectionManager
+from .device_systems import DeviceSystems
 
 logger = logging.getLogger(__name__)
 
 
-class DeviceManager(_CollectionManager):
+class DeviceManager(DeviceSystems, _CollectionManager):
     def __init__(self, api):
         from pyfds.domain.model import Device
         super().__init__(api, Device)

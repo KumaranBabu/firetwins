@@ -23,6 +23,9 @@ class SliceManager(_CollectionManager):
         from pyfds.domain.quantities import CONTEXT_SLCF, validate_quantity
         if not validate_quantity(quantity, CONTEXT_SLCF):
             raise ValueError(f"{quantity!r} is not a valid FDS SLCF quantity")
+        if not kwargs.get("name"):                  # every slice needs its own name (the default repeats)
+            from .species import _unique
+            kwargs["name"] = _unique(self, "SLICE")
         s = Slice(quantity=quantity, plane=plane, position=position, **kwargs)
         self.add(s)
         return s

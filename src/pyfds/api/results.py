@@ -57,6 +57,26 @@ class ResultsManager:
             return []
         return self._index.find_slices(quantity=quantity)
 
+    def _dir_chid(self, output_dir: Optional[str], chid: Optional[str]):
+        if output_dir is None and self._index is not None:
+            output_dir = self._index.output_dir
+        if not output_dir:
+            raise ValueError("give output_dir (or build the results index first)")
+        return output_dir, chid or (self._index.chid if self._index is not None and self._index.chid else None)             or getattr(self._api.project, "chid", "pyfds_case")
+
+    def activation_table(self, output_dir: Optional[str] = None, chid: Optional[str] = None) -> List[dict]:
+        """When each device and control first activated, earliest first (TH-03):
+        ``[{"id", "type" (DEVC|CTRL), "time", "value", "units"}]``."""
+        from pyfds.results.summary import activation_table
+        return activation_table(*self._dir_chid(output_dir, chid))
+
+    def hrr_summary(self, output_dir: Optional[str] = None, chid: Optional[str] = None,
+                    thresholds_kw: Optional[List[float]] = None) -> dict:
+        """Peak HRR and its time, total energy (MJ), average HRR and time to reach thresholds (TH-03)."""
+        from pyfds.results.summary import hrr_summary
+        d, c = self._dir_chid(output_dir, chid)
+        return hrr_summary(d, c, thresholds_kw)
+
     def simulation_stats(self) -> Optional[Any]:
         return self._index.stats if self._index else None
 

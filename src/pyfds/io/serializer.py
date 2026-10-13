@@ -238,6 +238,7 @@ class Serializer:
                        for g in ed.groups.values()],
             "group_memberships": ref_names(ed.group_memberships, "group"),
             "backgrounds": [dict(vars(b)) for b in ed.backgrounds.values()],
+            "fire_items": {k: dict(v) for k, v in ed.fire_items.items()},
             "scenarios": [{
                 "name": s.name, "description": s.description, "tags": list(s.tags),
                 "overrides": ref_fields(s.overrides),
@@ -271,6 +272,8 @@ class Serializer:
                 ed.backgrounds[b["name"]] = Background(**b)
             except TypeError:
                 logger.warning("Skipped an unreadable background %r", b.get("name"))
+        for k, v in data.get("fire_items", {}).items():
+            ed.fire_items[k] = dict(v)
         for a in data.get("floor_assignments", []):
             uid = uid_of(a["ref"])
             if uid and a["floor"] in ed.floors:

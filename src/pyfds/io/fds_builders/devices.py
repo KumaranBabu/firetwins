@@ -42,6 +42,14 @@ class DeviceBuilders:
             smoothed_data=self._bool(d, "SMOOTHED_DATA"),
             hide_coordinates=self._bool(d, "HIDE_COORDINATES"),
             pipe_index=self._int(d, "PIPE_INDEX"),
+            spec_id=self._str(d, "SPEC_ID") or None,
+            devc_id=self._str(d, "DEVC_ID") or None,
+            flowrate=self._flt(d, "FLOWRATE"),
+            delay=self._flt(d, "DELAY"),
+            bypass_flowrate=self._flt(d, "BYPASS_FLOWRATE"),
+            node_id=self._strs(d, "NODE_ID"),
+            cell_l=self._flt(d, "CELL_L"),
+            relative=self._bool(d, "RELATIVE"),
         ))
 
     def _parse_slcf(self, p: FdsProject, d: Dict) -> None:
@@ -62,7 +70,8 @@ class DeviceBuilders:
         p.add_entity(Slice(name=name, quantity=qty, plane=plane, position=pos,
                            xb=xb_3d,
                            vector=self._bool(d, "VECTOR"),
-                           cell_centered=self._bool(d, "CELL_CENTERED")))
+                           cell_centered=self._bool(d, "CELL_CENTERED"),
+                           spec_id=self._str(d, "SPEC_ID") or None))
 
     def _parse_sm3d(self, p: FdsProject, d: Dict) -> None:
         p.add_entity(Smoke3D(
@@ -137,6 +146,10 @@ class DeviceBuilders:
             length=self._flt(d, "LENGTH"),
             smokeview_id=self._str(d, "SMOKEVIEW_ID") or None,
             smokeview_parameters=sv_params or None,
+            k_factor=self._flt(d, "K_FACTOR"),
+            orifice_diameter=self._flt(d, "ORIFICE_DIAMETER"),
+            pressure_ramp=self._str(d, "PRESSURE_RAMP") or None,
+            fed_activity=self._int(d, "FED_ACTIVITY"),
         ))
 
     def _parse_prof(self, p: FdsProject, d: Dict) -> None:

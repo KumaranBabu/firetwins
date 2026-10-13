@@ -47,6 +47,15 @@ class Device(FdsEntity):
     smoothed_data: bool = False           # SMOOTHED_DATA — time-average output
     hide_coordinates: bool = False        # HIDE_COORDINATES — suppress XYZ columns in CSV
     pipe_index: Optional[int] = None      # PIPE_INDEX — water supply network index
+    # Systems built from several devices (B4)
+    spec_id: Optional[str] = None         # SPEC_ID - species for DENSITY / HVAC mass or volume fractions
+    devc_id: Optional[str] = None         # DEVC_ID - central detector an aspiration sampler feeds
+    flowrate: Optional[float] = None      # FLOWRATE (kg/s) drawn at an aspiration sampling point
+    delay: Optional[float] = None         # DELAY (s) transport time from a sampling point to the detector
+    bypass_flowrate: Optional[float] = None  # BYPASS_FLOWRATE (kg/s) of air from outside the domain
+    node_id: Optional[List[str]] = None   # NODE_ID - HVAC node(s) an output refers to
+    cell_l: Optional[float] = None        # CELL_L (m) - distance along a duct for a duct-cell output
+    relative: bool = False                # RELATIVE - node enthalpy relative to the duct quantity
 
 
 class Prop(FdsEntity):
@@ -70,6 +79,11 @@ class Prop(FdsEntity):
     initial_temperature: Optional[float] = None      # INITIAL_TEMPERATURE, C
     length: Optional[float] = None
     characteristic_velocity: Optional[float] = None
+    # Nozzles and tenability (B4)
+    k_factor: Optional[float] = None                 # K_FACTOR (L/min/bar^0.5)
+    orifice_diameter: Optional[float] = None         # ORIFICE_DIAMETER (m)
+    pressure_ramp: Optional[str] = None              # PRESSURE_RAMP - pressure vs number of open nozzles
+    fed_activity: Optional[int] = None               # FED_ACTIVITY 1 rest, 2 light work, 3 heavy work
 
 
 class Control(FdsEntity):
@@ -102,6 +116,7 @@ class Slice(FdsEntity):
     cell_centered: bool = False
     # 3D volumetric slice: when set, XB replaces PBX/PBY/PBZ
     xb: Optional[Tuple[float, float, float, float, float, float]] = None
+    spec_id: Optional[str] = None      # SPEC_ID - for VOLUME FRACTION, MASS FRACTION ... slices
 
 
 class Smoke3D(FdsEntity):

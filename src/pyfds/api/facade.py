@@ -11,6 +11,8 @@ from typing import Any, Dict, List, Optional
 from .base import _CollectionManager
 from .meshes import MeshManager
 from .backgrounds import BackgroundManager
+from .fires import FireManager
+from .egress import EgressManager
 from .geometry import GeomManager, HoleManager, ObstManager, VentManager
 from .materials import MaterialManager, ParticleManager, RampManager, ReactionManager, SurfaceManager
 from .devices import ControlManager, DeviceManager
@@ -136,6 +138,8 @@ class FdsApi:
         self.scenarios     = ScenarioManager(self)
         self.floors        = FloorManager(self)
         self.backgrounds   = BackgroundManager(self)
+        self.fires         = FireManager(self)
+        self.egress        = EgressManager(self)
         self.groups        = GroupManager(self)
 
         # New Phase-1 managers

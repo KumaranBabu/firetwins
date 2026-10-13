@@ -117,6 +117,15 @@ class FdsWriterGeometryMixin:
         if getattr(obj, "quantities", None):                           d["QUANTITIES"]               = obj.quantities
         if getattr(obj, "orientation", None):                          d["ORIENTATION"]              = list(obj.orientation)
         if getattr(obj, "ctrl_id", None):                              d["CTRL_ID"]                  = obj.ctrl_id
+        for key, attr in (("MASSLESS", "massless"), ("STATIONARY", "stationary"), ("MONODISPERSE", "monodisperse"),
+                          ("TARGET_ONLY", "target_only")):
+            if getattr(obj, attr, False):
+                d[key] = True
+        for key, attr in (("INITIAL_TEMPERATURE", "initial_temperature"), ("MINIMUM_DIAMETER", "minimum_diameter"),
+                          ("MAXIMUM_DIAMETER", "maximum_diameter"), ("FREE_AREA_FRACTION", "free_area_fraction"),
+                          ("HORIZONTAL_VELOCITY", "horizontal_velocity"), ("VERTICAL_VELOCITY", "vertical_velocity")):
+            if getattr(obj, attr, None) is not None:
+                d[key] = getattr(obj, attr)
         return _nl("PART", d)
 
     def _write_geom(self, obj: Geom) -> str:

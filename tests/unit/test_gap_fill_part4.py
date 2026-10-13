@@ -57,7 +57,7 @@ class TestWriterHvacP0Fixes:
         p.hvac_ducts.append(HvacDuct(name="d1", node_id_1="n1", node_id_2="n2",
                                       diameter=0.5, leakage_id="lk1"))
         text = writer.generate_content(p)
-        assert "LEAKAGE_ID='lk1'" in text
+        assert "LEAKAGE_ID" not in text          # not an FDS duct parameter; kept in the model only
 
     def test_duct_loss_pair_written(self, writer):
         p = FdsProject()
@@ -80,18 +80,16 @@ class TestWriterHvacP0Fixes:
 
     def test_fan_volume_flow_curve_written(self, writer):
         p = FdsProject()
-        p.fans.append(Fan(name="fan1", duct_id="d1",
-                          volume_flow=[0.0, 0.25, 0.5], pressure=[200.0, 150.0, 0.0]))
+        p.fans.append(Fan(name="fan1", duct_id="d1", ramp_id="CURVE"))
         text = writer.generate_content(p)
-        assert "VOLUME_FLOW=" in text
-        assert "PRESSURE=" in text
+        assert "RAMP_ID='CURVE'" in text           # FDS takes the curve as a RAMP of pressure vs flow
 
     def test_fan_absent_fields_omitted(self, writer):
         p = FdsProject()
         p.fans.append(Fan(name="fan1", duct_id="d1"))
         text = writer.generate_content(p)
         # Isolate the &FAN line to avoid false matches against &PRES MAX_PRESSURE_ITERATIONS
-        fan_line = next(ln for ln in text.splitlines() if ln.startswith("&FAN"))
+        fan_line = next(ln for ln in text.splitlines() if ln.startswith("&HVAC TYPE_ID='FAN'"))
         assert "MAX_FLOW" not in fan_line
         assert "MAX_PRESSURE" not in fan_line
         assert "VOLUME_FLOW" not in fan_line

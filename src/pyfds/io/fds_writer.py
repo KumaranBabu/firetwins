@@ -149,7 +149,9 @@ class FdsWriter(FdsWriterHeadMixin, FdsWriterPhysicsMixin, FdsWriterGeometryMixi
             for _tag, collection, writer_fn in self._entity_table(project):
                 for obj in collection:
                     if id(obj) in wanted:
-                        lines.append(_with_extra(writer_fn(obj), getattr(obj, "fds_extra", None)))
+                        rec = writer_fn(obj)
+                        if rec:
+                            lines.append(_with_extra(rec, getattr(obj, "fds_extra", None)))
             for ramp in project.ramps:
                 if id(ramp) in wanted:
                     lines.extend(self._ramp_lines(ramp))
@@ -200,7 +202,9 @@ class FdsWriter(FdsWriterHeadMixin, FdsWriterPhysicsMixin, FdsWriterGeometryMixi
                 if not getattr(obj, "enabled", True):
                     continue
                 try:
-                    lines.append(_with_extra(writer_fn(obj), getattr(obj, "fds_extra", None)))
+                    rec = writer_fn(obj)
+                    if rec:
+                        lines.append(_with_extra(rec, getattr(obj, "fds_extra", None)))
                 except Exception as exc:
                     logger.error("Writer error for &%s ID=%s: %s",
                                  tag, getattr(obj, "name", "?"), exc)

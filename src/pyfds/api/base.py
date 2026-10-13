@@ -70,6 +70,29 @@ class _CollectionManager:
             raise ValueError(result.message)
         return entity
 
+    def update_many(self, entities_or_names, **fields) -> List[Any]:
+        """Set the same fields on several entities as ONE undo step (multi-edit, DEV-18).
+
+        Entities are objects or names. Unknown fields raise ``AttributeError`` and a missing entity raises
+        ``KeyError``; nothing is applied unless all are valid. ``name`` cannot be set this way."""
+        from pyfds.automation.commands import GroupCommand, ModifyPropertyCommand
+        if not fields:
+            raise ValueError("give at least one field to change")
+        if "name" in fields:
+            raise ValueError("names are unique; use rename() for one entity at a time")
+        targets = [self._resolve(e) for e in entities_or_names]
+        if not targets:
+            raise ValueError("no entities given")
+        bad = sorted(k for k in fields if any(k not in type(t).model_fields for t in targets))
+        if bad:
+            raise AttributeError(f"not a field of every selected entity: {', '.join(bad)}")
+        result = self._pipe.execute(GroupCommand(
+            [ModifyPropertyCommand(t, k, v) for t in targets for k, v in fields.items()],
+            label=f"edit {len(targets)} {self._cls.__name__} ({', '.join(fields)})"))
+        if not result.success:
+            raise ValueError(result.message)
+        return targets
+
     # -- raw "additional fields" (FDS keywords PyFDS has no typed field for) -------------
     _EXTRA_KEY = re.compile(r"^[A-Z][A-Z0-9_]*(\(\s*\d+(:\d+)?(\s*,\s*\d+(:\d+)?)*\s*\))?$")
 

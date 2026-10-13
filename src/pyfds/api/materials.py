@@ -8,6 +8,7 @@ import logging
 from typing import Any, List
 
 from .base import _CollectionManager
+from .material_tools import MaterialTools
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +94,95 @@ class ReactionManager(_CollectionManager):
         self.add(r)
         return r
 
+    def _reaction(self, reaction_or_name):
+        r = self.get(reaction_or_name) if isinstance(reaction_or_name, str) else reaction_or_name
+        if r is None:
+            raise KeyError(f"reaction {reaction_or_name!r} not found")
+        return r
+
+    def stoichiometry(self, reaction_or_name) -> dict:
+        """The reaction as a table (RXN-03): ``{"type", "reactants": [{"species", "coefficient"}],
+        "products": [...], "exponents": {species: n}}``. Simple chemistry has no table: it returns the
+        fuel, its formula and ``type: "simple"``."""
+        r = self._reaction(reaction_or_name)
+        if not r.spec_id_nu:
+            return {"type": "simple", "fuel": r.fuel, "formula": r.formula, "reactants": [], "products": [],
+                    "exponents": {}}
+        rows = list(zip(r.spec_id_nu, r.nu or []))
+        return {"type": "complex",
+                "reactants": [{"species": s, "coefficient": -v} for s, v in rows if v < 0],
+                "products": [{"species": s, "coefficient": v} for s, v in rows if v > 0],
+                "exponents": dict(zip(r.spec_id_n_s or [], r.n_s or []))}
+
+    def set_stoichiometry(self, reaction_or_name, reactants: dict, products: dict, exponents: dict = None):
+        """Replace the species table of a reaction (one undo step); checks species and mass balance first."""
+        from pyfds.automation.commands import GroupCommand, ModifyPropertyCommand
+        from pyfds.domain import reaction_checks
+        from pyfds.domain.model import Reaction
+        r = self._reaction(reaction_or_name)
+        if not reactants or not products:
+            raise ValueError("a reaction needs at least one reactant and one product")
+        if any(v <= 0 for v in (*reactants.values(), *products.values())):
+            raise ValueError("give stoichiometric coefficients as positive numbers")
+        if set(reactants) & set(products):
+            raise ValueError("a species cannot be both reactant and product")
+        new = dict(spec_id_nu=[*reactants, *products],
+                   nu=[-float(v) for v in reactants.values()] + [float(v) for v in products.values()],
+                   spec_id_n_s=list(exponents) if exponents else None,
+                   n_s=[float(v) for v in exponents.values()] if exponents else None)
+        trial = Reaction(**{**r.model_dump(), **new})
+        bad = reaction_checks.problems(self._project, trial)
+        if bad:
+            raise ValueError("; ".join(bad))
+        self._api.history.execute(GroupCommand([ModifyPropertyCommand(r, k, v) for k, v in new.items()],
+                                               label=f"edit stoichiometry of {r.name}"))
+        return r
+
+    # -- custom smoke (RXN-05) ---------------------------------------------------------
+    def smoke(self) -> dict:
+        """Smoke settings now in the project: soot yield of each reaction, the SOOT species' mass extinction
+        coefficient (FDS default 8700 m2/kg) and the visibility settings."""
+        soot = next((s for s in self._project.species if s.name == "SOOT"), None)
+        misc = self._project.misc
+        return {"mass_extinction_coefficient": soot.mass_extinction_coefficient if soot else None,
+                "soot_yield": {r.name: r.soot_yield for r in self.all()},
+                "visibility_factor": misc.visibility_factor, "maximum_visibility": misc.maximum_visibility}
+
+    def set_smoke(self, mass_extinction_coefficient: float = None, soot_yield: float = None, reaction=None,
+                  visibility_factor: float = None, maximum_visibility: float = None) -> dict:
+        """Customise smoke (one undo step): the mass extinction coefficient Km (m2/kg, written on the
+        SOOT species as a lumped component), a reaction's soot yield (kg/kg), and the visibility
+        factor C (3 = reflecting sign, 8 = light-emitting) and maximum visibility reported (m)."""
+        from pyfds.automation.commands import AddEntityCommand, ModifyPropertyCommand
+        from pyfds.domain.model import Species
+        for label, v in (("mass_extinction_coefficient", mass_extinction_coefficient),
+                         ("visibility_factor", visibility_factor), ("maximum_visibility", maximum_visibility)):
+            if v is not None and v <= 0:
+                raise ValueError(f"{label} must be positive")
+        if soot_yield is not None and not 0.0 <= soot_yield < 1.0:
+            raise ValueError("soot_yield must be between 0 and 1")
+        r = None
+        if soot_yield is not None:
+            r = self._reaction(reaction) if reaction is not None else (self.all() or [None])[0]
+            if r is None:
+                raise ValueError("there is no reaction to set the soot yield on; add one first")
+        with self._api.history.transaction("set smoke properties"):
+            if mass_extinction_coefficient is not None:
+                soot = next((s for s in self._project.species if s.name == "SOOT"), None)
+                if soot is None:
+                    self._api.history.execute(AddEntityCommand(self._project, Species(
+                        name="SOOT", lumped_component_only=True,
+                        mass_extinction_coefficient=mass_extinction_coefficient)))
+                else:
+                    self._api.history.execute(ModifyPropertyCommand(
+                        soot, "mass_extinction_coefficient", mass_extinction_coefficient))
+            if r is not None:
+                self._api.history.execute(ModifyPropertyCommand(r, "soot_yield", soot_yield))
+            for key, v in (("visibility_factor", visibility_factor), ("maximum_visibility", maximum_visibility)):
+                if v is not None:
+                    self._api.history.execute(ModifyPropertyCommand(self._project.misc, key, v))
+        return self.smoke()
+
     def reaction_type(self, reaction_or_name) -> str:
         """``simple`` or ``complex`` (RXN-01)."""
         r = self.get(reaction_or_name) if isinstance(reaction_or_name, str) else reaction_or_name
@@ -101,7 +191,7 @@ class ReactionManager(_CollectionManager):
         return r.reaction_type
 
 
-class MaterialManager(_CollectionManager):
+class MaterialManager(MaterialTools, _CollectionManager):
     def __init__(self, api):
         from pyfds.domain.model import Material
         super().__init__(api, Material)
@@ -166,3 +256,41 @@ class ParticleManager(_CollectionManager):
         particle = Particle(diameter=diameter, **kwargs)
         self.add(particle)
         return particle
+
+    def kind(self, particle_or_name) -> str:
+        """``tracer``, ``solid`` or ``droplet`` (PRT-01)."""
+        p = self.get(particle_or_name) if isinstance(particle_or_name, str) else particle_or_name
+        if p is None:
+            raise KeyError(f"particle class {particle_or_name!r} not found")
+        return p.kind
+
+    def add_tracer(self, name: str = None, color: str = "BLACK", **kwargs) -> Any:
+        """Massless tracer particles (for visualising flow); they carry no mass, so no species or surface."""
+        if kwargs.get("spec_id") or kwargs.get("surf_id"):
+            raise ValueError("a massless tracer cannot have a species (it cannot evaporate) or a surface")
+        return self.add_particle_class(**{"name": name or f"TRACER_{self.count() + 1}", "color": color,
+                                          "massless": True, **kwargs})
+
+    def add_droplet(self, name: str = None, diameter: float = 500.0, spec_id: str = "WATER VAPOR",
+                    **kwargs) -> Any:
+        """Liquid droplets that evaporate into species *spec_id* (diameter in micron). Set
+        ``gamma``/``sigma`` for a Rosin-Rammler/log-normal size spread, or ``monodisperse=True``."""
+        if diameter <= 0:
+            raise ValueError("diameter must be positive")
+        if kwargs.get("massless"):
+            raise ValueError("evaporating droplets cannot be massless")
+        with self._api.history.transaction("add droplet particles"):
+            if self._api.species.get(spec_id) is None:     # FDS needs a SPEC line for the evaporating species
+                self._api.species.add_species(spec_id)
+            return self.add_particle_class(diameter=diameter, **{
+                "name": name or f"DROPLET_{self.count() + 1}", "spec_id": spec_id, "color": "BLUE", **kwargs})
+
+    def add_solid_particle(self, surf_id: str, name: str = None, diameter: float = 1000.0, **kwargs) -> Any:
+        """Solid particles that carry the properties of surface *surf_id* (subgrid objects: clutter, embers,
+        vegetation). Diameter in micron."""
+        if not surf_id:
+            raise ValueError("solid particles need a surface (surf_id)")
+        if kwargs.get("massless") or kwargs.get("spec_id"):
+            raise ValueError("solid particles cannot be massless or evaporate")
+        return self.add_particle_class(diameter=diameter, **{
+            "name": name or f"SOLID_{self.count() + 1}", "surf_id": surf_id, "color": "BROWN", **kwargs})

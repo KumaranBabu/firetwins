@@ -8,6 +8,7 @@ import logging
 from typing import Any, List, Optional
 
 from .base import _CollectionManager
+from .hvac_extras import FanCurves, JetFans
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ class HvacDuctManager(_CollectionManager):
         return duct
 
 
-class FanManager(_CollectionManager):
+class FanManager(FanCurves, _CollectionManager):
     """Manage HVAC fans (&FAN)."""
     def __init__(self, api):
         from pyfds.domain.model import Fan
@@ -108,7 +109,7 @@ class HvacAircoilManager(_CollectionManager):
         return coil
 
 
-class HvacManager:
+class HvacManager(JetFans):
     """Whole-network operations on the HVAC system: ``api.hvac``.
 
     (Per-component collections live on ``api.hvac_nodes``, ``api.hvac_ducts``,

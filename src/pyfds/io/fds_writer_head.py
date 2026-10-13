@@ -72,6 +72,8 @@ class FdsWriterHeadMixin:
         if p.misc.solid_phase_only:               d["SOLID_PHASE_ONLY"]   = True
         if p.misc.max_leak_paths is not None:     d["MAX_LEAK_PATHS"]     = p.misc.max_leak_paths
         if p.misc.vn_max is not None:             d["VN_MAX"]             = p.misc.vn_max
+        if p.misc.visibility_factor is not None:  d["VISIBILITY_FACTOR"]  = p.misc.visibility_factor
+        if p.misc.maximum_visibility is not None: d["MAXIMUM_VISIBILITY"] = p.misc.maximum_visibility
         return _nl("MISC", d)
 
     def _write_pres(self, p: FdsProject) -> str:

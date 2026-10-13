@@ -17,14 +17,27 @@ from pyfds.domain.model import (
 
 from .fds_writer_common import _nl
 
+_HVAC_PREFIXES = ("DUCT ", "NODE ", "FAN ", "AIRCOIL ", "FILTER ")
+
+
+def _no_xyz(obj) -> bool:
+    """HVAC outputs take no XYZ and a bounded (XB) device that sits at the unset origin has none either."""
+    if (obj.x, obj.y, obj.z) != (0.0, 0.0, 0.0):
+        return False
+    if getattr(obj, "xb", None) is not None:
+        return True
+    return bool((obj.duct_id or getattr(obj, "node_id", None)) and obj.quantity.startswith(_HVAC_PREFIXES))
+
 
 class FdsWriterDevicesMixin:
     def _write_device(self, obj: Device) -> str:
         d: Dict[str, Any] = {
             "ID":       obj.name,
             "QUANTITY": obj.quantity,
-            "XYZ":      [obj.x, obj.y, obj.z],
         }
+        # HVAC outputs and bounded (XB) devices take no XYZ
+        if not _no_xyz(obj):
+            d["XYZ"] = [obj.x, obj.y, obj.z]
         if obj.orientation:                 d["ORIENTATION"]   = list(obj.orientation)
         if obj.prop_id:                     d["PROP_ID"]       = obj.prop_id
         if obj.ctrl_id:                     d["CTRL_ID"]       = obj.ctrl_id
@@ -49,6 +62,14 @@ class FdsWriterDevicesMixin:
         if getattr(obj, "smoothed_data", False):                  d["SMOOTHED_DATA"]      = True
         if getattr(obj, "hide_coordinates", False):               d["HIDE_COORDINATES"]   = True
         if getattr(obj, "pipe_index", None) is not None:          d["PIPE_INDEX"]         = obj.pipe_index
+        if getattr(obj, "spec_id", None):                         d["SPEC_ID"]            = obj.spec_id
+        if getattr(obj, "devc_id", None):                         d["DEVC_ID"]            = obj.devc_id
+        if getattr(obj, "flowrate", None) is not None:            d["FLOWRATE"]           = obj.flowrate
+        if getattr(obj, "delay", None) is not None:               d["DELAY"]              = obj.delay
+        if getattr(obj, "bypass_flowrate", None) is not None:     d["BYPASS_FLOWRATE"]    = obj.bypass_flowrate
+        if getattr(obj, "node_id", None):                         d["NODE_ID"]            = list(obj.node_id)
+        if getattr(obj, "cell_l", None) is not None:              d["CELL_L"]             = obj.cell_l
+        if getattr(obj, "relative", False):                       d["RELATIVE"]           = True
         return _nl("DEVC", d)
 
     def _write_slice(self, obj: Slice) -> str:
@@ -61,6 +82,7 @@ class FdsWriterDevicesMixin:
         if obj.vector:        d["VECTOR"]       = obj.vector
         if obj.cell_centered: d["CELL_CENTERED"] = obj.cell_centered
         if obj.quantity2:     d["QUANTITY2"]    = obj.quantity2
+        if getattr(obj, "spec_id", None): d["SPEC_ID"] = obj.spec_id
         return _nl("SLCF", d)
 
     def _write_smoke3d(self, obj: Smoke3D) -> str:

@@ -57,7 +57,8 @@ class FdsWriterPhysicsMixin:
         d: Dict[str, Any] = {"ID": obj.name}
         if obj.fuel:          d["FUEL"] = obj.fuel
         if obj.formula:       d["FORMULA"] = obj.formula
-        d["HEAT_OF_COMBUSTION"] = obj.heat_of_combustion
+        if obj.heat_of_combustion:                 # 0 means "not given": FDS then uses the fuel's own value
+            d["HEAT_OF_COMBUSTION"] = obj.heat_of_combustion
         d["SOOT_YIELD"]         = obj.soot_yield
         d["CO_YIELD"]           = obj.co_yield
         d["RADIATIVE_FRACTION"] = obj.radiative_fraction
@@ -92,6 +93,8 @@ class FdsWriterPhysicsMixin:
         if getattr(obj, "mass_fraction_0", None) is not None:     d["MASS_FRACTION_0"]     = obj.mass_fraction_0
         if getattr(obj, "specific_heat", None) is not None:       d["SPECIFIC_HEAT"]       = obj.specific_heat
         if getattr(obj, "reference_enthalpy", None) is not None:  d["REFERENCE_ENTHALPY"]  = obj.reference_enthalpy
+        if getattr(obj, "mass_extinction_coefficient", None) is not None: d["MASS_EXTINCTION_COEFFICIENT"] = obj.mass_extinction_coefficient
+        if getattr(obj, "fic_concentration", None) is not None:           d["FIC_CONCENTRATION"]           = obj.fic_concentration
         # PRIMITIVE / LUMPED_COMPONENT_ONLY only written when non-default
         if not getattr(obj, "primitive", True):                   d["PRIMITIVE"]           = False
         if getattr(obj, "lumped_component_only", False):           d["LUMPED_COMPONENT_ONLY"] = True
@@ -163,6 +166,10 @@ class FdsWriterPhysicsMixin:
         if getattr(obj, "length", None) is not None:                   d["LENGTH"]                  = obj.length
         if getattr(obj, "smokeview_id", None):                         d["SMOKEVIEW_ID"]            = obj.smokeview_id
         if getattr(obj, "smokeview_parameters", None):                 d["SMOKEVIEW_PARAMETERS"]    = obj.smokeview_parameters
+        if getattr(obj, "k_factor", None) is not None:                 d["K_FACTOR"]                = obj.k_factor
+        if getattr(obj, "orifice_diameter", None) is not None:         d["ORIFICE_DIAMETER"]        = obj.orifice_diameter
+        if getattr(obj, "pressure_ramp", None):                        d["PRESSURE_RAMP"]           = obj.pressure_ramp
+        if getattr(obj, "fed_activity", None) is not None:             d["FED_ACTIVITY"]            = obj.fed_activity
         return _nl("PROP", d)
 
     def _write_control(self, obj: Control) -> str:

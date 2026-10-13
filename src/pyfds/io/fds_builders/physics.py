@@ -154,6 +154,16 @@ class PhysicsBuilders:
             prop_id=self._str(d, "PROP_ID") or None,
             surf_id=self._str(d, "SURF_ID") or None,
             sampling_factor=self._int(d, "SAMPLING_FACTOR", 1),
+            massless=self._bool(d, "MASSLESS"),
+            stationary=self._bool(d, "STATIONARY"),
+            monodisperse=self._bool(d, "MONODISPERSE"),
+            target_only=self._bool(d, "TARGET_ONLY"),
+            initial_temperature=self._flt(d, "INITIAL_TEMPERATURE"),
+            minimum_diameter=self._flt(d, "MINIMUM_DIAMETER"),
+            maximum_diameter=self._flt(d, "MAXIMUM_DIAMETER"),
+            free_area_fraction=self._flt(d, "FREE_AREA_FRACTION"),
+            horizontal_velocity=self._flt(d, "HORIZONTAL_VELOCITY"),
+            vertical_velocity=self._flt(d, "VERTICAL_VELOCITY"),
         ))
 
     def _parse_spec(self, p: FdsProject, d: Dict) -> None:
@@ -179,6 +189,8 @@ class PhysicsBuilders:
             mass_fraction_0=self._flt(d, "MASS_FRACTION_0"),
             specific_heat=self._flt(d, "SPECIFIC_HEAT"),
             reference_enthalpy=self._flt(d, "REFERENCE_ENTHALPY"),
+            mass_extinction_coefficient=self._flt(d, "MASS_EXTINCTION_COEFFICIENT"),
+            fic_concentration=self._flt(d, "FIC_CONCENTRATION"),
         ))
 
     def _parse_init(self, p: FdsProject, d: Dict) -> None:

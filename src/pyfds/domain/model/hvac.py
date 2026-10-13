@@ -72,6 +72,11 @@ class HvacFilter(FdsEntity):
     loss: float = 0.0                           # pressure loss coefficient
     clean_loss: Optional[float] = None          # clean-filter loss coefficient
     ctrl_id: Optional[str] = None
+    node_id: Optional[str] = None               # the node the filter sits at (it needs exactly two ducts)
+    spec_id: Optional[str] = None               # SPEC_ID - the species the filter removes
+    loading: Optional[float] = None             # LOADING (kg) the filter starts with
+    loading_multiplier: Optional[float] = None  # LOADING_MULTIPLIER (1/kg) in the loss model
+    ramp_id: Optional[str] = None               # RAMP_ID - loss vs loading table (instead of LOSS)
 
 
 class HvacAircoil(FdsEntity):
@@ -82,6 +87,7 @@ class HvacAircoil(FdsEntity):
     coolant_temperature: Optional[float] = None  # COOLANT_TEMPERATURE (deg C)
     coolant_specific_heat: Optional[float] = None  # COOLANT_SPECIFIC_HEAT (kJ/kg/K)
     coolant_mass_flow: Optional[float] = None    # COOLANT_MASS_FLOW (kg/s)
+    fixed_q: Optional[float] = None              # FIXED_Q (kW, negative removes heat) instead of the coolant model
     ctrl_id: Optional[str] = None
 
 
@@ -92,4 +98,6 @@ class HvacLeakage(FdsEntity):
     zone_id_2: str = ""                         # destination pressure zone ID
     area: float = 0.001                         # leakage area (m²)
     crack_id: Optional[str] = None
+    vent_id: Optional[str] = None               # VENT_ID - first vent of an FDS leak path
+    vent2_id: Optional[str] = None              # VENT2_ID - second vent
     ctrl_id: Optional[str] = None

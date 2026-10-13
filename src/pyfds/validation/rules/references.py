@@ -11,7 +11,7 @@ from ..engine import ValidationResult, Severity
 class DanglingSurfaceRule:
     """Obstructions and vents use surfaces that exist."""
     name = "DanglingSurface"
-    _BUILTINS = {"OPEN", "INERT", "MIRROR"}
+    _BUILTINS = {"OPEN", "INERT", "MIRROR", "HVAC", "PERIODIC"}
 
     def check(self, p: Any) -> List[ValidationResult]:
         results = []

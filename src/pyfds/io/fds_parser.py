@@ -182,6 +182,8 @@ class FdsParser(ParamBuilders, SpatialBuilders, PhysicsBuilders, DeviceBuilders,
                 # No builder for this namelist: keep the text, never drop it.
                 project.raw_records.append(rec.raw)
 
+        self._finish_hvac(project)
+
         # Flush accumulated RAMP objects
         for ramp_id, (times, values, devc_id, ctrl_id, interpolation) in ramp_accum.items():
             try:

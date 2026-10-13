@@ -157,6 +157,8 @@ _add("TURBULENT VISCOSITY",    "MU_T",  "kg/m/s", _ALL_GAS,
 # ── Density / Species ────────────────────────────────────────────────────────
 _add("DENSITY",                "RHO",   "kg/m3",  _ALL_GAS,
      "Total gas mixture density")
+_add("VOLUME FRACTION",        "X_SPEC", "mol/mol", _ALL_GAS, "Species volume (mole) fraction; needs SPEC_ID")
+_add("MASS FRACTION",          "Y_SPEC", "kg/kg",   _ALL_GAS, "Species mass fraction; needs SPEC_ID")
 _add("MIXTURE FRACTION",       "Z",     "1",      _ALL_GAS,
      "Mixture fraction (fuel–air coupling scalar)")
 _add("OXYGEN",                 "O2",    "kg/kg",  _ALL_GAS,
@@ -231,6 +233,8 @@ _add("CEILING TEMPERATURE",    "T_CEIL","C",        _DEVC_ONLY,
      "Gas temperature at ceiling (top of domain or specified height)")
 
 # ── Control / Sprinkler / Detector ───────────────────────────────────────────
+_add("CONTROL",                "CTRL_ST", "1",       _DEVC_ONLY,
+     "Device that carries a control state (nozzles, vents, fans switched by a CTRL)")
 _add("CONTROL VALUE",          "CTRL",  "1",        _DEVC_ONLY,
      "Control function value (0 or 1, or float for ramp-driven CTRLs)")
 _add("TIME",                   "TIME",  "s",         _DEVC_ONLY,
@@ -265,6 +269,34 @@ _add("NODE TEMPERATURE",       "T_NOD", "C",         _DEVC_ONLY,
      "Temperature at an HVAC node")
 _add("MASS FLOW RATE",         "M_RATE","kg/s",      _DEVC_ONLY,
      "Mass flow rate through a duct or vent")
+_add("DUCT MASS FLOW",         "M_DUC", "kg/s",      _DEVC_ONLY, "Mass flow in a duct (needs DUCT_ID)")
+_add("DUCT TEMPERATURE",       "T_DUC", "C",         _DEVC_ONLY, "Temperature of the flow in a duct (needs DUCT_ID)")
+_add("DUCT DENSITY",           "RHO_DUC", "kg/m3",   _DEVC_ONLY, "Density of the flow in a duct (needs DUCT_ID)")
+_add("DUCT ENTHALPY FLOW",     "H_DUC", "kW",        _DEVC_ONLY, "Enthalpy flow in a duct (needs DUCT_ID)")
+_add("DUCT LOSS",              "K_DUC", "1",         _DEVC_ONLY, "Total flow loss coefficient of a duct (needs DUCT_ID)")
+_add("DUCT MASS FRACTION",     "Y_DUC", "kg/kg",     _DEVC_ONLY, "Mass fraction of a species in a duct (needs DUCT_ID, SPEC_ID)")
+_add("DUCT VOLUME FRACTION",   "X_DUC", "mol/mol",   _DEVC_ONLY, "Volume fraction of a species in a duct (needs DUCT_ID, SPEC_ID)")
+_add("DUCT CELL DENSITY",      "RHO_DCL", "kg/m3",   _DEVC_ONLY, "Gas density in a duct cell (needs DUCT_ID, CELL_L)")
+_add("DUCT CELL TEMPERATURE",  "T_DCL", "C",         _DEVC_ONLY, "Gas temperature in a duct cell (needs DUCT_ID, CELL_L)")
+_add("DUCT CELL MASS FRACTION", "Y_DCL", "kg/kg",    _DEVC_ONLY, "Species mass fraction in a duct cell (needs DUCT_ID, CELL_L, SPEC_ID)")
+_add("DUCT CELL VOLUME FRACTION", "X_DCL", "mol/mol", _DEVC_ONLY, "Species volume fraction in a duct cell (needs DUCT_ID, CELL_L, SPEC_ID)")
+_add("NODE DENSITY",           "RHO_NOD", "kg/m3",   _DEVC_ONLY, "Density of the flow through a node (needs NODE_ID)")
+_add("NODE ENTHALPY",          "H_NOD", "kJ/kg",     _DEVC_ONLY, "Enthalpy of a node (needs NODE_ID)")
+_add("NODE SENSIBLE ENTHALPY", "HS_NOD", "kJ/kg",    _DEVC_ONLY, "Sensible enthalpy of a node (needs NODE_ID)")
+_add("NODE MASS FRACTION",     "Y_NOD", "kg/kg",     _DEVC_ONLY, "Species mass fraction in a node (needs NODE_ID, SPEC_ID)")
+_add("NODE VOLUME FRACTION",   "X_NOD", "mol/mol",   _DEVC_ONLY, "Species volume fraction in a node (needs NODE_ID, SPEC_ID)")
+_add("NODE PRESSURE DIFFERENCE", "DP_NOD", "Pa",     _DEVC_ONLY, "Pressure of the second node minus the first (NODE_ID with two nodes)")
+_add("FAN PRESSURE",           "P_FAN", "Pa",        _DEVC_ONLY, "Pressure rise of a fan (needs DUCT_ID)")
+_add("AIRCOIL HEAT EXCHANGE",  "Q_ACL", "kW",        _DEVC_ONLY, "Heat exchange rate of an aircoil (needs DUCT_ID)")
+_add("FILTER LOADING",         "LD_FLT", "kg",       _DEVC_ONLY, "Loading of a species in a filter (needs NODE_ID, SPEC_ID)")
+_add("FILTER LOSS",            "K_FLT", "1",         _DEVC_ONLY, "Flow loss through a filter (needs NODE_ID)")
+# ── Detectors and tenability ─────────────────────────────────────────────────
+_add("PATH OBSCURATION",       "OB_PATH", "%",       _DEVC_ONLY, "Beam detector: smoke obscuration along the XB line")
+_add("TRANSMISSION",           "TR_PATH", "%/m",     _DEVC_ONLY, "Beam transmission along the XB line")
+_add("CHAMBER OBSCURATION",    "OB_CHAM", "%/m",     _DEVC_ONLY, "Smoke detector chamber obscuration (use with PROP_ID)")
+_add("ASPIRATION",             "OB_ASP", "%/m",      _DEVC_ONLY, "Central detector of an aspiration (VESDA) system")
+_add("FED",                    "FED",   "1",         _DEVC_ONLY, "Fractional effective dose, asphyxiants (PROP_ID may set FED_ACTIVITY)")
+_add("FIC",                    "FIC",   "1",         _DEVC_ONLY, "Fractional incapacitating concentration, irritants")
 
 # ── Structural / Solid ────────────────────────────────────────────────────────
 _add("INSIDE WALL TEMPERATURE","T_IN",  "C",         frozenset({CONTEXT_DEVC, CONTEXT_PROF}),

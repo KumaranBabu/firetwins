@@ -83,6 +83,8 @@ class MiscParams(BaseModel):
     solid_phase_only: bool = False        # SOLID_PHASE_ONLY — disable gas-phase solver (pyrolysis bench tests)
     max_leak_paths: Optional[int] = None  # MAX_LEAK_PATHS — maximum pressure-driven leak connections
     vn_max: Optional[float] = None        # VN_MAX — von Neumann stability limit override
+    visibility_factor: Optional[float] = None   # VISIBILITY_FACTOR - C in S = C/K (3 reflecting, 8 light-emitting signs)
+    maximum_visibility: Optional[float] = None  # MAXIMUM_VISIBILITY (m) reported when there is no smoke
 
 
 class PresParams(BaseModel):

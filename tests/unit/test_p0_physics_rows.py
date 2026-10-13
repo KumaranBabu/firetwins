@@ -176,7 +176,7 @@ def test_aircoil_round_trip_and_validation(api, tmp_path):
     api.hvac_ducts.add_duct("N1", "N2", name="D1")
     c = api.hvac_aircoils.add_aircoil("D1", 0.7, coolant_temperature=7.0, coolant_mass_flow=0.3, name="COIL")
     text, back = _roundtrip(api, tmp_path)
-    assert "&AIRCOIL" in text
+    assert "&HVAC TYPE_ID='AIRCOIL'" in text
     b = back.hvac_aircoils[0]
     assert (b.name, b.duct_id, b.effectiveness, b.coolant_temperature, b.coolant_mass_flow) == ("COIL", "D1", 0.7, 7.0, 0.3)
     with pytest.raises(KeyError):

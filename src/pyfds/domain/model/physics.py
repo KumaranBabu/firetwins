@@ -195,10 +195,21 @@ class Species(FdsEntity):
     mass_fraction_0: Optional[float] = None  # MASS_FRACTION_0 — initial ambient mass fraction
     specific_heat: Optional[float] = None  # SPECIFIC_HEAT (kJ/kg/K) — override for non-ideal species
     reference_enthalpy: Optional[float] = None  # REFERENCE_ENTHALPY (kJ/kg) at REFERENCE_TEMPERATURE
+    mass_extinction_coefficient: Optional[float] = None  # MASS_EXTINCTION_COEFFICIENT (m2/kg) for smoke visibility
+    fic_concentration: Optional[float] = None   # FIC_CONCENTRATION (ppm) irritant dose for FIC/FED
 
 
 class Particle(FdsEntity):
     """&PART namelist — Lagrangian particle class."""
+
+    @property
+    def kind(self) -> str:
+        """``tracer`` (massless), ``solid`` (has a surface), else ``droplet`` (liquid, evaporating or not)."""
+        if self.massless:
+            return "tracer"
+        if self.surf_id and not self.spec_id:
+            return "solid"
+        return "droplet"
     name: str = "DefaultParticle"
     color: str = "BLUE"
     diameter: float = 500.0
@@ -218,3 +229,14 @@ class Particle(FdsEntity):
     quantities: Optional[List[str]] = None           # QUANTITIES array (tracked output vars)
     orientation: Optional[Tuple[float,float,float]] = None  # injection direction
     ctrl_id: Optional[str] = None                    # activation control
+    # Particle kind (PRT-01): massless tracer, stationary, solid (surf_id) or evaporating droplet (spec_id)
+    massless: bool = False                           # MASSLESS - visualisation tracers
+    stationary: bool = False                         # STATIONARY - particles that do not move
+    monodisperse: bool = False                       # MONODISPERSE - one diameter, no size distribution
+    target_only: bool = False                        # TARGET_ONLY - solid particles that only receive heat
+    initial_temperature: Optional[float] = None      # INITIAL_TEMPERATURE (deg C)
+    minimum_diameter: Optional[float] = None         # MINIMUM_DIAMETER (micron)
+    maximum_diameter: Optional[float] = None         # MAXIMUM_DIAMETER (micron)
+    free_area_fraction: Optional[float] = None       # FREE_AREA_FRACTION - mesh-like targets
+    horizontal_velocity: Optional[float] = None      # HORIZONTAL_VELOCITY (m/s) of solid particles on surfaces
+    vertical_velocity: Optional[float] = None        # VERTICAL_VELOCITY (m/s)

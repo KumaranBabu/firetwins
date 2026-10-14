@@ -12,8 +12,10 @@ from typing import Any, Dict, List, Optional
 
 from pyfds.domain import libraries as lib
 
+from .library_files import LibraryFiles
 
-class LibraryManager:
+
+class LibraryManager(LibraryFiles):
     def __init__(self, api) -> None:
         self._api = api
         self._user: Dict[str, Dict[str, Dict[str, Any]]] = {k: {} for k in lib.CATEGORIES}
@@ -125,8 +127,11 @@ class LibraryManager:
             if entries:
                 out[k] = entries
         with open(filepath, "w", encoding="utf-8") as fh:
-            json.dump(lib.to_document(out), fh, indent=2)
-        return sum(len(v) for v in out.values())
+            doc = lib.to_document(out)
+            if self._appearance_store() and categories is None:
+                doc["appearances"] = self._appearance_store()
+            json.dump(doc, fh, indent=2)
+        return sum(len(v) for v in out.values()) + (len(self._appearance_store()) if categories is None else 0)
 
     def import_library(self, filepath: str, overwrite: bool = False) -> Dict[str, List[Any]]:
         """Merge a library file into the user library. Returns ``{"added", "replaced", "skipped", "invalid"}``;
@@ -143,6 +148,16 @@ class LibraryManager:
         if bad:
             raise ValueError("; ".join(bad))
         report: Dict[str, List[Any]] = {"added": [], "replaced": [], "skipped": [], "invalid": []}
+        for name, look in (doc.get("appearances") or {}).items():
+            store = self._appearance_store()
+            if name in store and not overwrite:
+                report["skipped"].append(f"appearances/{name}")
+            elif isinstance(look, dict):
+                report["replaced" if name in store else "added"].append(f"appearances/{name}")
+                store[name] = {k: (tuple(v) if k == "rgb" else v) for k, v in look.items() if k in
+                               ("color", "rgb", "transparency", "texture_map", "texture_width", "texture_height")}
+            else:
+                report["invalid"].append({"category": "appearances", "name": name, "reason": "entry must be an object"})
         for cat, entries in doc["categories"].items():
             if cat not in lib.CATEGORIES or not isinstance(entries, dict):
                 report["invalid"].append({"category": cat, "reason": "unknown category"})

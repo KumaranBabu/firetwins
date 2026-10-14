@@ -57,6 +57,12 @@ _BUILTIN_PROPS: Dict[str, Dict[str, Dict[str, Any]]] = {
                                    "fields": {"quantity": "SPRINKLER LINK TEMPERATURE", "activation_temperature": 74.0,
                                               "rti": 100.0, "c_factor": 0.7}},
     },
+    "species": {
+        n.lower().replace(" ", "_"): {"description": f"{n.title()} - a species FDS knows by name (its properties are built in)",
+                                      "fields": {}}
+        for n in ("CARBON DIOXIDE", "CARBON MONOXIDE", "WATER VAPOR", "OXYGEN", "NITROGEN", "HYDROGEN CHLORIDE",
+                  "HYDROGEN CYANIDE", "METHANE", "PROPANE")
+    },
     "particles": {
         "water_droplet": {"description": "Water droplets, 500 micron (typical sprinkler spray)",
                           "fields": {"diameter": 500.0, "density": 1000.0, "color": "BLUE", "spec_id": "WATER VAPOR"}},

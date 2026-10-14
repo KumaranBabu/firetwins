@@ -15,6 +15,7 @@ Run everything: `python -X utf8 -m pytest tests -q --basetemp=/f/scratch/pt` (us
 | B3 | glTF/DAE/IFC import, BIM -> obstructions, repair, STL/OBJ export, plan backgrounds and tracing | `unit/test_b3_import_export.py` |
 | B4 | Custom smoke, reaction table, particle kinds, nozzle/dry pipe/beam/FED/aspiration/HVAC output devices, stop controls, multi-edit | `unit/test_b4_devices_and_smoke.py` |
 | B4 | HVAC in `&HVAC TYPE_ID` form, fan curves, jet fan, fire library, pool fire, pyrolysis fit, by-products, activation/HRR summaries, egress | `unit/test_b4_hvac_fire_results.py` |
+| B5 | FDS-syntax library import/export, appearance library | `unit/test_b5_library_files.py` |
 | B4 | The above through the real FDS 6.10.1 | `smoke/test_real_fds_b4_systems.py` |
 | P0: SRF-01, MAT-03, RXN-01, HVC-01, SIM-03 | Typed surfaces, liquid fuel, complex reactions, aircoil, gravity ramps, ambient | `unit/test_p0_physics_rows.py` |
 | P0: LIB-01, MAT-05 | Libraries, import/export | `unit/test_p0_libraries.py` |

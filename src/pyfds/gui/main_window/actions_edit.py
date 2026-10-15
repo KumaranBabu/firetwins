@@ -215,6 +215,9 @@ class ActionsEditMixin:
             menu.addAction("&Delete", self._on_delete_selected)
             return menu
         menu.addAction("&Properties...", self._on_edit_properties)
+        from pyfds.gui.actions import EDITABLE
+        if attr in EDITABLE:
+            menu.addAction("Open in &Editor...", lambda: self._on_open_in_editor(attr, entity))
         menu.addAction("Re&name...", lambda: self._on_rename_entity(entity))
         toggle_label = "&Disable Object" if entity.enabled else "&Enable Object"
         menu.addAction(toggle_label, lambda: self._on_toggle_enabled(entity))

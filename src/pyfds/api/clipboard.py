@@ -46,9 +46,11 @@ class ClipboardManager:
         """What is on the clipboard (FDS input text)."""
         return self._text
 
-    def to_fds_text(self, entities: Iterable[Any], include_dependencies: bool = False) -> str:
+    def to_fds_text(self, entities: Iterable[Any], include_dependencies: bool = False,
+                    substitute: Optional[dict] = None) -> str:
         """FDS text for these objects. With *include_dependencies* the surfaces they use (and those
-        surfaces' materials and ramps) are included, so the text pastes into an empty model."""
+        surfaces' materials and ramps) are included, so the text pastes into an empty model.
+        *substitute* maps ``id(object)`` to a stand-in written in its place (an editor's unsaved-edit preview)."""
         items = list(entities)
         if not items:
             raise ValueError("nothing to copy")
@@ -60,7 +62,7 @@ class ClipboardManager:
         if include_dependencies:
             items = self._with_dependencies(items)
         from pyfds.io.fds_writer import FdsWriter
-        return "\n".join(FdsWriter().entity_records(p, items)) + "\n"
+        return "\n".join(FdsWriter().entity_records(p, items, substitute)) + "\n"
 
     def _with_dependencies(self, items: List[Any]) -> List[Any]:
         p = self._api.project

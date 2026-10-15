@@ -33,6 +33,7 @@ from .actions_tools_help import ActionsToolsHelpMixin
 from .menus_file_edit import MenusFileEditMixin
 from .shell_bars import ShellBarsMixin
 from .actions_shell import ActionsShellMixin
+from .actions_editors import ActionsEditorsMixin
 from .menus_view_draw import MenusViewDrawMixin
 from .menus_model import MenusModelMixin
 from .menus_run_results import MenusRunResultsMixin
@@ -62,6 +63,7 @@ class MainWindow(
     PlaceholderMixin,
     ShellBarsMixin,
     ActionsShellMixin,
+    ActionsEditorsMixin,
     PanelsMixin,
     WorkspacesMixin,
     CentralTabsMixin,
@@ -108,6 +110,7 @@ class MainWindow(
         from pyfds.gui.extras import install_extras
         install_extras(self)      # room/library/run-monitor/results-viewer entries (see extras.py)
         self._restructure_menu_bar()
+        self._install_editor_menu()
         self._build_toolbar()
         self._build_shell_bars()
         from pyfds.gui.icons import install_icons

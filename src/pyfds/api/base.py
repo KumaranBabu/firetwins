@@ -43,6 +43,19 @@ class _CollectionManager:
         from pyfds.automation.commands import RemoveEntityCommand
         self._pipe.execute(RemoveEntityCommand(self._project, entity))
 
+    def create_default(self, name: Optional[str] = None) -> Any:
+        """Add a new object of this kind with default values and a name that is not yet used (one undo step).
+        This is what a list editor's "New" button does; set the values afterwards with ``update``."""
+        base = name or self._cls.__name__
+        taken = {getattr(e, "name", None) for e in self.all()}
+        candidate, n = base, 1
+        while candidate in taken:
+            n += 1
+            candidate = f"{base}{n}" if name is None else f"{base}_{n}"
+        entity = self._cls(name=candidate)
+        self.add(entity)
+        return entity
+
     def update(self, entity_or_name, **fields) -> Any:
         """Change several fields of one entity as ONE undoable step.
 

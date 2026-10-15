@@ -138,9 +138,13 @@ class FdsWriter(FdsWriterHeadMixin, FdsWriterPhysicsMixin, FdsWriterGeometryMixi
         finally:
             _NUMFMT.reset(token)
 
-    def entity_records(self, project: FdsProject, entities) -> List[str]:
-        """The FDS lines of just these entities (in file order) - what 'copy as FDS text' puts on the clipboard."""
+    def entity_records(self, project: FdsProject, entities, substitute=None) -> List[str]:
+        """The FDS lines of just these entities (in file order) - what 'copy as FDS text' puts on the clipboard.
+
+        *substitute* maps ``id(entity)`` to a stand-in that is written in its place (an editor previews unsaved
+        edits that way without touching the project)."""
         self._project = project
+        substitute = substitute or {}
         wanted = {id(e) for e in entities}
         fmt = check_number_format(getattr(project, "number_format", None))
         token = _NUMFMT.set(fmt)
@@ -149,9 +153,10 @@ class FdsWriter(FdsWriterHeadMixin, FdsWriterPhysicsMixin, FdsWriterGeometryMixi
             for _tag, collection, writer_fn in self._entity_table(project):
                 for obj in collection:
                     if id(obj) in wanted:
-                        rec = writer_fn(obj)
+                        shown = substitute.get(id(obj), obj)
+                        rec = writer_fn(shown)
                         if rec:
-                            lines.append(_with_extra(rec, getattr(obj, "fds_extra", None)))
+                            lines.append(_with_extra(rec, getattr(shown, "fds_extra", None)))
             for ramp in project.ramps:
                 if id(ramp) in wanted:
                     lines.extend(self._ramp_lines(ramp))

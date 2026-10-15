@@ -133,10 +133,15 @@ class FdsWriterDevicesMixin:
             "DIRECTION": obj.direction,
             "Z_REF":     obj.z_ref,
         }
-        if obj.z0 is not None:       d["Z0"]       = obj.z0
+        # FDS 6.10.1 names (verified against the real solver): Z_0, RAMP_SPEED_T, RAMP_DIRECTION_T.
+        # Z0, RAMP_ID, USTAR and L_INF are rejected by it, so ustar/l_inf are model-only.
+        if obj.z0 is not None:       d["Z_0"]      = obj.z0
         if obj.l is not None:        d["L"]        = obj.l
-        if obj.ustar is not None:    d["USTAR"]    = obj.ustar
-        if obj.ramp_id:              d["RAMP_ID"]  = obj.ramp_id
+        if obj.ramp_id:              d["RAMP_SPEED_T"]     = obj.ramp_id
+        if obj.ramp_direction:       d["RAMP_DIRECTION_T"] = obj.ramp_direction
         if obj.latitude is not None: d["LATITUDE"] = obj.latitude
-        if obj.l_inf is not None:    d["L_INF"]    = obj.l_inf
+        if obj.ground_level is not None:  d["GROUND_LEVEL"]  = obj.ground_level
+        if obj.lapse_rate is not None:    d["LAPSE_RATE"]    = obj.lapse_rate
+        if obj.stratification is not None: d["STRATIFICATION"] = obj.stratification
+        if obj.theta_star is not None:    d["THETA_STAR"]    = obj.theta_star
         return _nl("WIND", d)

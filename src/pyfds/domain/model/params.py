@@ -48,6 +48,7 @@ class DumpParams(BaseModel):
     sig_figs_exp: Optional[int] = None    # SIG_FIGS_EXP — significant figures in exponential notation
     velocity_error_file: bool = False     # VELOCITY_ERROR_FILE — write velocity error diagnostics
     flush_file_buffers: bool = True       # FLUSH_FILE_BUFFERS — flush I/O after each write
+    maximum_particles: Optional[int] = None  # MAXIMUM_PARTICLES - cap on Lagrangian particles (FDS default 1,000,000)
 
 
 class MiscParams(BaseModel):
@@ -72,8 +73,8 @@ class MiscParams(BaseModel):
     w0: float = 0.0
     restart: bool = False
     suppression: bool = True
-    maximum_droplets: int = 1_000_000
-    allow_surface_particles: bool = False
+    particle_cfl: bool = False                  # PARTICLE_CFL - limit the time step by the particle CFL number
+    particle_cfl_max: Optional[float] = None    # PARTICLE_CFL_MAX (FDS default 1.0)
     # OpenMP threading (sets OPENMP_THREADS in &MISC and OMP_NUM_THREADS env var)
     openmp_threads: Optional[int] = None
     # Extended MISC fields (PyroSim parity)

@@ -46,6 +46,8 @@ class ParamBuilders:
         if sig_figs is not None: p.dump.sig_figs = sig_figs
         sig_figs_exp = self._int(d, "SIG_FIGS_EXP")
         if sig_figs_exp is not None: p.dump.sig_figs_exp = sig_figs_exp
+        max_part = self._int(d, "MAXIMUM_PARTICLES")
+        if max_part is not None: p.dump.maximum_particles = max_part
         if self._bool(d, "VELOCITY_ERROR_FILE"): p.dump.velocity_error_file = True
         flush = self._bool(d, "FLUSH_FILE_BUFFERS", None)
         if flush is not None: p.dump.flush_file_buffers = flush
@@ -93,6 +95,8 @@ class ParamBuilders:
         if vn_max is not None: p.misc.vn_max = vn_max
         p.misc.visibility_factor = self._flt(d, "VISIBILITY_FACTOR")
         p.misc.maximum_visibility = self._flt(d, "MAXIMUM_VISIBILITY")
+        p.misc.particle_cfl = bool(self._bool(d, "PARTICLE_CFL", False))
+        p.misc.particle_cfl_max = self._flt(d, "PARTICLE_CFL_MAX")
 
     def _parse_pres(self, p: FdsProject, d: Dict) -> None:
         if "VELOCITY_TOLERANCE"      in d: p.pres.velocity_tolerance = float(d["VELOCITY_TOLERANCE"])

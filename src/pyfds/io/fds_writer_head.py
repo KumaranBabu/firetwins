@@ -33,6 +33,7 @@ class FdsWriterHeadMixin:
         if getattr(p.dump, "dt_ctrl", None) is not None: d["DT_CTRL"]   = p.dump.dt_ctrl
         if p.dump.sig_figs is not None:          d["SIG_FIGS"]          = p.dump.sig_figs
         if p.dump.sig_figs_exp is not None:      d["SIG_FIGS_EXP"]      = p.dump.sig_figs_exp
+        if p.dump.maximum_particles is not None: d["MAXIMUM_PARTICLES"] = p.dump.maximum_particles
         if p.dump.velocity_error_file:           d["VELOCITY_ERROR_FILE"] = True
         if not p.dump.flush_file_buffers:        d["FLUSH_FILE_BUFFERS"]  = False
         # Write PLOT3D_QUANTITY array if custom quantities are set
@@ -74,6 +75,8 @@ class FdsWriterHeadMixin:
         if p.misc.vn_max is not None:             d["VN_MAX"]             = p.misc.vn_max
         if p.misc.visibility_factor is not None:  d["VISIBILITY_FACTOR"]  = p.misc.visibility_factor
         if p.misc.maximum_visibility is not None: d["MAXIMUM_VISIBILITY"] = p.misc.maximum_visibility
+        if p.misc.particle_cfl:                   d["PARTICLE_CFL"]       = True
+        if p.misc.particle_cfl_max is not None:   d["PARTICLE_CFL_MAX"]   = p.misc.particle_cfl_max
         return _nl("MISC", d)
 
     def _write_pres(self, p: FdsProject) -> str:

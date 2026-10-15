@@ -21,6 +21,7 @@ from .hvac import HvacManager, DamperManager, FanManager, HvacDuctManager, HvacF
 from .environment import EnvironmentManager, InitManager, WindManager
 from .library import LibraryManager
 from .view import VisibilityManager
+from .units import UnitsManager
 from .clipboard import ClipboardManager
 from .snapping import SnapManager
 from .slice_view import SliceViewManager
@@ -108,6 +109,7 @@ class FdsApi:
         self.hvac_aircoils = HvacAircoilManager(self)
         self.inits         = InitManager(self)
         self.environment   = EnvironmentManager(self)
+        self.units         = UnitsManager(self)
         self.library       = LibraryManager(self)
         self.view          = VisibilityManager(self)
         self.clipboard     = ClipboardManager(self)

@@ -247,6 +247,7 @@ class Serializer:
             "scenario_snapshots": ref_fields(sc._snapshots),
             "hidden": [refs[uid] for uid in sorted(ed.hidden) if uid in refs],
             "hidden_types": sorted(ed.hidden_types),
+            "units": ed.units,
         }
 
     def _editor_from_dict(self, project: FdsProject, data: Dict[str, Any]) -> None:
@@ -300,6 +301,7 @@ class Serializer:
             if uid:
                 ed.hidden.add(uid)
         ed.hidden_types = {str(t) for t in data.get("hidden_types", [])}
+        ed.units = data.get("units", "SI") if data.get("units") in ("SI", "EN") else "SI"
 
     def _entity_to_dict(self, obj: FdsEntity) -> Dict[str, Any]:
         """Dump a Pydantic model to dict, excluding private attributes."""

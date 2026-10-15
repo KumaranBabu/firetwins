@@ -169,7 +169,7 @@ class TestWriterWindProfile:
         p = FdsProject()
         p.wind_profiles.append(WindProfile(name="w", speed=5.0, z0=0.03))
         text = writer.generate_content(p)
-        assert "Z0=0.03" in text
+        assert "Z_0=0.03" in text      # FDS 6.10.1 rejects Z0
 
     def test_wind_optional_latitude(self, writer):
         p = FdsProject()
@@ -181,7 +181,7 @@ class TestWriterWindProfile:
         p = FdsProject()
         p.wind_profiles.append(WindProfile(name="w", speed=0.0, ramp_id="wind_ramp"))
         text = writer.generate_content(p)
-        assert "RAMP_ID='wind_ramp'" in text
+        assert "RAMP_SPEED_T='wind_ramp'" in text      # FDS 6.10.1 rejects RAMP_ID on &WIND
 
     def test_wind_omits_absent_optionals(self, writer):
         p = FdsProject()

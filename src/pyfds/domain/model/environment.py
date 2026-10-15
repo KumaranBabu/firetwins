@@ -40,4 +40,9 @@ class WindProfile(FdsEntity):
     ustar: Optional[float] = None               # friction velocity (m/s)
     ramp_id: Optional[str] = None               # time-varying speed via RAMP
     latitude: Optional[float] = None            # latitude for Coriolis effects
-    l_inf: Optional[float] = None               # mixing-layer height (m)
+    ground_level: Optional[float] = None        # GROUND_LEVEL (m) - elevation the profile starts from
+    lapse_rate: Optional[float] = None          # LAPSE_RATE (K/m) - temperature change with height
+    stratification: Optional[bool] = None       # STRATIFICATION - atmospheric temperature profile on/off
+    theta_star: Optional[float] = None          # THETA_STAR (K) - Monin-Obukhov temperature scale
+    ramp_direction: Optional[str] = None        # RAMP_DIRECTION_T - direction vs time
+    l_inf: Optional[float] = None               # not an FDS &WIND parameter (never written)

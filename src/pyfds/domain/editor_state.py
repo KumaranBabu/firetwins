@@ -66,8 +66,9 @@ class EditorState:
         self.group_memberships: Dict[str, str] = {}     # entity_uid -> group name
         self.hidden: Set[str] = set()                   # entity uids hidden in the views
         self.hidden_types: Set[str] = set()             # collection names switched off ("vents", ...)
+        self.units: str = "SI"                          # display/entry unit system: "SI" or "EN"
 
     def is_empty(self) -> bool:
         return not (self.scenarios.all() or self.floors or self.groups or self.backgrounds or self.fire_items
                     or self.floor_assignments or self.group_memberships
-                    or self.hidden or self.hidden_types)
+                    or self.hidden or self.hidden_types or self.units != "SI")

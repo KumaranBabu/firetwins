@@ -86,6 +86,27 @@ class WindManager:
             self._api.history.execute(AddEntityCommand(self._api.project, r))
         return wind
 
+    def monin_obukhov(self, speed: float, direction: float = 270.0, stability: str = "D",
+                      landscape: Optional[str] = None, z0: Optional[float] = None,
+                      z_ref: float = 10.0, name: Optional[str] = None) -> Any:
+        """Add a ``WindProfile`` from a Pasquill-Gifford stability class (A-F) and a landscape type
+        (or an explicit roughness length ``z0``). One undo step. Returns the entity."""
+        from pyfds.domain import wind_presets as wp
+        from pyfds.domain.model import WindProfile
+        from pyfds.automation.commands import AddEntityCommand
+        if (landscape is None) == (z0 is None):
+            raise ValueError("give exactly one of landscape and z0")
+        if speed < 0:
+            raise ValueError("wind speed cannot be negative")
+        rough = wp.roughness_length(landscape) if landscape else float(z0)
+        length = wp.obukhov_length(stability, rough)
+        fields = dict(speed=float(speed), direction=float(direction), z_ref=float(z_ref), z0=rough, l=length)
+        if name:
+            fields["name"] = name
+        wind = WindProfile(**fields)
+        self._api.history.execute(AddEntityCommand(self._api.project, wind))
+        return wind
+
     def gust_ramp(self, base_speed: float, gust_speed: float,
                   t_start: float, t_peak: float, t_end: float,
                   ramp_id: str = "WIND_GUST") -> Any:
@@ -133,6 +154,28 @@ class EnvironmentManager:
             raise ValueError("humidity must be 0-100 %")
         new = {k: v for k, v in (("tmpa", temperature), ("p_inf", pressure), ("humidity", humidity)) if v is not None}
         return self._set("set ambient conditions", **new)
+
+    def set_particle_settings(self, particle_cfl: Optional[bool] = None, particle_cfl_max: Optional[float] = None,
+                              maximum_particles: Optional[int] = None) -> dict:
+        """Global particle settings (SIM-10): limit the time step by the particle CFL number, its
+        limit, and the cap on Lagrangian particles. One undo step."""
+        if particle_cfl_max is not None and particle_cfl_max <= 0:
+            raise ValueError("particle_cfl_max must be positive")
+        if maximum_particles is not None and maximum_particles <= 0:
+            raise ValueError("maximum_particles must be positive")
+        from pyfds.automation.commands import ModifyPropertyCommand
+        p = self._api.project
+        with self._api.history.transaction("set particle settings"):
+            for obj, key, val in ((p.misc, "particle_cfl", particle_cfl), (p.misc, "particle_cfl_max", particle_cfl_max),
+                                  (p.dump, "maximum_particles", maximum_particles)):
+                if val is not None and getattr(obj, key) != val:
+                    self._api.history.execute(ModifyPropertyCommand(obj, key, val))
+        return self.particle_settings()
+
+    def particle_settings(self) -> dict:
+        p = self._api.project
+        return {"particle_cfl": p.misc.particle_cfl, "particle_cfl_max": p.misc.particle_cfl_max,
+                "maximum_particles": p.dump.maximum_particles}
 
     def set_gravity(self, vector: Optional[Sequence[float]] = None, ramp_x: Optional[str] = ...,
                     ramp_y: Optional[str] = ..., ramp_z: Optional[str] = ...) -> dict:

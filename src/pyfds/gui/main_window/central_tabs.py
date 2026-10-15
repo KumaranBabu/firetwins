@@ -33,6 +33,30 @@ class CentralTabsMixin:
             win.open_results(smv)
         return win
 
+    def show_record_tab(self) -> Any:
+        """Show the FDS input as live text in a tab next to the model (created on first use)."""
+        from pyfds.gui.record_view import RecordView
+        view = getattr(self, "_record_view", None)
+        if view is None:
+            view = RecordView(self.api, on_select=self.explorer.select_entity, parent=self)
+            self._record_view = view
+            self.view_tabs.addTab(view, "Record")
+        view.refresh()
+        self.view_tabs.setCurrentWidget(view)
+        picked = self.explorer.selected()
+        if picked is not None:
+            view.show_entity(*picked)
+        return view
+
+    def _sync_record_view(self) -> None:
+        """Mark the selected object's record when the selection changes."""
+        view = getattr(self, "_record_view", None)
+        if view is None or getattr(view, "_syncing", False) or not view.follow.isChecked():
+            return
+        picked = self.explorer.selected()
+        if picked is not None:
+            view.show_entity(*picked)
+
     def show_model_tab(self) -> None:
         self.view_tabs.setCurrentWidget(self.viewport_widget)
 
@@ -43,6 +67,8 @@ class CentralTabsMixin:
         self.view_tabs.removeTab(index)
         if widget is self._results_window:
             self._results_window = None
+        if widget is getattr(self, "_record_view", None):
+            self._record_view = None
         widget.close()
         widget.deleteLater()
 

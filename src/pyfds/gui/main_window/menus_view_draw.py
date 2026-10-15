@@ -17,6 +17,11 @@ class MenusViewDrawMixin:
         # ════════════════════════════════════════════════════════════════════════
         view_menu = self.menuBar().addMenu("&View")
 
+        # Which view is in front (PyroSim: Show 3D / 2D / Record View)
+        view_menu.addAction("Show &3D View", self.show_model_tab)
+        view_menu.addAction("Show Re&cord View", self.show_record_tab)
+        view_menu.addSeparator()
+
         # View navigation
         self._reset_view_action = view_menu.addAction("&Reset View", self._on_reset_view)
 

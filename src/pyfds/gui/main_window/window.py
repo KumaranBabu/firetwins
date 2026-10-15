@@ -87,6 +87,7 @@ class MainWindow(
 
         self.explorer = ProjectExplorer(self.api, self)
         self.explorer.itemDoubleClicked.connect(lambda item, col: self._on_edit_properties())
+        self.explorer.itemSelectionChanged.connect(lambda: self._sync_record_view())
         self.explorer.entity_context_menu_requested.connect(self._on_explorer_context_menu)
         self.explorer_dock = QDockWidget("Project Explorer", self)
         self.explorer_dock.setObjectName("ProjectExplorerDock")
@@ -165,6 +166,9 @@ class MainWindow(
     def _on_status_event(self, event) -> None:
         self._refresh_status()
         self._sync_shell_bars()
+        view = getattr(self, "_record_view", None)
+        if view is not None:
+            view.schedule_refresh()
 
     def _refresh_status(self) -> None:
         # a long title would push the right-hand labels (cursor, selection, run) out of view: cut it short

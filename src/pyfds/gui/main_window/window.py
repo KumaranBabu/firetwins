@@ -31,6 +31,8 @@ from .actions_run import ActionsRunMixin
 from .actions_results import ActionsResultsMixin
 from .actions_tools_help import ActionsToolsHelpMixin
 from .menus_file_edit import MenusFileEditMixin
+from .shell_bars import ShellBarsMixin
+from .actions_shell import ActionsShellMixin
 from .menus_view_draw import MenusViewDrawMixin
 from .menus_model import MenusModelMixin
 from .menus_run_results import MenusRunResultsMixin
@@ -58,6 +60,8 @@ class MainWindow(
     MenusRunResultsMixin,
     MenusToolsHelpMixin,
     PlaceholderMixin,
+    ShellBarsMixin,
+    ActionsShellMixin,
     PanelsMixin,
     WorkspacesMixin,
     CentralTabsMixin,
@@ -82,7 +86,7 @@ class MainWindow(
         self.explorer.entity_context_menu_requested.connect(self._on_explorer_context_menu)
         self.explorer_dock = QDockWidget("Project Explorer", self)
         self.explorer_dock.setObjectName("ProjectExplorerDock")
-        self.explorer_dock.setWidget(self.explorer)
+        self.explorer_dock.setWidget(self._build_explorer_container())
         self.addDockWidget(Qt.LeftDockWidgetArea, self.explorer_dock)
 
         self.viewport_widget = self._build_viewport_widget()
@@ -103,7 +107,9 @@ class MainWindow(
         self._build_menu()
         from pyfds.gui.extras import install_extras
         install_extras(self)      # room/library/run-monitor/results-viewer entries (see extras.py)
+        self._restructure_menu_bar()
         self._build_toolbar()
+        self._build_shell_bars()
         from pyfds.gui.icons import install_icons
         install_icons(self, "pyfds")      # task-coloured icons on every menu entry and toolbar button
         self._default_window_state = self.saveState()
@@ -153,6 +159,7 @@ class MainWindow(
 
     def _on_status_event(self, event) -> None:
         self._refresh_status()
+        self._sync_shell_bars()
 
     def _refresh_status(self) -> None:
         # a long title would push the right-hand labels (cursor, selection, run) out of view: cut it short

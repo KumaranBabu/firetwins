@@ -60,7 +60,7 @@ def test_hvac_menu_add_node_and_duct_appear_in_explorer(monkeypatch):
     assert window.api.hvac_ducts.get("duct1") is not None
 
     def top_level_labels():
-        return [window.explorer.topLevelItem(i).text(0) for i in range(window.explorer.topLevelItemCount())]
+        return window.explorer.category_labels()
 
     labels = top_level_labels()
     assert "HVAC Nodes (1)" in labels
@@ -116,11 +116,11 @@ def test_init_particle_prof_menu_actions_appear_in_explorer(monkeypatch):
     assert window.api.profs.get("prof1") is not None
 
     def top_level_labels():
-        return [window.explorer.topLevelItem(i).text(0) for i in range(window.explorer.topLevelItemCount())]
+        return window.explorer.category_labels()
 
     labels = top_level_labels()
     assert "Init Regions (1)" in labels
-    assert "Particle Classes (1)" in labels
+    assert "Particles (1)" in labels
     assert "Profiles (1)" in labels
     window.close()
 
@@ -230,7 +230,7 @@ def test_delete_selected_removes_entity(monkeypatch):
     window = _make_window()
     window.api.meshes.add_mesh(ijk=[10, 10, 5], xb=[0, 4, 0, 4, 0, 2], name="m1")
 
-    top = window.explorer.topLevelItem(0)  # "Meshes (1)"
+    top = window.explorer.category_item("meshes")  # "Meshes (1)"
     window.explorer.setCurrentItem(top.child(0))
     monkeypatch.setattr(QMessageBox, "question", lambda *a, **k: QMessageBox.Yes)
 
@@ -243,7 +243,7 @@ def test_delete_selected_noop_when_category_row_selected():
     window = _make_window()
     window.api.meshes.add_mesh(ijk=[10, 10, 5], xb=[0, 4, 0, 4, 0, 2], name="m1")
 
-    top = window.explorer.topLevelItem(0)  # category row, carries no (attr, entity) data
+    top = window.explorer.category_item("meshes")  # category row, carries no (attr, entity) data
     window.explorer.setCurrentItem(top)
 
     window._on_delete_selected()

@@ -27,7 +27,7 @@ def _make_window():
     return MainWindow(FdsApi())
 
 def _select_first_obstruction(window):
-    top = window.explorer.topLevelItem(1)  # "Obstructions (N)"
+    top = window.explorer.category_item("obstructions")  # "Obstructions (N)"
     child = top.child(0)
     window.explorer.setCurrentItem(child)
 

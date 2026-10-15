@@ -47,7 +47,7 @@ def test_new_scenario_appears_in_explorer(monkeypatch):
     assert window.api.scenarios.get("low_hrr") is not None
 
     def top_level_labels():
-        return [window.explorer.topLevelItem(i).text(0) for i in range(window.explorer.topLevelItemCount())]
+        return window.explorer.category_labels()
 
     assert "Scenarios (1)" in top_level_labels()
     window.close()
@@ -241,7 +241,7 @@ def test_define_floor_appears_in_explorer(monkeypatch):
     assert window.api.floors.get_floor("Ground") is not None
 
     def top_level_labels():
-        return [window.explorer.topLevelItem(i).text(0) for i in range(window.explorer.topLevelItemCount())]
+        return window.explorer.category_labels()
 
     assert "Floors (1)" in top_level_labels()
     window.close()

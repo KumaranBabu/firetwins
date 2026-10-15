@@ -39,6 +39,10 @@ class EventType(Enum):
     PROJECT_CLOSED      = auto()
     PROJECT_DIRTY       = auto()       # unsaved changes exist
     PROJECT_CLEAN       = auto()       # changes saved / reverted
+    UNITS_CHANGED       = auto()       # payload = "SI" | "EN"
+    VIEWS_CHANGED       = auto()       # saved views, section box or selection history changed
+    VISIBILITY_CHANGED  = auto()       # objects hidden / shown
+    WRITE_PROTECTION_CHANGED = auto()  # payload = bool
 
     # ── Entity lifecycle ────────────────────────────────────────────────────
     OBJECT_ADDED        = auto()

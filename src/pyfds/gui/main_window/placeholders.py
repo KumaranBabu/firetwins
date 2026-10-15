@@ -37,18 +37,6 @@ PLACEHOLDERS = {
         'Coming Soon',
         'Configuration export will be available in Phase 2.\n\nThis is a placeholder.',
     ),
-    '_on_placeholder_replace': (
-        'Coming Soon',
-        'Find & Replace will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_select_all': (
-        'Coming Soon',
-        'Select All will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_filter': (
-        'Coming Soon',
-        'Filter will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
     '_on_placeholder_toggle_grid': (
         'Coming Soon',
         'Grid toggle will be available in Phase 2.\n\nThis is a placeholder.',
@@ -56,10 +44,6 @@ PLACEHOLDERS = {
     '_on_placeholder_toggle_axes': (
         'Coming Soon',
         'Axes toggle will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_section_view': (
-        'Coming Soon',
-        'Section view will be available in Phase 2.\n\nThis is a placeholder.',
     ),
     '_on_placeholder_split_horizontal': (
         'Coming Soon',
@@ -72,22 +56,6 @@ PLACEHOLDERS = {
     '_on_placeholder_split_four_way': (
         'Coming Soon',
         'View splitting will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_theme_light': (
-        'Coming Soon',
-        'Theme switching will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_theme_dark': (
-        'Coming Soon',
-        'Theme switching will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_units_metric': (
-        'Coming Soon',
-        'Unit system switching will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_units_imperial': (
-        'Coming Soon',
-        'Unit system switching will be available in Phase 2.\n\nThis is a placeholder.',
     ),
     '_on_placeholder_add_control': (
         'Coming Soon',

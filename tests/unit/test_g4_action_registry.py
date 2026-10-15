@@ -124,7 +124,7 @@ def test_main_window_menus_come_from_the_registry():
     assert w._save_action is reg.action("file.save") and w._undo_action is reg.action("edit.undo")
     assert not w._paste_action.isEnabled()
     assert w._recent_submenu is reg.menu("file.recent")
-    assert "file.print" in reg.placeholders() and "edit.replace" in reg.placeholders()
+    assert "file.print" in reg.placeholders() and "edit.replace" not in reg.placeholders()
     assert [a.text() for a in w.menuBar().actions()][:2] == ["&File", "&Edit"]
     assert reg.search("snap") == ["edit.snap"]
     w.close()

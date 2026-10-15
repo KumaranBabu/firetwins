@@ -219,6 +219,12 @@ class ActionsEditMixin:
         toggle_label = "&Disable Object" if entity.enabled else "&Enable Object"
         menu.addAction(toggle_label, lambda: self._on_toggle_enabled(entity))
         menu.addSeparator()
+        menu.addSeparator()
+        menu.addAction("Copy &FDS Records", self._on_copy_fds_records)
+        menu.addAction("Select &Referencing Objects", lambda: self._on_select_referencing(entity))
+        menu.addAction("&Hide", self._on_hide_selected)
+        menu.addAction("Show &Only Selection", self._on_isolate_selected)
+        menu.addSeparator()
         menu.addAction("&Delete", self._on_delete_selected)
         return menu
 

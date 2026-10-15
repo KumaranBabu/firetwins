@@ -19,6 +19,8 @@ __all__ = ["MainWindow", "ProjectExplorer", "main"]
 
 def main() -> None:
     app = QApplication.instance() or QApplication([])
+    from pyfds.gui.theme import apply_theme, saved_theme
+    apply_theme(saved_theme(), app, remember=False)
     window = MainWindow()
     window._persist_layout = True      # remember the dock arrangement between sessions
     window.restore_saved_layout()

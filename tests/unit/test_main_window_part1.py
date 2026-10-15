@@ -93,7 +93,7 @@ def test_edit_properties_via_menu_action_is_undoable(monkeypatch):
     window = _make_window()
     obst = window.api.obstructions.add_obstruction(xb=[0, 1, 0, 1, 0, 1], name="box1")
 
-    top = window.explorer.topLevelItem(1)  # "Obstructions (1)"
+    top = window.explorer.category_item("obstructions")  # "Obstructions (1)"
     window.explorer.setCurrentItem(top.child(0))
 
     class _FakeDialog:
@@ -147,7 +147,7 @@ def test_double_click_on_tree_item_opens_property_editor(monkeypatch):
 
     window = _make_window()
     obst = window.api.obstructions.add_obstruction(xb=[0, 1, 0, 1, 0, 1], name="box1")
-    top = window.explorer.topLevelItem(1)
+    top = window.explorer.category_item("obstructions")
     child = top.child(0)
     window.explorer.setCurrentItem(child)
 
@@ -184,7 +184,7 @@ def test_project_explorer_reacts_to_api_mutation_without_being_told():
     window = _make_window()
 
     def top_level_labels():
-        return [window.explorer.topLevelItem(i).text(0) for i in range(window.explorer.topLevelItemCount())]
+        return window.explorer.category_labels()
 
     assert "Meshes (0)" in top_level_labels()
 
@@ -198,11 +198,8 @@ def test_undo_via_menu_action_reverts_mutation_and_tree_updates():
     window.api.obstructions.add_obstruction(xb=[0, 1, 0, 1, 0, 1], name="box")
 
     def obst_label():
-        for i in range(window.explorer.topLevelItemCount()):
-            item = window.explorer.topLevelItem(i)
-            if item.text(0).startswith("Obstructions"):
-                return item.text(0)
-        return None
+        item = window.explorer.category_item("obstructions")
+        return item.text(0) if item is not None else None
 
     assert obst_label() == "Obstructions (1)"
 
@@ -321,7 +318,7 @@ def test_output_menu_add_slice_appears_in_explorer(monkeypatch):
     assert window.api.slices.get("slc1") is not None
 
     def top_level_labels():
-        return [window.explorer.topLevelItem(i).text(0) for i in range(window.explorer.topLevelItemCount())]
+        return window.explorer.category_labels()
 
     assert "Slices (1)" in top_level_labels()
     window.close()

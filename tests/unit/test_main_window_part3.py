@@ -208,7 +208,7 @@ def test_right_click_on_entity_row_selects_it_and_requests_context_menu():
     received = []
     explorer.entity_context_menu_requested.connect(lambda: received.append(1))
 
-    top = explorer.topLevelItem(1)  # "Obstructions (1)"
+    top = explorer.category_item("obstructions")  # "Obstructions (1)"
     child = top.child(0)
     rect = explorer.visualItemRect(child)
     explorer._on_context_menu_requested(rect.center())
@@ -304,7 +304,7 @@ def test_disabled_entity_shown_dimmed_in_tree():
     obst = window.api.obstructions.add_obstruction(xb=[0, 1, 0, 1, 0, 1], name="box1")
     window._on_toggle_enabled(obst)
 
-    top = window.explorer.topLevelItem(1)
+    top = window.explorer.category_item("obstructions")
     child = top.child(0)
     assert "(disabled)" in child.text(0)
     window.close()

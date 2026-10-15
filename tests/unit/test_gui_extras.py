@@ -165,8 +165,17 @@ def test_main_window_has_the_new_entries_and_no_placeholders_left_for_them(app, 
     from PySide6.QtWidgets import QMessageBox
     from pyfds.gui.main_window import MainWindow
     w = MainWindow(FdsApi())
-    texts = {top.text().replace("&", ""): [a.text().replace("&", "") for a in top.menu().actions()]
-             for top in w.menuBar().actions() if top.menu()}
+    texts = {}
+
+    def collect(menu_action):                       # top-level menus and the submenus folded into them (Draw, HVAC ...)
+        menu = menu_action.menu()
+        texts[menu_action.text().replace("&", "")] = [a.text().replace("&", "") for a in menu.actions()]
+        for a in menu.actions():
+            if a.menu() is not None:
+                collect(a)
+    for top in w.menuBar().actions():
+        if top.menu():
+            collect(top)
     assert "Draw Room (walls, door, window)..." in texts["Draw"]
     assert {"Library...", "Open Mesh Boundaries"} <= set(texts["Model"])
     assert "Results Viewer..." in texts["Results"]
@@ -174,7 +183,7 @@ def test_main_window_has_the_new_entries_and_no_placeholders_left_for_them(app, 
     shown = []
     monkeypatch.setattr(QMessageBox, "information", lambda *a, **k: shown.append(a[2]))
     for top in w.menuBar().actions():
-        if top.text().replace("&", "") == "Run":
+        if top.text().replace("&", "") == "Analysis":
             for act in top.menu().actions():
                 if act.text().replace("&", "") == "Monitor Simulation...":
                     act.trigger()

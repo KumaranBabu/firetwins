@@ -141,6 +141,35 @@ _ENTITY_COLLECTIONS = [
     ("Geoms", "geom"),
 ]
 
+# The navigation tree, PyroSim's layout. Each node is (label, kind, payload):
+#   "collection": payload = FdsApi manager attribute, rows are the objects;
+#   "folder":     payload = [(label, manager attribute), ...], one collection node per entry;
+#   "views" / "tags" / "checks": read-only information nodes.
+_NAV_TREE = [
+    ("Views", "views", None),
+    ("Tags", "tags", None),
+    ("Meshes", "collection", "meshes"),
+    ("Zones", "collection", "zones"),
+    ("Species", "collection", "species"),
+    ("Reactions", "collection", "reactions"),
+    ("Particles", "collection", "particles"),
+    ("Materials", "collection", "materials"),
+    ("Surfaces", "collection", "surfaces"),
+    ("Devices", "collection", "devices"),
+    ("Controls", "collection", "controls"),
+    ("Results", "folder", [("Slices", "slices"), ("Boundary Files", "bndfs"), ("Isosurfaces", "isofs"),
+                           ("Plot3D", "plot3ds"), ("Profiles", "profs")]),
+    ("HVAC", "folder", [("HVAC Nodes", "hvac_nodes"), ("HVAC Ducts", "hvac_ducts"), ("Fans", "fans"),
+                        ("Dampers", "dampers"), ("HVAC Filters", "hvac_filters"),
+                        ("HVAC Leakages", "hvac_leakages"), ("HVAC Aircoils", "hvac_aircoils")]),
+    ("Model", "folder", [("Obstructions", "obstructions"), ("Vents", "vents"), ("Holes", "holes"),
+                         ("Geoms", "geom"), ("Init Regions", "inits"), ("Groups", "groups")]),
+    ("Model Checks", "checks", None),
+    ("Ramps", "collection", "ramps"),
+    ("Scenarios", "collection", "scenarios"),
+    ("Floors", "collection", "floors"),
+]
+
 # Emitted by CommandPipeline for every mutation (add/remove/move/undo/redo)
 # plus project lifecycle — a full refresh on any of these is always correct.
 _REFRESH_EVENTS = (
@@ -150,4 +179,6 @@ _REFRESH_EVENTS = (
     EventType.HISTORY_CLEARED,
     EventType.PROJECT_LOADED,
     EventType.PROJECT_CREATED,
+    EventType.UNITS_CHANGED,
+    EventType.VIEWS_CHANGED,
 )

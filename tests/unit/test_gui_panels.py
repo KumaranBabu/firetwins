@@ -34,7 +34,9 @@ def test_panels_exist_and_have_toggles(win):
     assert win.messages_dock.windowTitle() == "Messages"
     assert win.messages_tabs.count() == 4
     titles = [a.text().replace("&", "") for a in win.menuBar().actions()]
-    assert "Window" in titles
+    assert titles[:3] == ["File", "Edit", "Model"] and "Analysis" in titles
+    view = next(a.menu() for a in win.menuBar().actions() if a.text().replace("&", "") == "View")
+    assert "Window" in [a.text().replace("&", "") for a in view.actions()]    # Window is folded into View
     assert win.properties_dock.toggleViewAction().text() == "Properties"
 
 

@@ -109,7 +109,11 @@ def test_project_explorer_rows_have_icons_and_disabled_ones_are_grey():
     w.api.devices.add_device(name="TC", quantity="TEMPERATURE", xyz=(0.5, 0.5, 0.5)) if hasattr(w.api.devices, "add_device") else None
     top = [w.explorer.topLevelItem(i) for i in range(w.explorer.topLevelItemCount())]
     assert top and all(not t.icon(0).isNull() for t in top)
-    rows = [t.child(i) for t in top for i in range(t.childCount())]
+    rows, stack = [], list(top)
+    while stack:
+        item = stack.pop()
+        rows.append(item)
+        stack.extend(item.child(i) for i in range(item.childCount()))
     assert rows and all(not r.icon(0).isNull() for r in rows)
     assert icons.icon_for_entity("devices", type("D", (), {"quantity": "LINK TEMPERATURE"})()).cacheKey() == icons.icon("heatdet").cacheKey()
     assert icons.icon_for_entity("devices", type("D", (), {"quantity": "TEMPERATURE"})()).cacheKey() == icons.icon("thermometer").cacheKey()

@@ -60,7 +60,8 @@ class MenusViewDrawMixin:
         view_menu.addSeparator()
 
         # Section view (new)
-        view_menu.addAction("&Section View", self._on_placeholder_section_view)
+        view_menu.addAction("Section &Box Around Selection", self._on_section_box_around_selection)
+        view_menu.addAction("Reset Section Bo&x", self._on_reset_section_box)
 
         # Split view (new)
         split_submenu = view_menu.addMenu("&Split")
@@ -81,13 +82,13 @@ class MenusViewDrawMixin:
 
         # Theme (new)
         theme_submenu = view_menu.addMenu("&Theme")
-        theme_submenu.addAction("&Light", self._on_placeholder_theme_light)
-        theme_submenu.addAction("&Dark", self._on_placeholder_theme_dark)
+        theme_submenu.addAction("&Light", lambda: self._on_theme_chosen("light"))
+        theme_submenu.addAction("&Dark", lambda: self._on_theme_chosen("dark"))
 
         # Units (new)
         units_submenu = view_menu.addMenu("&Units")
-        units_submenu.addAction("&Metric (m, kg, s)", self._on_placeholder_units_metric)
-        units_submenu.addAction("&Imperial (ft, lbm, s)", self._on_placeholder_units_imperial)
+        units_submenu.addAction("&Metric (m, kg, s)", self._on_units_metric)
+        units_submenu.addAction("&Imperial (ft, lb, s)", self._on_units_imperial)
 
 
     def _build_draw_menu(self) -> None:

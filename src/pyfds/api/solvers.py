@@ -7,6 +7,7 @@
 """
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
@@ -90,6 +91,59 @@ class SolverManager:
         self._handles[handle.id] = (adapter, handle)
         return handle
 
+    # -- local and parallel runs, stopping, model preview (F6) -----------------------------------------
+    def run_local(self, output_dir: str, num_processes: int = 1, dry_run: bool = False,
+                  validate_first: bool = True, timeout: Optional[float] = None, on_line=None):
+        """Write the input to *output_dir* and run FDS on this machine, with *num_processes* MPI processes
+        (more than one needs a mesh for each). Returns a run handle for ``status`` / ``stop`` / ``cancel``."""
+        n_meshes = len(self._api.project.meshes)
+        if num_processes < 1:
+            raise ValueError("at least one process is needed")
+        if num_processes > 1 and num_processes != n_meshes:
+            raise ValueError(f"{num_processes} processes for {n_meshes} meshes: FDS needs one process per mesh")
+        input_file = self._write_input(output_dir, validate_first)
+        adapter = _ad.LocalAdapter()
+        request = self._request(input_file, num_processes, dry_run, timeout)
+        request.on_line = on_line
+        handle = adapter.submit(request)
+        handle.extra["chid"] = self._api.project.chid
+        return self._keep(adapter, handle)
+
+    def stop(self, handle) -> str:
+        """Ask a running FDS to stop cleanly: it finishes the time step, writes a restart file and exits (so the
+        run can be resumed). FDS has no pause. Returns the stop file's path."""
+        adapter, h = self._pair(handle)
+        if h.adapter not in ("local", "cluster"):
+            raise ValueError("only local and cluster runs can be stopped this way; use cancel()")
+        if h.state != _ad.RUNNING:
+            raise ValueError(f"the run is not running (it is {h.state})")
+        stop_file = Path(h.work_dir) / f"{h.extra.get('chid', self._api.project.chid)}.stop"
+        stop_file.write_text("stop\n", encoding="utf-8")
+        h.extra["stop_requested"] = True
+        return str(stop_file)
+
+    def preview_model(self, work_dir: str, timeout: float = 120.0) -> str:
+        """Run FDS for zero simulated time in *work_dir* so Smokeview and the results viewer can show the geometry
+        before any real run. The project is not changed. Returns the ``.smv`` path."""
+        text = self._api.fds_text()
+        chid = self._api.project.chid
+        preview = f"{chid}_preview"
+        text = re.sub(r"(?i)\bCHID\s*=\s*'[^']*'", f"CHID='{preview}'", text, count=1)
+        text, n = re.subn(r"(?i)\bT_END\s*=\s*[-+0-9.eE]+", "T_END=0.0", text, count=1)
+        if not n:
+            text = text.replace("&TAIL", "&TIME T_END=0.0 /\n&TAIL", 1)
+        out = Path(work_dir)
+        out.mkdir(parents=True, exist_ok=True)
+        fds_file = out / f"{preview}.fds"
+        fds_file.write_text(text, encoding="utf-8")
+        adapter = _ad.LocalAdapter()
+        handle = adapter.submit(self._request(str(fds_file), 1, False, timeout))
+        adapter.wait(handle, timeout)
+        smv = out / f"{preview}.smv"
+        if handle.state != _ad.DONE or not smv.is_file():
+            raise RuntimeError(handle.message or "FDS did not produce a preview of the model")
+        return str(smv)
+
     # -- cluster (RUN-04) ----------------------------------------------------------------------
     def cluster_plan(self, hosts: Sequence[Any], input_file: Optional[str] = None) -> Dict[str, Any]:
         """The 'Assigned Meshes' preview plus the problems that would stop a run."""
@@ -105,6 +159,7 @@ class SolverManager:
         input_file = self._write_input(output_dir, validate_first)
         adapter = _ad.ClusterAdapter(hosts, len(self._api.project.meshes))
         handle = adapter.submit(self._request(input_file, 1, dry_run, timeout))
+        handle.extra["chid"] = self._api.project.chid
         return self._keep(adapter, handle)
 
     # -- cloud / remote (RUN-05) ------------------------------------------------------------------

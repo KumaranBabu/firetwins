@@ -81,22 +81,6 @@ PLACEHOLDERS = {
         'Coming Soon',
         'Scenario import will be available in Phase 2.\n\nThis is a placeholder.',
     ),
-    '_on_placeholder_run_parallel_mpi': (
-        'Coming Soon',
-        'MPI configuration will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_mpi_preview': (
-        'Coming Soon',
-        'MPI preview will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_pause_simulation': (
-        'Coming Soon',
-        'Simulation pause will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_stop_simulation': (
-        'Coming Soon',
-        'Simulation stop will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
     '_on_placeholder_gpu_settings': (
         'Coming Soon',
         'GPU settings will be available in Phase 2.\n\nThis is a placeholder.',

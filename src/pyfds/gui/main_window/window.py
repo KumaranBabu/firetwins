@@ -34,6 +34,7 @@ from .menus_file_edit import MenusFileEditMixin
 from .shell_bars import ShellBarsMixin
 from .actions_shell import ActionsShellMixin
 from .actions_editors import ActionsEditorsMixin
+from .actions_run_dialog import ActionsRunDialogMixin
 from .menus_view_draw import MenusViewDrawMixin
 from .menus_model import MenusModelMixin
 from .menus_run_results import MenusRunResultsMixin
@@ -64,6 +65,7 @@ class MainWindow(
     ShellBarsMixin,
     ActionsShellMixin,
     ActionsEditorsMixin,
+    ActionsRunDialogMixin,
     PanelsMixin,
     WorkspacesMixin,
     CentralTabsMixin,

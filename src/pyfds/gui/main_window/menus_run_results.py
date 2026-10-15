@@ -49,29 +49,28 @@ class MenusRunResultsMixin:
 
         # Simulation execution
         self._run_action = run_menu.addAction("&Run Simulation...", self._on_run_simulation)
+        self._run_local_action = run_menu.addAction("Run FDS (&options)...", lambda: self._on_run_dialog("local"))
+        self._run_parallel_action = run_menu.addAction("Run FDS &Parallel...", lambda: self._on_run_dialog("parallel"))
+        self._run_cluster_action = run_menu.addAction("Run FDS &Cluster...", lambda: self._on_run_dialog("cluster"))
+        self._run_cloud_action = run_menu.addAction("Run FDS Clo&ud / Remote...", lambda: self._on_run_dialog("cloud"))
         run_menu.addAction("&Resume Simulation...", self._on_resume_simulation)
 
-        # Smokeview integration (new)
+        # Smokeview integration
         self._open_smokeview_action = run_menu.addAction("Open &Smokeview After Run")
         self._open_smokeview_action.setCheckable(True)
         self._open_smokeview_action.setChecked(True)
 
         run_menu.addSeparator()
-
-        # Parallel computing options (new)
         run_menu.addAction("&OpenMP Environment...", self._on_openmp_environment)
-        run_menu.addAction("Run &Parallel (MPI)...", self._on_placeholder_run_parallel_mpi)
-        run_menu.addAction("&MPI Preview", self._on_placeholder_mpi_preview)
+        run_menu.addAction("&MPI Preview", self._on_mpi_preview)
 
         run_menu.addSeparator()
-
-        # Simulation control (new)
-        run_menu.addAction("&Pause Simulation", self._on_placeholder_pause_simulation)
-        run_menu.addAction("Sto&p Simulation", self._on_placeholder_stop_simulation)
+        self._stop_action = run_menu.addAction("Sto&p Simulation (write restart file)", self._on_stop_simulation)
+        self._cancel_action = run_menu.addAction("Cancel Simulation (&now)", self._on_cancel_simulation)
+        self._stop_action.setEnabled(False)
+        self._cancel_action.setEnabled(False)
 
         run_menu.addSeparator()
-
-        # GPU and monitoring (new)
         run_menu.addAction("&GPU Settings...", self._on_placeholder_gpu_settings)
         run_menu.addAction("&Monitor Simulation...", self._on_placeholder_monitor_simulation)
 
@@ -81,6 +80,11 @@ class MenusRunResultsMixin:
         # RESULTS MENU (14 items) — Expanded from 5
         # ════════════════════════════════════════════════════════════════════════
         results_menu = self.menuBar().addMenu("&Results")
+
+        results_menu.addAction("View Results of &Last Run", self._on_view_results)
+        results_menu.addAction("Preview &Model in Results", self._on_preview_model)
+
+        results_menu.addSeparator()
 
         # Smokeview and file access
         results_menu.addAction("&Open Smokeview...", self._on_open_smokeview_results)

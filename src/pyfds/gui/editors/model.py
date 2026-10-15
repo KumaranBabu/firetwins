@@ -296,12 +296,37 @@ class EntityEditorModel:
         self.manager.remove_extra(entity, key)
 
     # -- record preview ---------------------------------------------------------------------------
-    def record(self, entity: Any, edited: Optional[Dict[str, Any]] = None) -> str:
-        """The FDS record(s) for the object, with unsaved edits applied to a throwaway copy."""
+    def probe(self, entity: Any, edited: Optional[Dict[str, Any]] = None) -> Any:
+        """A throwaway copy of the object with the unsaved edits applied (the project is untouched)."""
         probe = entity.model_copy(deep=True)
         if edited:
             for name, value in self.changes(entity, edited).items():
                 setattr(probe, name, value)
+        return probe
+
+    def validate(self, entity: Any, edited: Dict[str, Any]) -> None:
+        """Raise ``ValueError`` if the edits cannot be saved as they are (checks beyond a field's own type)."""
+        if self.attr != "materials":
+            return
+        p = self.probe(entity, edited)
+        gases = p.nu_gases or []
+        if len(gases) != len(p.spec_ids or []):
+            raise ValueError("every by-product gas needs a species and a yield")
+        if any(v < 0 for v in gases) or (p.nu_residue or 0) < 0:
+            raise ValueError("by-product yields cannot be negative")
+        total = sum(gases) + (p.nu_residue or 0.0)
+        if total > 1.0 + 1e-6:
+            raise ValueError(f"by-product yields add up to {total:.3f}; they cannot exceed 1")
+        if p.nu_residue and not p.residue_id:
+            raise ValueError("a residue yield needs a residue material")
+        if p.residue_id and p.residue_id == p.name:
+            raise ValueError("a material cannot be its own residue")
+        if p.residue_id and p.residue_id not in {m.name for m in self.entities()}:
+            raise ValueError(f"residue material {p.residue_id!r} does not exist")
+
+    def record(self, entity: Any, edited: Optional[Dict[str, Any]] = None) -> str:
+        """The FDS record(s) for the object, with unsaved edits applied to a throwaway copy."""
+        probe = self.probe(entity, edited)
         try:
             return self.api.clipboard.to_fds_text([entity], substitute={id(entity): probe}).rstrip("\n")
         except Exception as exc:                       # a record the writer cannot make is not an editor failure

@@ -18,15 +18,19 @@ class FdsWriterPhysicsMixin:
             "EMISSIVITY":   obj.emissivity,
         }
         for k in ("reference_temperature", "heat_of_reaction",
-                  "heat_of_combustion", "a", "e", "n_s", "nu_residue"):
+                  "heat_of_combustion", "a", "e", "n_s"):
             v = getattr(obj, k, None)
             if v is not None:
                 d[k.upper()] = v
         # P0 fixes — missing scalar fields
         if getattr(obj, "pyrolysis_range", None) is not None: d["PYROLYSIS_RANGE"] = obj.pyrolysis_range
+        if getattr(obj, "heating_rate", None) is not None:    d["HEATING_RATE"]    = obj.heating_rate
         if getattr(obj, "reference_rate", None) is not None:  d["REFERENCE_RATE"]  = obj.reference_rate
-        if getattr(obj, "nu_gases", None):   # liquids use the current keyword, solids keep the legacy one
-            d["NU_SPEC" if obj.boiling_temperature is not None else "NU_GASES"] = obj.nu_gases
+        if getattr(obj, "nu_gases", None):   # FDS 6.10 knows only NU_SPEC (NU_GASES is rejected)
+            d["NU_SPEC"] = obj.nu_gases
+        if obj.nu_residue and obj.residue_id:    # FDS 6.10 has no NU_RESIDUE: the residue is a material
+            d["NU_MATL"] = obj.nu_residue
+            d["MATL_ID"] = obj.residue_id
         if getattr(obj, "spec_ids", None):   d["SPEC_ID"]    = obj.spec_ids
         # Temperature-dependent property ramps
         if getattr(obj, "conductivity_ramp", None):    d["CONDUCTIVITY_RAMP"]    = obj.conductivity_ramp
@@ -50,6 +54,9 @@ class FdsWriterPhysicsMixin:
             if a_vals:       d["A"]               = a_vals
             if e_vals:       d["E"]               = e_vals
             if hor_vals:     d["HEAT_OF_REACTION"] = hor_vals
+            n_s_vals = [r.n_s for r in obj.reactions]
+            if all(v is not None for v in n_s_vals):         # one order per reaction, or none
+                d["N_S"] = n_s_vals
             if nu_spec_vals: d["NU_SPEC"]          = nu_spec_vals
         return _nl("MATL", d)
 

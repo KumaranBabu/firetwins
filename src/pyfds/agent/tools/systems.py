@@ -123,8 +123,8 @@ TOOLS: List[ToolSpec] = [
           ["material", "heating_rate_k_per_min", "peak_temperature_c"],
           lambda api, material, heating_rate_k_per_min, peak_temperature_c, **kw:
           api.materials.pyrolysis_from_peak(material, heating_rate_k_per_min, peak_temperature_c, **kw)),
-    _spec("set_material_byproducts", "Gases (species: yield) and solid residue yield a reacting material gives off.",
-          {"material": _STR, "gases": _MAP_NUM, "residue": _NUM}, ["material", "gases"],
+    _spec("set_material_byproducts", "Gases (species: yield) and solid residue yield a reacting material gives off; a residue needs residue_material (an existing material).",
+          {"material": _STR, "gases": _MAP_NUM, "residue": _NUM, "residue_material": _STR}, ["material", "gases"],
           lambda api, material, gases, **kw: api.materials.set_byproducts(material, gases, **kw)),
     # -- results and egress ----------------------------------------------------------------
     _spec("activation_table", "When each device and control first activated, from the FDS output.",

@@ -51,22 +51,31 @@ class MaterialTools:
     def byproducts(self, material) -> Dict[str, Any]:
         """The gases (species -> mass yield) and residue a material gives off when it reacts."""
         m = self._material(material)
-        return {"gases": dict(zip(m.spec_ids or [], m.nu_gases or [])), "residue": m.nu_residue or 0.0}
+        return {"gases": dict(zip(m.spec_ids or [], m.nu_gases or [])), "residue": m.nu_residue or 0.0,
+                "residue_material": m.residue_id}
 
-    def set_byproducts(self, material, gases: Dict[str, float], residue: float = 0.0) -> Dict[str, Any]:
+    def set_byproducts(self, material, gases: Dict[str, float], residue: float = 0.0,
+                       residue_material: Optional[str] = None) -> Dict[str, Any]:
         """Set what reacting material turns into: *gases* ``{species: mass yield}`` plus a solid *residue*
-        yield; the yields are fractions of the reacted mass and must not add up to more than 1. A shortfall
-        is reported (``unaccounted``), not hidden. One undo step."""
+        yield; the yields are fractions of the reacted mass and must not add up to more than 1. FDS needs the
+        residue to be a material, so give *residue_material* (an existing material) whenever there is a residue.
+        A shortfall is reported (``unaccounted``), not hidden. One undo step."""
         from pyfds.automation.commands import GroupCommand, ModifyPropertyCommand
         m = self._material(material)
         if any(v < 0 for v in gases.values()) or residue < 0:
             raise ValueError("yields cannot be negative")
+        if residue_material is not None and self.get(residue_material) is None:
+            raise KeyError(f"residue material {residue_material!r} not found")
+        if residue_material is not None and residue_material == m.name:
+            raise ValueError("a material cannot be its own residue")
         total = sum(gases.values()) + residue
         if total > 1.0 + 1e-6:
             raise ValueError(f"yields add up to {total:.3f}; they cannot exceed 1")
         self._api.history.execute(GroupCommand([
             ModifyPropertyCommand(m, "spec_ids", list(gases) or None),
             ModifyPropertyCommand(m, "nu_gases", [float(v) for v in gases.values()] or None),
-            ModifyPropertyCommand(m, "nu_residue", float(residue) if residue else None)],
+            ModifyPropertyCommand(m, "nu_residue", float(residue) if residue else None),
+            ModifyPropertyCommand(m, "residue_id", residue_material or None)],
             label=f"by-products of {m.name}"))
-        return {"gases": dict(gases), "residue": residue, "unaccounted": max(0.0, 1.0 - total)}
+        return {"gases": dict(gases), "residue": residue, "residue_material": residue_material,
+                "unaccounted": max(0.0, 1.0 - total)}

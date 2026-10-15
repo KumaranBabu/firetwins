@@ -154,7 +154,9 @@ def test_empty_collection_and_reference_fields(api):
     assert ed.names() == [] and ed.tabs.count() == 0
     s = ed.new_object()
     assert ed.names() == [s.name] and ed.tabs.count() > 0
-    assert "surface type" in ed.info.text() and "Layers" in _tab_names(ed)
+    assert "surface type" in ed.info.text() and "Layers" not in _tab_names(ed)      # a blank surface is 'basic'
+    ed._on_type_chosen(ed.type_combo.findData("layered"))
+    assert "Layers" in _tab_names(ed)
     ed.close()
     ob = EntityCollectionEditor(api, "obstructions", "Edit Obstructions")
     ob.new_object()
@@ -193,6 +195,7 @@ def test_surface_layers_are_edited_in_a_table(api):
     api.materials.create_default("WOOL")
     ed = EntityCollectionEditor(api, "surfaces", "Edit Surfaces")
     s = ed.new_object()
+    ed._on_type_chosen(ed.type_combo.findData("layered"))
     assert "Layers" in _tab_names(ed) and "not editable" not in ed.info.text()
     fw = ed.field_widget("layers")
     fw.add_row({"material_id": "STEEL", "thickness": 0.01})
@@ -215,6 +218,7 @@ def test_blank_required_cell_is_refused_not_stored(api, monkeypatch):
     api.materials.create_default("STEEL")
     ed = EntityCollectionEditor(api, "surfaces", "Edit Surfaces")
     s = ed.new_object()
+    ed._on_type_chosen(ed.type_combo.findData("layered"))
     ed.field_widget("layers").add_row({"material_id": "STEEL"})        # no thickness
     with pytest.raises(ValueError, match="Layers"):
         ed.apply()

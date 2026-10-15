@@ -38,6 +38,7 @@ class Material(FdsEntity):
     reference_temperature: Optional[float] = None
     reference_rate: Optional[float] = None
     nu_residue: Optional[float] = None
+    residue_id: Optional[str] = None                  # the material the residue is (NU_MATL needs MATL_ID)
     heat_of_reaction: Optional[float] = None
     heat_of_combustion: Optional[float] = None
     a: Optional[float] = None       # Arrhenius pre-exponential factor
@@ -46,6 +47,8 @@ class Material(FdsEntity):
     nu_gases: Optional[List[float]] = None
     spec_ids: Optional[List[str]] = None
     pyrolysis_range: Optional[float] = None
+    heating_rate: Optional[float] = None               # HEATING_RATE (K/min) - with REFERENCE_TEMPERATURE and
+                                                       # PYROLYSIS_RANGE, FDS works out A and E itself
     # Multi-reaction pyrolysis support
     n_reactions: int = 1
     reactions: List[MaterialReaction] = Field(default_factory=list)

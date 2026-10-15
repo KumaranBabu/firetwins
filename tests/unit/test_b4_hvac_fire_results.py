@@ -244,12 +244,18 @@ def test_material_fit_and_byproducts_are_undoable(api, tmp_path):
     assert m.e == pytest.approx(100e3, rel=1e-6) and m.n_s == 1.0
     api.history.undo()
     assert m.e is None
-    r = api.materials.set_byproducts("PINE", {"CARBON MONOXIDE": 0.1, "CARBON DIOXIDE": 0.5}, residue=0.2)
+    api.materials.add(Material(name="CHAR"))
+    r = api.materials.set_byproducts("PINE", {"CARBON MONOXIDE": 0.1, "CARBON DIOXIDE": 0.5}, residue=0.2, residue_material="CHAR")
     assert r["unaccounted"] == pytest.approx(0.2) and api.materials.byproducts("PINE")["residue"] == 0.2
     text, back = _roundtrip(api, tmp_path)
     assert "SPEC_ID='CARBON MONOXIDE','CARBON DIOXIDE'" in text
     with pytest.raises(ValueError, match="exceed 1"):
         api.materials.set_byproducts("PINE", {"A": 0.9}, residue=0.5)
+    with pytest.raises(ValueError, match="own residue"):
+        api.materials.set_byproducts("PINE", {}, residue=0.1, residue_material="PINE")
+    with pytest.raises(KeyError):
+        api.materials.set_byproducts("PINE", {}, residue=0.1, residue_material="NOPE")
+    assert "MATL_ID='CHAR'" in text and "NU_MATL=0.2" in text and back.materials[0].residue_id in ("CHAR", None)
     out = api.materials.pyrolysis_from_peak("PINE", 10.0, 350.0, activation_energy=100e3, apply=False)
     assert out["A"] > 0 and api.materials.get("PINE").a is None
 

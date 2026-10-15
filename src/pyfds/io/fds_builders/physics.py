@@ -106,12 +106,16 @@ class PhysicsBuilders:
             specific_heat=self._flt(d, "SPECIFIC_HEAT", 1.0),
             emissivity=self._flt(d, "EMISSIVITY", 0.9),
             reference_temperature=self._flt(d, "REFERENCE_TEMPERATURE"),
+            heating_rate=self._flt(d, "HEATING_RATE"),
+            pyrolysis_range=self._flt(d, "PYROLYSIS_RANGE"),
+            reference_rate=self._flt(d, "REFERENCE_RATE"),
             heat_of_reaction=self._flt(d, "HEAT_OF_REACTION"),
             heat_of_combustion=self._flt(d, "HEAT_OF_COMBUSTION"),
             a=self._flt(d, "A"),
             e=self._flt(d, "E"),
             n_s=self._flt(d, "N_S"),
-            nu_residue=self._flt(d, "NU_RESIDUE"),
+            nu_residue=self._flt(d, "NU_MATL", self._flt(d, "NU_RESIDUE")),
+            residue_id=self._str(d, "MATL_ID") or None,
             n_reactions=n_reactions or 1,
             reactions=reactions,
             conductivity_ramp=self._str(d, "CONDUCTIVITY_RAMP") or None,
@@ -119,7 +123,7 @@ class PhysicsBuilders:
             absorption_coefficient=self._flt(d, "ABSORPTION_COEFFICIENT"),
             boiling_temperature=self._flt(d, "BOILING_TEMPERATURE"),
             spec_ids=self._strs(d, "SPEC_ID"),
-            nu_gases=self._floats(d, "NU_GASES") or (self._floats(d, "NU_SPEC") if "BOILING_TEMPERATURE" in d else None),
+            nu_gases=self._floats(d, "NU_SPEC") or self._floats(d, "NU_GASES"),
         ))
 
     def _parse_reac(self, p: FdsProject, d: Dict) -> None:

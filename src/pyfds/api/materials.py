@@ -34,6 +34,20 @@ class SurfaceManager(_CollectionManager):
             raise KeyError(f"surface {surface_or_name!r} not found")
         return kind_of(s)
 
+    def kinds(self) -> dict:
+        """The eight surface types with a one-line description each."""
+        from pyfds.domain.surface_types import KINDS
+        return dict(KINDS)
+
+    def problems(self, surface_or_name) -> list:
+        """Contradictions in a surface's settings (two flows, a burner with a fixed temperature, layers on a
+        prescribed flow ...); an empty list means none. Accepts an object, so an editor can check unsaved edits."""
+        from pyfds.domain.surface_types import problems
+        s = self.get(surface_or_name) if isinstance(surface_or_name, str) else surface_or_name
+        if s is None:
+            raise KeyError(f"surface {surface_or_name!r} not found")
+        return problems(s)
+
     def add_typed(self, kind: str, name: str = None, **fields) -> Any:
         """Add a surface of one of the eight types, checking the fields that type needs.
 

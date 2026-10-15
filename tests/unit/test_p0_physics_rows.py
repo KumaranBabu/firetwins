@@ -116,7 +116,7 @@ def test_solid_material_unaffected_by_new_parsing(api, tmp_path):
     from pyfds.domain.model import Material
     api.materials.add(Material(name="WOOD", nu_gases=[0.8], spec_ids=["PROPANE"]))
     text, back = _roundtrip(api, tmp_path)
-    assert "NU_GASES" in text and "NU_SPEC" not in text
+    assert "NU_SPEC" in text and "NU_GASES" not in text
     assert back.materials[0].nu_gases == [0.8]
 
 

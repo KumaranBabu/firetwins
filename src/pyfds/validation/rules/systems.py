@@ -109,3 +109,22 @@ class ParticleKindRule:
             if x.target_only and not x.surf_id:
                 out.append(_e(self.name, f"PART '{x.name}': TARGET_ONLY needs a SURF_ID", x.name))
         return out
+
+
+class MaterialResidueRule:
+    """FDS has no residue yield on its own: it needs the residue to be a material (NU_MATL with MATL_ID)."""
+    name = "MaterialResidue"
+
+    def check(self, p: Any) -> List[ValidationResult]:
+        out: List[ValidationResult] = []
+        names = {m.name for m in p.materials}
+        for m in p.materials:
+            if m.residue_id and m.residue_id not in names:
+                out.append(_e(self.name, f"MATL '{m.name}': residue material '{m.residue_id}' is not defined", m.name))
+            elif m.nu_residue and not m.residue_id:
+                out.append(_w(self.name, f"MATL '{m.name}': a residue yield of {m.nu_residue:g} is not written "
+                                         "because no residue material is chosen", m.name,
+                              hint="Choose the residue material on the Byproducts tab of Edit Materials."))
+            if m.residue_id and m.nu_residue and m.nu_residue + sum(m.nu_gases or []) > 1.0 + 1e-9:
+                out.append(_e(self.name, f"MATL '{m.name}': residue and gas yields add up to more than 1", m.name))
+        return out

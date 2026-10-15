@@ -240,7 +240,7 @@ class TestWriterMaterialP0Fixes:
         p = FdsProject()
         p.materials.append(Material(name="WOOD", nu_gases=[0.1, 0.2]))
         text = writer.generate_content(p)
-        assert "NU_GASES=0.1,0.2" in text
+        assert "NU_SPEC=0.1,0.2" in text      # FDS 6.10.1 rejects NU_GASES
 
     def test_spec_ids_written(self, writer):
         p = FdsProject()
@@ -276,5 +276,5 @@ class TestWriterMaterialP0Fixes:
         p.materials.append(Material(name="PLAIN"))
         text = writer.generate_content(p)
         assert "PYROLYSIS_RANGE" not in text
-        assert "NU_GASES" not in text
+        assert "NU_SPEC" not in text and "NU_MATL" not in text
         assert "REFERENCE_RATE" not in text

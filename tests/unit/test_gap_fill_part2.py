@@ -83,9 +83,9 @@ class TestNewRulesRegistered:
         ]:
             assert expected in names, f"Rule '{expected}' not registered in default engine"
 
-    def test_total_rule_count_is_31(self):
+    def test_total_rule_count_is_32(self):
         engine = ValidationEngine.default()
-        assert len(engine.rules) == 31
+        assert len(engine.rules) == 32
 
 class TestNewEntityCollections:
     def test_wind_profiles_collection_exists(self):

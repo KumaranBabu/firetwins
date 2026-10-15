@@ -17,6 +17,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from . import layouts
+from .extras import EditorExtrasMixin
 from .model import EntityEditorModel, FieldSpec
 from .widgets import FieldWidget, make_field_widget
 
@@ -31,7 +33,7 @@ def changed_tokens(original: str, edited: str) -> List[str]:
     return [t for t in tokens(edited) if t not in old]
 
 
-class EntityCollectionEditor(QDialog):
+class EntityCollectionEditor(EditorExtrasMixin, QDialog):
     def __init__(self, api: Any, attr: str, title: str, parent: Optional[QWidget] = None,
                  select: Optional[str] = None) -> None:
         super().__init__(parent)
@@ -71,6 +73,7 @@ class EntityCollectionEditor(QDialog):
         self.info = QLabel(right)
         self.info.setWordWrap(True)
         rv.addWidget(self.info)
+        self._build_type_row(rv, right)
         self.tabs = QTabWidget(right)
         rv.addWidget(self.tabs, 1)
         self.preview = QPlainTextEdit(right)
@@ -129,6 +132,7 @@ class EntityCollectionEditor(QDialog):
             return
         entity = self.model.get(name) if name else None
         self._current = entity
+        self._chosen_kind = None
         self._load(entity) if entity is not None else self._clear_form()
 
     # -- the form ---------------------------------------------------------------------------------
@@ -144,30 +148,37 @@ class EntityCollectionEditor(QDialog):
         except AttributeError:
             return []
 
-    def _load(self, entity: Any) -> None:
+    def _load(self, entity: Any, keep: Optional[Dict[str, Any]] = None) -> None:
+        """Build the form for *entity*. *keep* holds values already typed (when only the tab layout changes)."""
         self._loading = True
         self._clear_form()
+        self._byproducts = None
         specs = self.model.fields(entity)
+        by_name = {s.name: s for s in specs}
         shown = self.model.current(entity, specs)
+        if keep:
+            shown.update(keep)
+        kind = self._kind_for(entity, keep)
+        self._select_type_combo(kind)
+        layout = layouts.layout_for(self.attr, specs, kind)
+        if layout is None:                               # generic: tabs by the schema's categories
+            plan = {}
+            for spec in specs:
+                plan.setdefault(ADVANCED_TAB if spec.advanced else spec.category, []).append(spec.name)
+            hidden = set()
+        else:
+            plan, hidden = layout.tabs, layout.hidden
         pages: Dict[str, QFormLayout] = {}
-        for spec in specs:
-            tab = ADVANCED_TAB if spec.advanced else spec.category
-            if tab not in pages:
-                page = QWidget(self.tabs)
-                pages[tab] = QFormLayout(page)
-                self.tabs.addTab(page, tab)
-            fw = make_field_widget(spec, self._ref_names, self)
-            fw.set_value(shown.get(spec.name))
-            fw.changed.connect(self._update_preview)
-            unit = self.model.unit_label(spec)
-            label = f"{spec.label} ({unit})" if unit else spec.label
-            if spec.kind == "rows":                      # a table fills its own tab
-                pages[tab].addRow(fw.widget)
-            else:
-                pages[tab].addRow(label, fw.widget)
-            if spec.description:
-                fw.widget.setToolTip(spec.description)
-            self._widgets[spec.name] = fw
+        for tab, names in plan.items():
+            page = QWidget(self.tabs)
+            pages[tab] = QFormLayout(page)
+            self.tabs.addTab(page, tab)
+            for name in names:
+                self._add_field(by_name[name], shown, pages[tab])
+        if self.attr == "materials" and "Pyrolysis" in pages:
+            self._add_calculator_button(pages["Pyrolysis"])
+        if self.attr == "materials" and hidden:
+            self._add_byproducts_tab(entity, shown, self.tabs, by_name)
         self._add_extras_table(entity, pages.get(ADVANCED_TAB))
         # the Advanced tab goes last, whatever order the fields came in
         idx = next((i for i in range(self.tabs.count()) if self.tabs.tabText(i) == ADVANCED_TAB), -1)
@@ -180,6 +191,20 @@ class EntityCollectionEditor(QDialog):
         self.info.setText("\n".join(lines))
         self._loading = False
         self._update_preview()
+
+    def _add_field(self, spec: FieldSpec, shown: Dict[str, Any], form: QFormLayout) -> None:
+        fw = make_field_widget(spec, self._ref_names, self)
+        fw.set_value(shown.get(spec.name))
+        fw.changed.connect(self._update_preview)
+        unit = self.model.unit_label(spec)
+        label = f"{spec.label} ({unit})" if unit else spec.label
+        if spec.kind == "rows":                          # a table fills its own tab
+            form.addRow(fw.widget)
+        else:
+            form.addRow(label, fw.widget)
+        if spec.description:
+            fw.widget.setToolTip(spec.description)
+        self._widgets[spec.name] = fw
 
     def _add_extras_table(self, entity: Any, advanced_form: Optional[QFormLayout]) -> None:
         if advanced_form is None:
@@ -247,6 +272,7 @@ class EntityCollectionEditor(QDialog):
     def _update_preview(self) -> None:
         if self._loading or self._current is None:
             return
+        self._refresh_type_note()
         try:
             original = self.model.record(self._current)
             edited = self.model.record(self._current, self.pending())
@@ -276,6 +302,10 @@ class EntityCollectionEditor(QDialog):
             return {}
         entity = self._current
         pending = self.pending()
+        found = self._extra_problems()
+        if found:
+            raise ValueError("; ".join(found))
+        self.model.validate(entity, pending)
         for name, fw in self._widgets.items():
             spec = fw.spec
             if pending[name] is None and not spec.optional and spec.kind in ("float", "int", "vec", "list_float"):

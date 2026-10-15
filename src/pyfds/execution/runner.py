@@ -89,6 +89,7 @@ class SimulationRunner:
         on_complete: Optional[Callable[[bool, int], None]] = None,
         timeout: Optional[float] = None,
         env_overrides: Optional[dict] = None,
+        command: Optional[List[str]] = None,
     ) -> None:
         """
         Launch FDS in a background daemon thread.
@@ -110,12 +111,15 @@ class SimulationRunner:
             Wall-clock seconds before the process is killed.
         env_overrides:
             Extra environment variables merged into the subprocess environment.
+        command:
+            A complete command line to run instead of the one built from *num_processes*
+            (cluster launches pass their own ``mpiexec -machinefile ...``).
         """
         self._cancel_event.clear()
         abs_input = os.path.abspath(input_file)
         work_dir = os.path.dirname(abs_input)   # BUG-04 fix
 
-        cmd = self._build_command(abs_input, num_processes)
+        cmd = list(command) if command else self._build_command(abs_input, num_processes)
         env = {**os.environ, **(env_overrides or {})}
         # A Windows FDS install keeps its DLLs (and Intel MPI) next to the binary; without them on PATH the
         # process dies at start-up (exit code 0xC0000135) before FDS can print anything.

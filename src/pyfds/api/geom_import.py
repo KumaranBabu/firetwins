@@ -23,7 +23,14 @@ class GeomImportOps:
         from pyfds.automation.commands import AddEntityCommand
         from pyfds.io.mesh_importers import import_geometry_all, merge_geoms
         merge = options.pop("merge", False)
-        geoms = import_geometry_all(path, **options)
+        isolated = options.pop("isolated", False)
+        timeout = options.pop("timeout", 300.0)
+        if isolated:
+            # a parser crash or a hang on a damaged CAD file must not take the application down
+            from pyfds.execution.isolated import run_isolated
+            geoms = run_isolated("pyfds.io.mesh_importers:import_geometry_all", path, timeout=timeout, **options)
+        else:
+            geoms = import_geometry_all(path, **options)
         if merge and len(geoms) > 1:
             geoms = [merge_geoms(geoms, options.get("name") or Path(path).stem)]
         with self._api.history.transaction(f"import {Path(path).name}"):

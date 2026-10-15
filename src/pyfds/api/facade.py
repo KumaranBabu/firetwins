@@ -29,6 +29,7 @@ from .measure import MeasureManager
 from .hygiene import HygieneManager
 from .preferences import PreferencesManager
 from .examples import ExamplesManager
+from .solvers import SolverManager
 from .clipboard import ClipboardManager
 from .snapping import SnapManager
 from .slice_view import SliceViewManager
@@ -162,6 +163,7 @@ class FdsApi:
         self.hygiene       = HygieneManager(self)
         self.preferences   = PreferencesManager(self)
         self.examples      = ExamplesManager(self)
+        self.solvers       = SolverManager(self)
 
         # Entities that previously had no authoring path (G3)
         self.species          = SpeciesManager(self)

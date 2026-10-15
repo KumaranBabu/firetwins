@@ -56,6 +56,9 @@ _DEFAULTS: Dict[str, Any] = {
     "recent_files_max":      10,
     "undo_depth":            200,
     "record_preview":        True,
+    "fds_install_dirs":      [],            # extra folders searched for FDS builds
+    "fds_installs":          [],            # FDS executables the user added by hand
+    "fds_install_name":      None,          # the build chosen with api.solvers.select()
     "log_level":             "INFO",
     "max_job_workers":       4,
     "job_timeout":           None,          # seconds, None = no limit

@@ -51,6 +51,10 @@ class FindManager:
         if bad:
             raise ValueError(f"cannot search {', '.join(bad)}; choose from {', '.join(FIELDS)}")
 
+    def collection_names(self) -> List[str]:
+        """Names of all the entity collections of a project (``obstructions``, ``surfaces`` ...)."""
+        return sorted(set(self._api.project._TYPE_MAP.values()))
+
     # -- find -------------------------------------------------------------------------
     def find(self, text: str, fields: Sequence[str] = ("name", "tags"), kinds: Optional[Iterable[str]] = None,
              regex: bool = False, case_sensitive: bool = False, whole_word: bool = False,

@@ -119,6 +119,15 @@ class HvacManager(JetFans):
     def __init__(self, api) -> None:
         self._api = api
 
+    def move_nodes(self, moves, label: str = "Move HVAC nodes") -> int:
+        """Shift HVAC nodes on the 2D canvas. *moves* is ``[(node, dx, dy), ...]``; the whole list is ONE
+        undo step. Returns how many nodes moved (zero shifts are ignored)."""
+        from pyfds.automation.commands import GroupCommand, MoveHvacNodeCommand
+        cmds = [MoveHvacNodeCommand(n, dx, dy) for n, dx, dy in moves if dx or dy]
+        if cmds:
+            self._api.history.execute(GroupCommand(cmds, label=label) if len(cmds) > 1 else cmds[0])
+        return len(cmds)
+
     def add_hvac(self, name, vent_ids, area=None, flow_rate=None, **kwargs) -> Any:
         """Add an ``&HVAC`` entity connecting vents (undoable)."""
         from pyfds.domain.model import Hvac

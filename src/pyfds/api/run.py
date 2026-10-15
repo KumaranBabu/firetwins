@@ -233,6 +233,19 @@ class BatchManager:
                                 base_fds_file=getattr(cfg, "fds_binary", ""))
         return study
 
+    def load_config(self, path: str) -> Any:
+        """Read a batch-study JSON file. Raises ``ValueError`` (with a readable message) if it is invalid."""
+        from pyfds.execution.batch_config import BatchStudyConfig, BatchConfigError
+        try:
+            return BatchStudyConfig.from_file(path)
+        except BatchConfigError as exc:
+            raise ValueError(str(exc)) from exc
+
+    def analyze(self, output_root: str, study_name: Optional[str] = None, outlier_sigma: float = 3.0) -> Any:
+        """Statistics over a finished study: a report with ``summary()``, ``to_csv/html/json``."""
+        from pyfds.results.batch_analysis import BatchResultAnalyzer
+        return BatchResultAnalyzer(output_root, study_name=study_name, outlier_sigma=outlier_sigma).analyze()
+
     def run_study(
         self,
         study: Any,

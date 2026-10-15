@@ -135,9 +135,8 @@ class ActionsToolsHelpMixin:
         QMessageBox.information(self, "Calculator", f"{expr} = {result:g}")
 
     def _on_fds_preview(self) -> None:
-        from pyfds.io.fds_writer import FdsWriter
         try:
-            text = FdsWriter().to_string(self.api.project)
+            text = self.api.fds_text()
         except Exception as exc:
             QMessageBox.critical(self, "Could not generate preview", str(exc))
             return

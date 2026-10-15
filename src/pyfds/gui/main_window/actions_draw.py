@@ -3,8 +3,6 @@ from __future__ import annotations
 
 from PySide6.QtWidgets import QDialog, QFileDialog, QInputDialog, QMessageBox
 
-from pyfds.automation.commands import AddEntityCommand
-from pyfds.domain.geometry_tools import GeometryTools
 from pyfds.gui.entity_dialogs import SchemaFormDialog
 
 
@@ -115,13 +113,9 @@ class ActionsDrawMixin:
             return
         geom_a, geom_b = geoms
         try:
-            result = GeometryTools.boolean(
-                op, geom_a, geom_b, name=f"{op.capitalize()}_{geom_a.name}_{geom_b.name}"
-            )
-        except ValueError as exc:
+            self.api.geom.boolean(op, geom_a, geom_b, name=f"{op.capitalize()}_{geom_a.name}_{geom_b.name}")
+        except (ValueError, KeyError) as exc:
             QMessageBox.critical(self, f"Could not compute {op}", str(exc))
-            return
-        self.api.history.execute(AddEntityCommand(self.api.project, result))
 
     def _on_set_draw_mode(self, tool_name: str) -> None:
         if hasattr(self.viewport_widget, "set_draw_mode"):

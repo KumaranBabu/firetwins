@@ -21,15 +21,7 @@ from .hvac import HvacManager, DamperManager, FanManager, HvacDuctManager, HvacF
 from .environment import EnvironmentManager, InitManager, WindManager
 from .library import LibraryManager
 from .view import VisibilityManager
-from .units import UnitsManager
-from .views import ViewsManager
-from .ui_history import UiHistory
-from .find import FindManager
-from .measure import MeasureManager
-from .hygiene import HygieneManager
-from .preferences import PreferencesManager
-from .examples import ExamplesManager
-from .solvers import SolverManager
+from .extras import install_extra_managers
 from .clipboard import ClipboardManager
 from .snapping import SnapManager
 from .slice_view import SliceViewManager
@@ -117,7 +109,6 @@ class FdsApi:
         self.hvac_aircoils = HvacAircoilManager(self)
         self.inits         = InitManager(self)
         self.environment   = EnvironmentManager(self)
-        self.units         = UnitsManager(self)
         self.library       = LibraryManager(self)
         self.view          = VisibilityManager(self)
         self.clipboard     = ClipboardManager(self)
@@ -156,14 +147,7 @@ class FdsApi:
         self.selection     = self._build_selection_manager()
         self.viewport      = self._build_viewport_controller()
         self.factory       = self._build_entity_factory()
-        self.views         = ViewsManager(self)
-        self.ui_history    = UiHistory(self)
-        self.find          = FindManager(self)
-        self.measure       = MeasureManager(self)
-        self.hygiene       = HygieneManager(self)
-        self.preferences   = PreferencesManager(self)
-        self.examples      = ExamplesManager(self)
-        self.solvers       = SolverManager(self)
+        install_extra_managers(self)
 
         # Entities that previously had no authoring path (G3)
         self.species          = SpeciesManager(self)
@@ -317,6 +301,14 @@ class FdsApi:
         fig.savefig(output_path, dpi=150)
         import matplotlib.pyplot as plt
         plt.close(fig)
+
+    def add_entity(self, entity: Any) -> Any:
+        """Add an already-built entity to the project as one undo step (paste, duplicate, imports)."""
+        from pyfds.automation.commands import AddEntityCommand
+        result = self.history.execute(AddEntityCommand(self._project, entity))
+        if result is not None and getattr(result, "success", True) is False:
+            raise ValueError(result.message)
+        return entity
 
     def set_timing(self, t_end: float, t_begin: float = 0.0) -> None:
         """Set simulation start/end time using a command (undo-able)."""

@@ -7,7 +7,6 @@ from typing import Any, Optional
 from PySide6.QtGui import QCursor
 from PySide6.QtWidgets import QDialog, QInputDialog, QMenu, QMessageBox
 
-from pyfds.automation.commands import AddEntityCommand
 from pyfds.gui.entity_dialogs import SchemaFormDialog
 from pyfds.gui.property_schema import apply_edits, build_edit_schema
 
@@ -47,7 +46,7 @@ class ActionsEditMixin:
         if hasattr(new_entity, "name"):
             new_entity.name = f"{new_entity.name}_copy"
         try:
-            self.api.history.execute(AddEntityCommand(self.api.project, new_entity))
+            self.api.add_entity(new_entity)
         except Exception as exc:
             QMessageBox.critical(self, "Could not paste", str(exc))
         else:

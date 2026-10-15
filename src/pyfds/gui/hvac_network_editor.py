@@ -29,7 +29,6 @@ from PySide6.QtWidgets import QDialog, QGraphicsItem, QGraphicsView, QMenu, QMes
 
 from pyfds.agent import AgentToolDispatcher
 from pyfds.agent.registry import get_tool
-from pyfds.automation.commands import GroupCommand, MoveHvacNodeCommand
 from pyfds.gui.entity_dialogs import SchemaFormDialog
 from pyfds.gui.property_schema import apply_edits, build_edit_schema
 from pyfds.gui.report_dialog import TextReportDialog
@@ -290,17 +289,15 @@ class HvacNetworkEditorDialog(QDialog):
                     queue.append(nxt)
 
         layer_counts: Dict[int, int] = {}
-        commands = []
+        moves = []
         for n in movable:
             d = depth.get(n.name, 0)
             row = layer_counts.get(d, 0)
             layer_counts[d] = row + 1
             dx = d * _LAYER_SPACING - n.x
             dy = row * _ROW_SPACING - n.y
-            if dx or dy:
-                commands.append(MoveHvacNodeCommand(n, dx, dy))
-        if commands:
-            self.api.history.execute(GroupCommand(commands, label="Auto-Layout HVAC Network"))
+            moves.append((n, dx, dy))
+        self.api.hvac.move_nodes(moves, label="Auto-Layout HVAC Network")
 
     # ── Diagnostics ──────────────────────────────────────────────────────
 

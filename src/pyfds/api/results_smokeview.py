@@ -15,6 +15,11 @@ class SmokeviewManager:
     Accessible via ``api.smokeview``.
     """
 
+    def run_script(self, smv_path: str, script_content: str, output_dir: Optional[str] = None) -> int:
+        """Run Smokeview headless on *smv_path* with the given SSF script text; returns its exit code."""
+        from pyfds.smokeview.runner import SmokeviewRunner
+        return SmokeviewRunner().render(smv_path, script_content=script_content, output_dir=output_dir)
+
     def __init__(self, api: "FdsApi") -> None:
         self._api = api
 

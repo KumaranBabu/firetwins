@@ -9,11 +9,11 @@ from .main_common import _print_error, _print_ok
 
 def cmd_batch(args: argparse.Namespace) -> int:
     """Run a parametric batch study defined in a JSON config file."""
-    from pyfds.execution.batch_config import BatchStudyConfig, BatchConfigError
+    from pyfds.api import FdsApi
 
     try:
-        cfg = BatchStudyConfig.from_file(args.config)
-    except BatchConfigError as exc:
+        cfg = FdsApi().batch.load_config(args.config)
+    except ValueError as exc:
         _print_error(str(exc))
         return 1
     except Exception as exc:
@@ -71,9 +71,7 @@ def cmd_render(args: argparse.Namespace) -> int:
         builder.load_slice(quantity=args.quantity)
         builder.render_movie(args.movie, fps=args.fps,
                              start_time=t_start, end_time=t_end)
-        from pyfds.smokeview.runner import SmokeviewRunner
-        rc = SmokeviewRunner().render(smv_path, script_content=builder.build(),
-                                      output_dir=args.output_dir)
+        rc = api.smokeview.run_script(smv_path, builder.build(), args.output_dir)
         return 0 if rc == 0 else 1
 
     times = args.times or []
@@ -89,15 +87,10 @@ def cmd_render(args: argparse.Namespace) -> int:
 
 def cmd_batch_analyze(args: argparse.Namespace) -> int:
     """Post-process a completed parametric study and export statistics."""
-    from pyfds.results.batch_analysis import BatchResultAnalyzer
+    from pyfds.api import FdsApi
 
-    analyzer = BatchResultAnalyzer(
-        args.output_root,
-        study_name=args.study_name,
-        outlier_sigma=args.sigma,
-    )
     try:
-        report = analyzer.analyze()
+        report = FdsApi().batch.analyze(args.output_root, study_name=args.study_name, outlier_sigma=args.sigma)
     except Exception as exc:
         _print_error(f"Analysis failed: {exc}")
         return 1
@@ -133,9 +126,7 @@ def cmd_diff(args: argparse.Namespace) -> int:
     p1 = _load(args.file1)
     p2 = _load(args.file2)
 
-    from pyfds.domain.model import FdsProject
-    _TYPE_MAP = FdsProject._TYPE_MAP
-    col_names = sorted({v for v in _TYPE_MAP.values()})
+    col_names = FdsApi().find.collection_names()
 
     added: list = []
     removed: list = []
@@ -190,8 +181,10 @@ def cmd_diff(args: argparse.Namespace) -> int:
 
 def cmd_compare(args: argparse.Namespace) -> int:
     """Compare simulation result metrics between two output directories."""
-    from pyfds.results.reader import DeviceReader
+    from pyfds.api import FdsApi
     from pathlib import Path
+
+    results = FdsApi().results
 
     def _read_csv(d: str):
         p = Path(d)
@@ -199,7 +192,7 @@ def cmd_compare(args: argparse.Namespace) -> int:
         if not csvs:
             _print_error(f"No CSV result files found in {d}")
             return None
-        return DeviceReader().read(str(csvs[0]))
+        return results.device_data(str(csvs[0]))
 
     r1 = _read_csv(args.dir1)
     r2 = _read_csv(args.dir2)

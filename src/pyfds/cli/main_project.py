@@ -131,9 +131,8 @@ def cmd_info(args: argparse.Namespace) -> int:
 
     if path.is_dir():
         # Treat as output directory — build result index
-        from pyfds.results.indexer import ResultIndex
-        idx = ResultIndex.build(str(path))
-        print(idx.summary())
+        from pyfds.api import FdsApi
+        print(FdsApi().results.summary(str(path)))
         return 0
 
     suffix = path.suffix.lower()
@@ -149,8 +148,8 @@ def cmd_info(args: argparse.Namespace) -> int:
         return 0
 
     if suffix == ".smv":
-        from pyfds.smokeview.smv_parser import SmvParser
-        meta = SmvParser().parse(str(path))
+        from pyfds.api import FdsApi
+        meta = FdsApi().results.smv_metadata(str(path))
         print(f"CHID       : {meta.chid}")
         print(f"Version    : {meta.fds_version}")
         print(f"Grids      : {len(meta.grids)}")
@@ -160,9 +159,9 @@ def cmd_info(args: argparse.Namespace) -> int:
         return 0
 
     if suffix == ".q":
-        from pyfds.results.plot3d_reader import Plot3DReader
+        from pyfds.api import FdsApi
         try:
-            result = Plot3DReader.read(str(path))
+            result = FdsApi().results.plot3d(str(path))
         except Exception as exc:
             _print_error(f"Could not read {path}: {exc}")
             return 1
@@ -176,9 +175,9 @@ def cmd_info(args: argparse.Namespace) -> int:
         return 0
 
     if suffix == ".prt5":
-        from pyfds.results.particle_reader import ParticleReader
+        from pyfds.api import FdsApi
         try:
-            result = ParticleReader.read(str(path))
+            result = FdsApi().results.particles(str(path))
         except Exception as exc:
             _print_error(f"Could not read {path}: {exc}")
             return 1
@@ -195,21 +194,18 @@ def cmd_info(args: argparse.Namespace) -> int:
 
 def cmd_report(args: argparse.Namespace) -> int:
     """Generate a simulation report from an output directory."""
-    from pyfds.results.indexer import ResultIndex
-    from pyfds.results.report import SimulationReport
+    from pyfds.api import FdsApi
 
     path = Path(args.output_dir)
     if not path.is_dir():
         _print_error(f"Not a directory: {path}")
         return 1
 
-    idx = ResultIndex.build(str(path))
-    title = args.title or f"Simulation Report — {idx.chid}"
-    rpt = SimulationReport(stats=idx.stats, title=title)
+    rpt = FdsApi().results.build_report(str(path), args.title)
 
     fmt = args.fmt
     default_ext = "html" if fmt == "html" else "txt"
-    out_path = args.output or str(path / f"{idx.chid}_report.{default_ext}")
+    out_path = args.output or str(path / f"{rpt.chid}_report.{default_ext}")
 
     try:
         rpt.save(out_path, fmt=fmt)

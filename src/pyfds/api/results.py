@@ -47,6 +47,57 @@ class ResultsManager:
     def index(self) -> Optional[Any]:
         return self._index
 
+    # -- reading single result files (used by the command line and scripts) -------------
+    @staticmethod
+    def device_data(csv_path: str) -> Any:
+        from pyfds.results.reader import DeviceReader
+        return DeviceReader().read(csv_path)
+
+    @staticmethod
+    def smv_metadata(smv_path: str) -> Any:
+        from pyfds.smokeview.smv_parser import SmvParser
+        return SmvParser().parse(smv_path)
+
+    @staticmethod
+    def plot3d(q_path: str) -> Any:
+        from pyfds.results.plot3d_reader import Plot3DReader
+        return Plot3DReader.read(q_path)
+
+    @staticmethod
+    def particles(prt5_path: str) -> Any:
+        from pyfds.results.particle_reader import ParticleReader
+        return ParticleReader.read(prt5_path)
+
+    @staticmethod
+    def summary(output_dir: str) -> str:
+        """Text summary of what a results folder holds."""
+        from pyfds.results.indexer import ResultIndex
+        return ResultIndex.build(str(output_dir)).summary()
+
+    @staticmethod
+    def build_report(output_dir: str, title: Optional[str] = None) -> Any:
+        """A ``SimulationReport`` for a results folder; it also carries ``chid`` for naming the file."""
+        from pyfds.results.indexer import ResultIndex
+        from pyfds.results.report import SimulationReport
+        idx = ResultIndex.build(str(output_dir))
+        report = SimulationReport(stats=idx.stats, title=title or f"Simulation Report - {idx.chid}")
+        report.chid = idx.chid
+        return report
+
+    def device_figure(self, device_name: str, only_this: bool = False, index: Any = None) -> Any:
+        """A time-series figure (matplotlib) from the file holding the named device of the current results
+        index: every channel in that file, or just *device_name* with ``only_this``."""
+        index = index if index is not None else self._index
+        if index is None:
+            raise RuntimeError("build the results index first (api.results.build_index)")
+        from pyfds.results.reader import DeviceReader
+        from pyfds.results.plotters import plot_device_timeseries
+        path = index.find_device_file(device_name)
+        if path is None:
+            raise KeyError(f"no device data for {device_name!r}")
+        data = DeviceReader.read(path)
+        return plot_device_timeseries(data, device_names=[device_name]) if only_this else plot_device_timeseries(data)
+
     def read_device(self, device_name: str) -> Optional[Any]:
         if self._index is None:
             return None

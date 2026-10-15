@@ -15,7 +15,6 @@ from PySide6.QtWidgets import (
     QGraphicsTextItem,
 )
 
-from pyfds.automation.commands import MoveHvacNodeCommand
 
 from .hvac_network_editor_common import (
     _AMBIENT_BRUSH,
@@ -80,7 +79,7 @@ class NodeItem(QGraphicsEllipseItem):
         dy = self.pos().y() - self._drag_start.y()
         if dx == 0 and dy == 0:
             return
-        self.dialog.api.history.execute(MoveHvacNodeCommand(self.node, dx, dy))
+        self.dialog.api.hvac.move_nodes([(self.node, dx, dy)], label="Move HVAC node")
 
 
 class DuctItem(QGraphicsLineItem):

@@ -79,11 +79,7 @@ class ActionsResultsMixin:
         if not ok:
             return
         try:
-            from pyfds.results.reader import DeviceReader
-            from pyfds.results.plotters import plot_device_timeseries
-            filepath = idx.find_device_file(name)
-            results = DeviceReader.read(filepath)
-            fig = plot_device_timeseries(results)
+            fig = self.api.results.device_figure(name, index=idx)
         except Exception as exc:
             QMessageBox.critical(self, "Could not plot device", str(exc))
             return
@@ -237,11 +233,7 @@ class ActionsResultsMixin:
             if not device_names:
                 QMessageBox.information(self, "No device data", "No device time-series data found.")
                 return
-            from pyfds.results.reader import DeviceReader
-            from pyfds.results.plotters import plot_device_timeseries
-            filepath = idx.find_device_file(device_names[0])
-            results = DeviceReader.read(filepath)
-            fig = plot_device_timeseries(results)
+            fig = self.api.results.device_figure(device_names[0], index=idx)
         except Exception as exc:
             QMessageBox.critical(self, "Could not load results", str(exc))
             return

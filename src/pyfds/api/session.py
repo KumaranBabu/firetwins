@@ -81,6 +81,8 @@ class Session:
         target = target.with_suffix(".pyfds")
         Serializer().save(self.project, str(target))
         self.filepath = target
+        from pyfds.io.recovery import discard_autosave
+        discard_autosave(target)
         self.mark_clean()
         logger.info("Session[%s] saved to %s", self.session_id[:8], target)
         return target
@@ -127,7 +129,8 @@ class Session:
         while not self._auto_save_stop.wait(timeout=self._auto_save_interval):
             if self.is_dirty and self.filepath:
                 try:
-                    self.save()
+                    from pyfds.io.recovery import write_autosave
+                    write_autosave(self.project, self.filepath)
                     logger.info("Auto-saved session %s", self.session_id[:8])
                 except Exception as exc:
                     logger.error("Auto-save failed: %s", exc)

@@ -26,6 +26,9 @@ from .views import ViewsManager
 from .ui_history import UiHistory
 from .find import FindManager
 from .measure import MeasureManager
+from .hygiene import HygieneManager
+from .preferences import PreferencesManager
+from .examples import ExamplesManager
 from .clipboard import ClipboardManager
 from .snapping import SnapManager
 from .slice_view import SliceViewManager
@@ -156,6 +159,9 @@ class FdsApi:
         self.ui_history    = UiHistory(self)
         self.find          = FindManager(self)
         self.measure       = MeasureManager(self)
+        self.hygiene       = HygieneManager(self)
+        self.preferences   = PreferencesManager(self)
+        self.examples      = ExamplesManager(self)
 
         # Entities that previously had no authoring path (G3)
         self.species          = SpeciesManager(self)

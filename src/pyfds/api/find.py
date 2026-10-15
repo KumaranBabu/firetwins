@@ -130,6 +130,58 @@ class FindManager:
                 raise ValueError(result.message)
         return {"changed": changed, "skipped": skipped}
 
+    def bulk_rename(self, entities: Sequence[Any], template: str, start: int = 1, step: int = 1,
+                    update_references: bool = False) -> List[tuple]:
+        """Rename several objects in the order given, as ONE undo step (UX-11).
+
+        *template* may use ``{n}`` (a counter, e.g. ``{n:03d}``) and ``{name}`` (the old name):
+        ``"Wall_{n:02d}"`` gives Wall_01, Wall_02... Names must stay unique within each collection, and a
+        renamed object that others refer to needs ``update_references``. Nothing is changed if any
+        rename is invalid. Returns ``[(old, new), ...]``."""
+        from pyfds.automation.commands import GroupCommand, ModifyPropertyCommand
+        if not entities:
+            raise ValueError("no objects to rename")
+        if "{n" not in template and len(entities) > 1:
+            raise ValueError("the template needs {n} to give several objects different names")
+        project = self._api.project
+        owner = {}
+        for coll, items in self._collections(None).items():
+            for e in items:
+                owner[e.uid] = coll
+        plan, ops = [], []
+        final = {coll: {getattr(e, "name", None): e for e in items} for coll, items in self._collections(None).items()}
+        for i, e in enumerate(entities):
+            coll = owner.get(e.uid)
+            if coll is None:
+                raise KeyError(f"{getattr(e, 'name', e)!r} is not in the project")
+            old = e.name
+            try:
+                new = template.format(n=start + i * step, name=old)
+            except (KeyError, IndexError, ValueError) as exc:
+                raise ValueError(f"bad template: {exc}") from None
+            if not new.strip():
+                raise ValueError("a new name is empty")
+            plan.append((e, coll, old, new))
+        for e, coll, old, _ in plan:
+            final[coll].pop(old, None)
+        for e, coll, old, new in plan:
+            if new in final[coll]:
+                raise ValueError(f"{new!r} would clash with another {coll[:-1] if coll.endswith('s') else coll}")
+            final[coll][new] = e
+        for e, coll, old, new in plan:
+            if new == old:
+                continue
+            ref_ops = [op for r in project.all_entities if r is not e for op in self._reference_ops(r, old, new)]
+            if ref_ops and not update_references:
+                raise ValueError(f"{old!r} is referenced by other objects; use update_references")
+            ops.append(ModifyPropertyCommand(e, "name", new))
+            ops.extend(ref_ops)
+        if ops:
+            result = self._api.history.execute(GroupCommand(ops, label=f"rename {len(plan)} objects"))
+            if not result.success:
+                raise ValueError(result.message)
+        return [(old, new) for _, _, old, new in plan]
+
     @staticmethod
     def _reference_ops(entity: Any, old: str, new: str) -> list:
         from pyfds.automation.commands import ModifyPropertyCommand

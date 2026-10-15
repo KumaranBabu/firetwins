@@ -14,7 +14,7 @@ from __future__ import annotations
 from typing import List
 
 from .tools.base import ToolSpec, _find_entity_by_name, _remove_from  # noqa: F401
-from .tools import modeling, devices, materials, output, hvac, environment, organization, engineering, project, entities, advanced, mesh, building, physics, library, editing, results_scene, results_viewer, importing, systems, viewstate  # noqa: E402
+from .tools import modeling, devices, materials, output, hvac, environment, organization, engineering, project, entities, advanced, mesh, building, physics, library, editing, results_scene, results_viewer, importing, systems, viewstate, hygiene  # noqa: E402
 
 TOOL_REGISTRY: List[ToolSpec] = [
     *modeling.TOOLS,
@@ -38,6 +38,7 @@ TOOL_REGISTRY: List[ToolSpec] = [
     *importing.TOOLS,
     *systems.TOOLS,
     *viewstate.TOOLS,
+    *hygiene.TOOLS,
 ]
 
 _BY_NAME = {t.name: t for t in TOOL_REGISTRY}

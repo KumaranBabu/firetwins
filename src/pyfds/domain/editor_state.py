@@ -71,9 +71,10 @@ class EditorState:
         self.views: Dict[str, SavedView] = {}           # saved viewpoints
         self.active_view: Optional[str] = None
         self.section_box: Optional[SectionBox] = None   # current clipping box, None = no box
+        self.write_protected: bool = False              # saving over the opened file is refused
 
     def is_empty(self) -> bool:
         return not (self.scenarios.all() or self.floors or self.groups or self.backgrounds or self.fire_items
                     or self.floor_assignments or self.group_memberships
                     or self.hidden or self.hidden_types or self.units != "SI"
-                    or self.views or self.section_box)
+                    or self.views or self.section_box or self.write_protected)

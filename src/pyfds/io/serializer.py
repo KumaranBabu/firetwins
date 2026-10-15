@@ -93,15 +93,27 @@ class Serializer:
 
     # ── Save ─────────────────────────────────────────────────────────────────
 
-    def save(self, project: FdsProject, filepath: str) -> None:
+    def save(self, project: FdsProject, filepath: str, autosave: bool = False) -> None:
         """
         Serialize *project* to a .pyfds JSON file at *filepath*.
+
+        A write-protected project cannot be saved over the file it was opened from; saving it
+        elsewhere makes an ordinary, unprotected copy (a project with no file yet keeps its protection). ``autosave=True`` (the recovery side file)
+        skips that rule and leaves the project's own bookkeeping alone.
 
         Raises
         ------
         FdsSerializationError
-            On any I/O or serialization failure.
+            On any I/O or serialization failure, or when the project is write protected.
         """
+        target = str(Path(filepath).resolve())
+        if not autosave and project.editor.write_protected:
+            source = getattr(project, "source_path", None)
+            if source == target:
+                raise FdsSerializationError(
+                    f"{filepath} is write protected; turn write protection off or use Save As")
+            if source is not None:      # Save As of an opened file: the copy is a new, unprotected document
+                project.editor.write_protected = False
         try:
             data = self._to_dict(project)
             json_bytes = json.dumps(data, indent=2, ensure_ascii=False).encode("utf-8")
@@ -110,6 +122,8 @@ class Serializer:
             with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
                 zf.writestr("project.json", json_bytes)
             logger.info("Project serialized to %s", path)
+            if not autosave:
+                project.source_path = target
         except Exception as exc:
             raise FdsSerializationError(
                 f"Failed to save project to {filepath}: {exc}"
@@ -139,7 +153,10 @@ class Serializer:
             else:
                 with open(path, "r", encoding="utf-8") as fh:
                     data = json.load(fh)
-            return self._from_dict(data)
+            project = self._from_dict(data)
+            project.source_path = str(path.resolve())
+            self._backup_on_open(path)
+            return project
         except json.JSONDecodeError as exc:
             raise FdsSerializationError(
                 f"Invalid JSON in {filepath}: {exc}"
@@ -148,6 +165,18 @@ class Serializer:
             raise FdsSerializationError(
                 f"Failed to load project from {filepath}: {exc}"
             ) from exc
+
+    @staticmethod
+    def _backup_on_open(path: Path) -> None:
+        """Keep a copy of the file as opened (preference ``create_backup_on_open``); never fails the open."""
+        try:
+            from pyfds.core.config import get_config
+            if get_config().get("create_backup_on_open", True):
+                from pyfds.io.recovery import is_side_file, make_backup
+                if not is_side_file(path):
+                    make_backup(path)
+        except Exception as exc:
+            logger.warning("Backup on open skipped: %s", exc)
 
     def load_string(self, json_str: str) -> FdsProject:
         """Deserialize from a JSON string."""
@@ -251,6 +280,7 @@ class Serializer:
             "views": [v.to_dict() for v in ed.views.values()],
             "active_view": ed.active_view,
             "section_box": ed.section_box.to_dict() if ed.section_box else None,
+            "write_protected": ed.write_protected,
         }
 
     def _editor_from_dict(self, project: FdsProject, data: Dict[str, Any]) -> None:
@@ -314,6 +344,7 @@ class Serializer:
         ed.active_view = data.get("active_view") if data.get("active_view") in ed.views else None
         if data.get("section_box"):
             ed.section_box = SectionBox.from_dict(data["section_box"])
+        ed.write_protected = bool(data.get("write_protected", False))
 
     def _entity_to_dict(self, obj: FdsEntity) -> Dict[str, Any]:
         """Dump a Pydantic model to dict, excluding private attributes."""

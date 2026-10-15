@@ -75,9 +75,25 @@ class HistoryManager:
         project = self._api.project
         entry = self._pipes.get(id(project))
         if entry is None or entry[0] is not project:
-            entry = (project, CommandPipeline(project=project, max_history=200))
+            entry = (project, CommandPipeline(project=project, max_history=self.depth))
             self._pipes[id(project)] = entry
         return entry[1]
+
+    @property
+    def depth(self) -> int:
+        """How many edits can be undone (preference ``undo_depth``)."""
+        if getattr(self, "_depth", None) is None:
+            try:
+                from pyfds.core.config import get_config
+                self._depth = int(get_config().get("undo_depth", 200))
+            except Exception:
+                self._depth = 200
+        return self._depth
+
+    def set_depth(self, depth: int) -> None:
+        self._depth = int(depth)
+        for _project, pipe in self._pipes.values():
+            pipe._max = self._depth
 
     def prune(self, open_projects) -> None:
         """Drop the history of documents that are no longer open."""

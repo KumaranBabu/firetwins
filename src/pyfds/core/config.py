@@ -52,6 +52,10 @@ _DEFAULTS: Dict[str, Any] = {
     "auto_validate":         True,
     "auto_save":             False,
     "auto_save_interval":    300.0,
+    "create_backup_on_open": True,
+    "recent_files_max":      10,
+    "undo_depth":            200,
+    "record_preview":        True,
     "log_level":             "INFO",
     "max_job_workers":       4,
     "job_timeout":           None,          # seconds, None = no limit

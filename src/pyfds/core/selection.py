@@ -81,6 +81,8 @@ class SelectionManager:
         self._lock = threading.Lock()
         self._selected: Dict[str, Any] = {}   # uid → FdsEntity
         self._groups: Dict[str, Set[str]] = {}  # group_name → set of uids
+        #: Callables run (no arguments) after every change; used by the UI history.
+        self.observers: List[Callable[[], None]] = []
 
     # ── Core select/deselect ─────────────────────────────────────────────────
 
@@ -339,7 +341,15 @@ class SelectionManager:
 
     # ── Internal ─────────────────────────────────────────────────────────────
 
+    def _notify_observers(self) -> None:
+        for fn in list(self.observers):
+            try:
+                fn()
+            except Exception:
+                pass
+
     def _emit_changed(self) -> None:
+        self._notify_observers()
         try:
             from pyfds.core.events import get_global_bus, EventType
             with self._lock:
@@ -353,6 +363,7 @@ class SelectionManager:
             pass
 
     def _emit_cleared(self) -> None:
+        self._notify_observers()
         try:
             from pyfds.core.events import get_global_bus, EventType
             get_global_bus().emit(EventType.SELECTION_CLEARED, None,

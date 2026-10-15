@@ -248,6 +248,9 @@ class Serializer:
             "hidden": [refs[uid] for uid in sorted(ed.hidden) if uid in refs],
             "hidden_types": sorted(ed.hidden_types),
             "units": ed.units,
+            "views": [v.to_dict() for v in ed.views.values()],
+            "active_view": ed.active_view,
+            "section_box": ed.section_box.to_dict() if ed.section_box else None,
         }
 
     def _editor_from_dict(self, project: FdsProject, data: Dict[str, Any]) -> None:
@@ -302,6 +305,15 @@ class Serializer:
                 ed.hidden.add(uid)
         ed.hidden_types = {str(t) for t in data.get("hidden_types", [])}
         ed.units = data.get("units", "SI") if data.get("units") in ("SI", "EN") else "SI"
+        from pyfds.domain.views import SavedView, SectionBox
+        for v in data.get("views", []):
+            try:
+                ed.views[v["name"]] = SavedView.from_dict(v)
+            except (KeyError, TypeError):
+                logger.warning("Skipped an unreadable saved view")
+        ed.active_view = data.get("active_view") if data.get("active_view") in ed.views else None
+        if data.get("section_box"):
+            ed.section_box = SectionBox.from_dict(data["section_box"])
 
     def _entity_to_dict(self, obj: FdsEntity) -> Dict[str, Any]:
         """Dump a Pydantic model to dict, excluding private attributes."""

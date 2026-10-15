@@ -9,9 +9,10 @@ therefore has its own, and they are saved in ``.pyfds`` archives.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Set
+from typing import Dict, Optional, Set
 
 from .scenario import ScenarioStore
+from .views import SavedView, SectionBox
 
 
 @dataclass
@@ -67,8 +68,12 @@ class EditorState:
         self.hidden: Set[str] = set()                   # entity uids hidden in the views
         self.hidden_types: Set[str] = set()             # collection names switched off ("vents", ...)
         self.units: str = "SI"                          # display/entry unit system: "SI" or "EN"
+        self.views: Dict[str, SavedView] = {}           # saved viewpoints
+        self.active_view: Optional[str] = None
+        self.section_box: Optional[SectionBox] = None   # current clipping box, None = no box
 
     def is_empty(self) -> bool:
         return not (self.scenarios.all() or self.floors or self.groups or self.backgrounds or self.fire_items
                     or self.floor_assignments or self.group_memberships
-                    or self.hidden or self.hidden_types or self.units != "SI")
+                    or self.hidden or self.hidden_types or self.units != "SI"
+                    or self.views or self.section_box)

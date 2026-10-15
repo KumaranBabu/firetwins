@@ -22,6 +22,10 @@ from .environment import EnvironmentManager, InitManager, WindManager
 from .library import LibraryManager
 from .view import VisibilityManager
 from .units import UnitsManager
+from .views import ViewsManager
+from .ui_history import UiHistory
+from .find import FindManager
+from .measure import MeasureManager
 from .clipboard import ClipboardManager
 from .snapping import SnapManager
 from .slice_view import SliceViewManager
@@ -148,6 +152,10 @@ class FdsApi:
         self.selection     = self._build_selection_manager()
         self.viewport      = self._build_viewport_controller()
         self.factory       = self._build_entity_factory()
+        self.views         = ViewsManager(self)
+        self.ui_history    = UiHistory(self)
+        self.find          = FindManager(self)
+        self.measure       = MeasureManager(self)
 
         # Entities that previously had no authoring path (G3)
         self.species          = SpeciesManager(self)
@@ -358,6 +366,7 @@ class FdsApi:
         open_projects.append(self._project)
         self.history.prune(open_projects)
         self.selection = self._build_selection_manager()
+        self.ui_history.attach()
 
     @staticmethod
     def _build_meshing_manager():

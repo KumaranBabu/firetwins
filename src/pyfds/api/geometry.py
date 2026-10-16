@@ -26,6 +26,7 @@ class ObstManager(_CollectionManager):
 
     def add_obstruction(self, xb: List[float], surf_id: str = "INERT", **kwargs) -> Any:
         from pyfds.domain.model import Obstruction
+        kwargs.setdefault("name", self._fresh_name("Obstruction"))      # unnamed ones must not all be called the same
         # NB: Obstruction has no xb/surf_id fields (it's x_min..z_max /
         # surface_id) — passing xb=/surf_id= straight through silently lands
         # in pydantic's extra="allow" bucket and the obstruction ends up a
@@ -56,6 +57,7 @@ class VentManager(_CollectionManager):
 
     def add_vent(self, xb: List[float], surf_id: str = "OPEN", **kwargs) -> Any:
         from pyfds.domain.model import Vent
+        kwargs.setdefault("name", self._fresh_name("Vent"))
         vent = Vent(
             x_min=float(xb[0]), x_max=float(xb[1]),
             y_min=float(xb[2]), y_max=float(xb[3]),
@@ -75,6 +77,7 @@ class HoleManager(_CollectionManager):
 
     def add_hole(self, xb: List[float], **kwargs) -> Any:
         from pyfds.domain.model import Hole
+        kwargs.setdefault("name", self._fresh_name("Hole"))
         hole = Hole(
             x_min=float(xb[0]), x_max=float(xb[1]),
             y_min=float(xb[2]), y_max=float(xb[3]),

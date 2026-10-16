@@ -43,6 +43,15 @@ class _CollectionManager:
         from pyfds.automation.commands import RemoveEntityCommand
         self._pipe.execute(RemoveEntityCommand(self._project, entity))
 
+    def _fresh_name(self, base: str) -> str:
+        """*base*, or *base*2, *base*3 ... - the first name no existing object of this kind has."""
+        taken = {getattr(e, "name", None) for e in self.all()}
+        candidate, n = base, 1
+        while candidate in taken:
+            n += 1
+            candidate = f"{base}{n}"
+        return candidate
+
     def create_default(self, name: Optional[str] = None) -> Any:
         """Add a new object of this kind with default values and a name that is not yet used (one undo step).
         This is what a list editor's "New" button does; set the values afterwards with ``update``."""

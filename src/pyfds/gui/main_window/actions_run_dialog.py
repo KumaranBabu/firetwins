@@ -70,7 +70,11 @@ class ActionsRunDialogMixin:
             return "idle"
         state = self.api.solvers.status(handle)
         if state not in _FINISHED:
-            self.statusBar().showMessage(f"{setup.mode.title()} run: {state}")
+            try:
+                where = f" - {self.api.solvers.progress(handle)['text']}" if state == "running" else ""
+            except Exception:                                # progress is a courtesy: never let it break the poll
+                where = ""
+            self.statusBar().showMessage(f"{setup.mode.title()} run: {state}{where}")
             return state
         timer = getattr(self, "_run_poll", None)
         if timer is not None:

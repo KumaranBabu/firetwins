@@ -84,12 +84,27 @@ class SolverManager:
 
     def _request(self, input_file: str, num_processes: int, dry_run: bool, timeout=None) -> _ad.RunRequest:
         cfg = self._cfg()
-        return _ad.RunRequest(input_file, num_processes, cfg.get("fds_binary"), cfg.get("mpiexec_binary"),
-                              timeout, dry_run=dry_run)
+        fds, mpi = cfg.get("fds_binary"), cfg.get("mpiexec_binary")
+        if not (fds and Path(fds).is_file()):                 # the configured binary is missing: use a detected install
+            found = self.installs(probe=False)
+            if found:
+                fds, mpi = found[0].path, found[0].mpiexec or mpi
+        return _ad.RunRequest(input_file, num_processes, fds, mpi, timeout, dry_run=dry_run)
 
     def _keep(self, adapter, handle):
+        handle.extra.setdefault("chid", self._api.project.chid)
+        handle.extra.setdefault("t_end", self._api.project.params.t_end)
         self._handles[handle.id] = (adapter, handle)
         return handle
+
+    def progress(self, handle) -> Dict[str, Any]:
+        """How far a run has got, from the files in its case folder (which may be on a network share): ``time``,
+        ``step``, ``t_end``, ``fraction``, ``finished``, ``idle`` and a ``text`` such as ``"12.3 / 60 s (20%)"``."""
+        from pyfds.execution.progress import describe, read_progress
+        _adapter, h = self._pair(handle)
+        info = read_progress(h.work_dir, h.extra.get("chid", self._api.project.chid), h.extra.get("t_end"))
+        info["text"] = describe(info)
+        return info
 
     # -- local and parallel runs, stopping, model preview (F6) -----------------------------------------
     def run_local(self, output_dir: str, num_processes: int = 1, dry_run: bool = False,

@@ -5,7 +5,7 @@ name is still importable from ``pyfds.domain.model``.
 """
 from .base import Observer, FdsEntity, _MISSING
 from .params import SimulationParams, DumpParams, MiscParams, PresParams, RadiParams
-from .spatial import Mesh, Obstruction, Hole, Mult, Vent, Zone, Geom, MeshTransform, Move
+from .spatial import Mesh, Obstruction, Hole, Mult, Vent, Zone, Geom, MeshTransform, Move, PbrLook
 from .physics import Layer, MaterialReaction, Material, Reaction, Surface, Ramp, Species, Particle
 from .devices import Device, Prop, Control, Slice, Smoke3D, BoundaryFile, IsoSurface, Text, Prof, Plot3D
 from .environment import Init, WindProfile
@@ -27,6 +27,7 @@ __all__ = [
     "Vent",
     "Zone",
     "Geom",
+    "PbrLook",
     "MeshTransform",
     "Move",
     "Layer",

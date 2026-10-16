@@ -30,6 +30,7 @@ from pyvistaqt import QtInteractor
 from pyfds.api import FdsApi
 from pyfds.core.events import EventType
 from pyfds.core.viewport import CameraPreset
+from pyfds.gui.viewport_environment import Environment, set_lights
 from pyfds.gui.viewport_input import install_input, pick_hit
 from pyfds.gui.viewport_preview import PreviewLayer
 from pyfds.gui.viewport_scene import FIELD_DATA_KEY, build_scene, entity_key, preset_distance, scene_bbox
@@ -79,6 +80,7 @@ class Viewport3D(QWidget):
         self.plotter = QtInteractor(self)
         self.plotter.set_background("#202225")
         self._preview = PreviewLayer(self.plotter)
+        self._environment = Environment()
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -126,16 +128,20 @@ class Viewport3D(QWidget):
             color = highlight if key in self._selected_keys else spec.color
             # While drawing, mesh boxes and decorations must not intercept clicks meant for the floor or objects.
             pickable = not spec.helper and not (self._drawing and spec.entity_kind == "mesh")
+            extra = {"pbr": True, "metallic": spec.pbr[0], "roughness": spec.pbr[1]} if spec.pbr else {}
             actor = self.plotter.add_mesh(
                 spec.mesh, color=color, style=spec.style, opacity=spec.opacity, label=spec.label,
                 show_edges=spec.edges, edge_color="#101010",
-                smooth_shading=spec.smooth, pickable=pickable,
+                smooth_shading=spec.smooth, split_sharp_edges=spec.smooth, pickable=pickable, **extra,
             )
             if spec.entity_kind == "mesh":
                 self._mesh_actors.append(actor)
             if spec.entity is not None:
                 self._entity_lookup[key] = (spec.manager_attr, spec.entity)
         self._selected_keys &= set(self._entity_lookup)
+        # clear() removed the lights, and an unlit scene is drawn flat (and cannot shade physically based materials)
+        set_lights(self.plotter)
+        self._environment.apply(self.plotter, self._api.viewport.state.render_mode == "realistic")
         self._draw_preview()
         self.plotter.render()
 

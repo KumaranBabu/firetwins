@@ -83,11 +83,46 @@ def _node_matrix(node) -> np.ndarray:
     return m
 
 
+def _srgb(c: float) -> float:
+    """glTF colour factors are linear; the viewport draws sRGB."""
+    c = max(0.0, min(1.0, float(c)))
+    return 12.92 * c if c <= 0.0031308 else 1.055 * c ** (1 / 2.4) - 0.055
+
+
+def gltf_look(mat: dict) -> dict:
+    """Fields of a ``PbrLook`` from one glTF material (metallic-roughness, or the older specular-glossiness
+    extension). Missing values take glTF's defaults."""
+    pbr = mat.get("pbrMetallicRoughness", {})
+    sg = mat.get("extensions", {}).get("KHR_materials_pbrSpecularGlossiness")
+    if sg is not None and "pbrMetallicRoughness" not in mat:
+        base = sg.get("diffuseFactor", [1, 1, 1, 1])
+        metallic, roughness = 0.0, 1.0 - float(sg.get("glossinessFactor", 1.0))
+    else:
+        base = pbr.get("baseColorFactor", [1, 1, 1, 1])
+        metallic, roughness = float(pbr.get("metallicFactor", 1.0)), float(pbr.get("roughnessFactor", 1.0))
+    alpha = float(base[3]) if len(base) > 3 and mat.get("alphaMode", "OPAQUE") != "OPAQUE" else 1.0
+    return {"name": str(mat.get("name", "")), "base_color": tuple(_srgb(c) for c in base[:3]),
+            "opacity": max(0.0, min(1.0, alpha)), "metallic": max(0.0, min(1.0, metallic)),
+            "roughness": max(0.0, min(1.0, roughness)),
+            "emissive": tuple(_srgb(c) for c in mat.get("emissiveFactor", [0, 0, 0])[:3]),
+            "double_sided": bool(mat.get("doubleSided", False))}
+
+
+def _safe_id(text: str) -> str:
+    out = "".join(ch if ch.isalnum() or ch in "_-" else "_" for ch in text.strip())
+    return out or "material"
+
+
 class GltfImporter:
     @staticmethod
     def load(path: str, *, surf_id: str = "INERT", name: Optional[str] = None, units: str = "m",
-             up_axis: str = "Y", translate: Optional[Sequence[float]] = None, scale: float = 1.0):
-        """glTF 2.0 / GLB triangle meshes with node transforms. glTF is Y-up, so *up_axis* defaults to Y."""
+             up_axis: str = "Y", translate: Optional[Sequence[float]] = None, scale: float = 1.0,
+             by_material: bool = True):
+        """glTF 2.0 / GLB triangle meshes with node transforms. glTF is Y-up, so *up_axis* defaults to Y.
+
+        Each material becomes its own shape carrying a ``look`` (colour, opacity, metallic, roughness, emissive), so
+        an imported model keeps its appearance; a file with several materials returns a list. ``by_material=False``
+        joins everything into one shape without a look."""
         p = Path(path)
         if not p.exists():
             raise FileNotFoundError(f"glTF file not found: {p}")
@@ -96,8 +131,7 @@ class GltfImporter:
         nodes = doc.get("nodes", [])
         scene = doc.get("scenes", [{}])[doc.get("scene", 0)] if doc.get("scenes") else {}
         roots = scene.get("nodes", list(range(len(nodes))) if not doc.get("scenes") else [])
-        verts: List[Tuple[float, float, float]] = []
-        faces: List[Tuple[int, int, int]] = []
+        groups: dict = {}                     # material index (or None) -> (verts, faces)
 
         def visit(i, parent, depth=0):
             if depth > 64:
@@ -120,6 +154,7 @@ class GltfImporter:
                                          else (idx[k + 1], idx[k], idx[k + 2]) for k in range(len(idx) - 2)])
                     else:
                         tris = np.array([(idx[0], idx[k], idx[k + 1]) for k in range(1, len(idx) - 1)])
+                    verts, faces = groups.setdefault(prim.get("material") if by_material else None, ([], []))
                     base = len(verts)
                     verts.extend(tuple(map(float, q)) for q in pos)
                     faces.extend((int(a) + base, int(b) + base, int(c) + base) for a, b, c in tris.reshape(-1, 3))
@@ -128,8 +163,21 @@ class GltfImporter:
 
         for r in roots:
             visit(r, np.eye(4))
-        return _finish(verts, faces, p, surf_id=surf_id, name=name, units=units, up_axis=up_axis,
-                       translate=translate, scale=scale)
+        materials = doc.get("materials", [])
+        stem = name or p.stem
+        out = []
+        for key, (verts, faces) in groups.items():
+            mat = materials[key] if key is not None and key < len(materials) else None
+            label = stem if len(groups) == 1 else f"{stem}_{_safe_id(str(mat.get('name') or f'material{key}')) if mat else 'default'}"
+            g = _finish(verts, faces, p, surf_id=surf_id, name=label, units=units, up_axis=up_axis,
+                        translate=translate, scale=scale)
+            if mat is not None:
+                from pyfds.domain.model import PbrLook
+                g.look = PbrLook(**gltf_look(mat))
+            out.append(g)
+        if not out:
+            raise ValueError(f"{p.name}: no triangles found")
+        return out[0] if len(out) == 1 else out
 
 
 # -- COLLADA -----------------------------------------------------------------------------------

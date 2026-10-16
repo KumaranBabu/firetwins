@@ -39,6 +39,31 @@ class GeomImportOps:
                 self._api.history.execute(AddEntityCommand(self._project, g))
         return geoms[0] if len(geoms) == 1 else geoms
 
+    # -- appearance (APP-03): the look an imported shape brings with it --------------------------------
+    def look(self, geom_or_name) -> Optional[Dict[str, Any]]:
+        """The shape's look (from a glTF material) as a dict, or ``None`` if it has none."""
+        g = self._geom(geom_or_name)
+        return g.look.model_dump() if g.look is not None else None
+
+    def set_look(self, geom_or_name, **fields) -> Any:
+        """Give a shape a look, or change fields of the one it has (``base_color``, ``opacity``, ``metallic``,
+        ``roughness``, ``emissive``, ``double_sided``, ``name``). Validated; one undo step."""
+        from pyfds.automation.commands import ModifyPropertyCommand
+        from pyfds.domain.model import PbrLook
+        g = self._geom(geom_or_name)
+        merged = {**(g.look.model_dump() if g.look is not None else {}), **fields}
+        new = PbrLook(**merged)                                  # pydantic refuses out-of-range values (ValueError)
+        self._api.history.execute(ModifyPropertyCommand(g, "look", new))
+        return new
+
+    def clear_look(self, geom_or_name) -> None:
+        """Remove a shape's look (it is then drawn in the plain default colour)."""
+        from pyfds.automation.commands import ModifyPropertyCommand
+        g = self._geom(geom_or_name)
+        if g.look is None:
+            raise ValueError(f"{g.name} has no look")
+        self._api.history.execute(ModifyPropertyCommand(g, "look", None))
+
     # -- BIM (IMP-03) ----------------------------------------------------------------
     def bim_types(self) -> Dict[str, int]:
         """``{IFC class: number of shapes}`` for shapes that came from a BIM file."""

@@ -5,7 +5,7 @@ from .base import FdsEntity
 
 
 from typing import List, Optional, Tuple
-from pydantic import field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class Mesh(FdsEntity):
@@ -114,6 +114,37 @@ class Zone(FdsEntity):
     leak_areas: Optional[List[float]] = None   # LEAK_AREAS array (pairs per zone boundary)
 
 
+class PbrLook(BaseModel):
+    """How an imported shape looks in the 3D view (from a glTF material). Editor data: never written to FDS.
+
+    ``base_color`` is sRGB 0..1 (glTF's linear factors are converted on import); ``metallic`` / ``roughness`` follow
+    glTF's metallic-roughness model and drive the *Realistic* render mode; ``emissive`` is added to the colour so
+    glowing materials look lit in every mode.
+    """
+    name: str = ""
+    base_color: Tuple[float, float, float] = (0.8, 0.8, 0.8)
+    opacity: float = Field(1.0, ge=0.0, le=1.0)
+    metallic: float = Field(0.0, ge=0.0, le=1.0)
+    roughness: float = Field(0.6, ge=0.0, le=1.0)
+    emissive: Tuple[float, float, float] = (0.0, 0.0, 0.0)
+    double_sided: bool = False
+
+    @field_validator("base_color", "emissive")
+    @classmethod
+    def _in_unit_range(cls, v):
+        if any(c < 0.0 or c > 1.0 for c in v):
+            raise ValueError("colour components must be between 0 and 1")
+        return v
+
+    def display_color(self) -> Tuple[float, float, float]:
+        """The colour to draw with: base colour plus emission, clipped to 1."""
+        return tuple(min(1.0, b + e) for b, e in zip(self.base_color, self.emissive))      # type: ignore[return-value]
+
+    def hex(self) -> str:
+        r, g, b = self.display_color()
+        return "#{:02x}{:02x}{:02x}".format(round(r * 255), round(g * 255), round(b * 255))
+
+
 class Geom(FdsEntity):
     """&GEOM namelist — complex geometry defined by vertices, faces, or file."""
     name: str = "DefaultGeom"
@@ -131,6 +162,8 @@ class Geom(FdsEntity):
     bim_name: Optional[str] = None      # the element's name in the source file
     bim_storey: Optional[str] = None    # building storey it belongs to
     source_file: Optional[str] = None
+    #: Appearance from the source file (glTF material); editor data, never written to FDS.
+    look: Optional[PbrLook] = None
 
     def bbox(self) -> Optional[Tuple[float, float, float, float, float, float]]:
         # Base FdsEntity.bbox() only understands x_min../xyz-style entities —

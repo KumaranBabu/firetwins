@@ -66,6 +66,7 @@ class ActorSpec:
     entity_kind: str = ""    # "mesh" | "obstruction" | "vent" | "hole" | "device"
     edges: bool = False      # draw the object's edges on top of its faces (render mode "outlines")
     smooth: bool = False     # smooth shading (render mode "realistic")
+    pbr: Optional[Tuple[float, float]] = None   # (metallic, roughness): physically based shading ("realistic" mode)
     helper: bool = False     # decoration (grid lines, shells): not an entity, so never picked
     # manager_attr/entity let a picked actor resolve back to exactly the
     # (attr, entity) pair ProjectExplorer.selected() returns, so viewport
@@ -187,9 +188,11 @@ def build_scene(api: Any) -> List[ActorSpec]:
     def style(default: str) -> str:
         return "wireframe" if wireframe else default
 
-    def finish(spec: ActorSpec) -> ActorSpec:
+    def finish(spec: ActorSpec, pbr: Optional[Tuple[float, float]] = (0.0, 0.7)) -> ActorSpec:
         spec.edges = mode == "outlines" and spec.style == "surface"
         spec.smooth = mode == "realistic"
+        if spec.smooth and spec.style == "surface":
+            spec.pbr = pbr                       # an ordinary object looks like matte paint; a glTF look brings its own
         return spec
 
     def enabled(entities):
@@ -286,10 +289,15 @@ def build_scene(api: Any) -> List[ActorSpec]:
             for face in geom.faces:
                 flat_faces.append(len(face))
                 flat_faces.extend(face)
-            mesh = pv.PolyData(geom.verts, flat_faces)
-            specs.append(ActorSpec(mesh, _GEOM_COLOR, style=style("surface"),
-                                    label=geom.name, entity_kind="geom",
-                                    manager_attr="geom", entity=geom))
+            # raw vertex/face data has no normals, and a mesh without them is drawn unlit (or not at all)
+            mesh = pv.PolyData(geom.verts, flat_faces).compute_normals(
+                cell_normals=True, point_normals=False, auto_orient_normals=False, consistent_normals=False)
+            look = getattr(geom, "look", None)         # glTF material: colour and opacity show in every render mode
+            specs.append(finish(ActorSpec(mesh, look.hex() if look else _GEOM_COLOR, style=style("surface"),
+                                          opacity=look.opacity if look else 1.0,
+                                          label=geom.name, entity_kind="geom",
+                                          manager_attr="geom", entity=geom),
+                                pbr=(look.metallic, look.roughness) if look else (0.0, 0.7)))
 
     if state.is_visible(VisibilityFlags.SLICES):
         extent = scene_bbox(api)

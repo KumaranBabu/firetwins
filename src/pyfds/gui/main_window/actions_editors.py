@@ -7,6 +7,7 @@ from PySide6.QtWidgets import QMenu
 
 from pyfds.gui.actions import EDITOR_MENU
 from pyfds.gui.editors.collection_editor import EntityCollectionEditor
+from pyfds.gui.editors.model_checks import ModelChecksDialog
 
 
 class ActionsEditorsMixin:
@@ -35,3 +36,20 @@ class ActionsEditorsMixin:
         from pyfds.gui.actions.editor_menu import EDITORS
         title = next((t for _l, a, t in EDITORS if a == attr), f"Edit {attr.replace('_', ' ').title()}")
         self._on_edit_collection(attr, title, entity.name)
+
+    def _show_check_report(self, report: Any) -> None:
+        self.validation_panel.show_report(report)
+        self._show_messages(self.validation_panel)
+
+    def _on_edit_model_checks(self) -> ModelChecksDialog:
+        """Switch checks on/off and share check sets (modal); its Run button fills the Validation panel."""
+        dialog = ModelChecksDialog(self.api, self, self._show_check_report)
+        self._model_checks_dialog = dialog
+        if dialog.exec():
+            self.explorer.refresh()
+        return dialog
+
+    def _on_run_model_checks(self) -> Any:
+        report = self.api.validation.validate()
+        self._show_check_report(report)
+        return report

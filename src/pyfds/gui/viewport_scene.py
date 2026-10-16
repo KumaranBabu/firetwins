@@ -44,6 +44,7 @@ _DEVICE_COLOR = "#d4ac0d"
 _INIT_COLOR = "#1abc9c"
 _PROFILE_COLOR = "#9b59b6"
 _GEOM_COLOR = "#8899a6"
+_SLICE_COLOR = "#e67e22"
 
 
 def _color(name: Optional[str]) -> str:
@@ -63,6 +64,9 @@ class ActorSpec:
     opacity: float = 1.0
     label: str = ""
     entity_kind: str = ""    # "mesh" | "obstruction" | "vent" | "hole" | "device"
+    edges: bool = False      # draw the object's edges on top of its faces (render mode "outlines")
+    smooth: bool = False     # smooth shading (render mode "realistic")
+    helper: bool = False     # decoration (grid lines, shells): not an entity, so never picked
     # manager_attr/entity let a picked actor resolve back to exactly the
     # (attr, entity) pair ProjectExplorer.selected() returns, so viewport
     # click-to-select can drive the same tree-selection-based handlers
@@ -90,6 +94,14 @@ def entity_key(manager_attr: str, entity: Any) -> str:
     return f"{manager_attr}:{id(entity)}"
 
 
+def _thicken(bounds: Tuple[float, ...], eps: float = 1e-3) -> Tuple[float, ...]:
+    b = list(bounds)
+    for i in range(3):
+        if b[2 * i + 1] - b[2 * i] < eps:
+            b[2 * i + 1] = b[2 * i] + eps
+    return tuple(b)
+
+
 def _box_from_bbox(entity) -> Optional["pv.PolyData"]:
     """Build a pyvista box from an FdsEntity's bbox(), thickening any
     degenerate axis (a vent/hole flush with a wall has z_min==z_max, say)
@@ -108,6 +120,57 @@ def _box_from_bbox(entity) -> Optional["pv.PolyData"]:
     return pv.Box(bounds=(xmin, xmax, ymin, ymax, zmin, zmax))
 
 
+def mesh_grid_lines(mesh: Any, max_per_axis: int = 120) -> "pv.PolyData":
+    """The cell lines on the six faces of one solution mesh (every cell boundary; for very fine meshes every n-th
+    one, so at most *max_per_axis* lines per direction are drawn)."""
+    lo = (mesh.x_min, mesh.y_min, mesh.z_min)
+    hi = (mesh.x_max, mesh.y_max, mesh.z_max)
+    ticks = []
+    for i in range(3):
+        n = max(1, int(mesh.cell_count[i]))
+        step = max(1, math.ceil(n / max_per_axis))
+        idx = sorted(set(list(range(0, n + 1, step)) + [n]))
+        ticks.append([lo[i] + (hi[i] - lo[i]) * k / n for k in idx])
+    points: List[Tuple[float, float, float]] = []
+    lines: List[int] = []
+
+    def seg(a, b):
+        lines.extend([2, len(points), len(points) + 1])
+        points.extend([a, b])
+
+    for fixed, (u, v) in ((0, (1, 2)), (1, (0, 2)), (2, (0, 1))):
+        for plane in (lo[fixed], hi[fixed]):
+            for tu in ticks[u]:                       # lines along v at each u
+                a, b = [0.0] * 3, [0.0] * 3
+                a[fixed] = b[fixed] = plane
+                a[u] = b[u] = tu
+                a[v], b[v] = lo[v], hi[v]
+                seg(tuple(a), tuple(b))
+            for tv in ticks[v]:                       # lines along u at each v
+                a, b = [0.0] * 3, [0.0] * 3
+                a[fixed] = b[fixed] = plane
+                a[v] = b[v] = tv
+                a[u], b[u] = lo[u], hi[u]
+                seg(tuple(a), tuple(b))
+    poly = pv.PolyData()
+    poly.points = points
+    poly.lines = lines
+    return poly
+
+
+def slice_bounds(slc: Any, extent: Optional[Tuple[float, ...]]) -> Optional[Tuple[float, ...]]:
+    """Where a slice plane sits: its own XB, or the model extent cut at ``position`` on its ``plane`` axis."""
+    if getattr(slc, "xb", None):
+        return tuple(slc.xb)
+    if extent is None:
+        return None
+    b = list(extent)
+    letter = str(slc.plane).upper()[:1]
+    axis = "XYZ".index(letter) if letter in ("X", "Y", "Z") else 0
+    b[2 * axis] = b[2 * axis + 1] = float(slc.position)
+    return tuple(b)
+
+
 def build_scene(api: Any) -> List[ActorSpec]:
     """One ``ActorSpec`` per currently-visible entity in the active project.
 
@@ -117,11 +180,17 @@ def build_scene(api: Any) -> List[ActorSpec]:
     what gets built here without this function needing its own state.
     """
     state = api.viewport.state
-    wireframe = state.show_wireframe
+    mode = getattr(state, "render_mode", "solid")
+    wireframe = state.show_wireframe or mode == "wireframe"
     specs: List[ActorSpec] = []
 
     def style(default: str) -> str:
         return "wireframe" if wireframe else default
+
+    def finish(spec: ActorSpec) -> ActorSpec:
+        spec.edges = mode == "outlines" and spec.style == "surface"
+        spec.smooth = mode == "realistic"
+        return spec
 
     def enabled(entities):
         # A disabled entity is excluded from the FDS write entirely (see
@@ -129,7 +198,8 @@ def build_scene(api: Any) -> List[ActorSpec]:
         # be simulated, not show clutter that's effectively already deleted.
         return [e for e in entities if getattr(e, "enabled", True)]
 
-    if state.is_visible(VisibilityFlags.MESHES):
+    display = getattr(state, "mesh_display", "outline")
+    if state.is_visible(VisibilityFlags.MESHES) and display != "hidden":
         for mesh in enabled(api.meshes.all()):
             box = _box_from_bbox(mesh)
             if box is not None:
@@ -138,6 +208,12 @@ def build_scene(api: Any) -> List[ActorSpec]:
                 specs.append(ActorSpec(box, _MESH_COLOR, style="wireframe",
                                         label=mesh.name, entity_kind="mesh",
                                         manager_attr="meshes", entity=mesh))
+                if display == "boundary":              # the faces as a faint shell, so the domain reads as a volume
+                    specs.append(ActorSpec(box.copy(), _MESH_COLOR, opacity=0.08, label=mesh.name,
+                                           entity_kind="mesh-shell", helper=True))
+                elif display == "lines":
+                    specs.append(ActorSpec(mesh_grid_lines(mesh), _MESH_COLOR, style="wireframe", opacity=0.55,
+                                           label=mesh.name, entity_kind="mesh-lines", helper=True))
 
     if state.is_visible(VisibilityFlags.OBSTRUCTIONS):
         for obst in enabled(api.obstructions.all()):
@@ -146,11 +222,11 @@ def build_scene(api: Any) -> List[ActorSpec]:
                 # FDS TRANSPARENCY is opacity (1.0=opaque); 0.0 is the "unset"
                 # default and means "use FDS's own opaque default" — not 0% opacity.
                 opacity = obst.transparency if obst.transparency else 1.0
-                specs.append(ActorSpec(box, _color(obst.color), style=style("surface"),
-                                        opacity=opacity, label=obst.name, entity_kind="obstruction",
-                                        manager_attr="obstructions", entity=obst))
+                specs.append(finish(ActorSpec(box, _color(obst.color), style=style("surface"),
+                                              opacity=opacity, label=obst.name, entity_kind="obstruction",
+                                              manager_attr="obstructions", entity=obst)))
 
-        # Holes have no dedicated visibility flag — tied to OBSTRUCTIONS.
+    if state.is_visible(VisibilityFlags.HOLES):
         for hole in enabled(api.holes.all()):
             hbox = _box_from_bbox(hole)
             if hbox is not None:
@@ -163,9 +239,9 @@ def build_scene(api: Any) -> List[ActorSpec]:
             box = _box_from_bbox(vent)
             if box is not None:
                 opacity = vent.transparency if vent.transparency else 0.55
-                specs.append(ActorSpec(box, _VENT_COLOR, style=style("surface"),
-                                        opacity=opacity, label=vent.name, entity_kind="vent",
-                                        manager_attr="vents", entity=vent))
+                specs.append(finish(ActorSpec(box, _VENT_COLOR, style=style("surface"),
+                                              opacity=opacity, label=vent.name, entity_kind="vent",
+                                              manager_attr="vents", entity=vent)))
 
     if state.is_visible(VisibilityFlags.DEVICES):
         for device in enabled(api.devices.all()):
@@ -214,6 +290,14 @@ def build_scene(api: Any) -> List[ActorSpec]:
             specs.append(ActorSpec(mesh, _GEOM_COLOR, style=style("surface"),
                                     label=geom.name, entity_kind="geom",
                                     manager_attr="geom", entity=geom))
+
+    if state.is_visible(VisibilityFlags.SLICES):
+        extent = scene_bbox(api)
+        for slc in enabled(api.slices.all()):
+            bounds = slice_bounds(slc, extent)
+            if bounds is not None:
+                specs.append(ActorSpec(pv.Box(bounds=_thicken(bounds)), _SLICE_COLOR, opacity=0.22, label=slc.name,
+                                       entity_kind="slice", manager_attr="slices", entity=slc))
 
     # Particle classes (&PART) have no location of their own — they're
     # referenced by name from an Init's part_id or a Device's prop_id, so

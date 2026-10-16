@@ -96,7 +96,7 @@ def test_build_scene_excludes_disabled_entities():
     assert labels == ["a"]
 
 
-def test_build_scene_holes_are_wireframe_and_tied_to_obstructions_flag():
+def test_build_scene_holes_are_wireframe_and_have_their_own_flag():
     from pyfds.gui.viewport_scene import build_scene
     api = _make_api()
     api.obstructions.add_obstruction(xb=[0, 2, 0, 2, 0, 2], name="wall")
@@ -108,8 +108,10 @@ def test_build_scene_holes_are_wireframe_and_tied_to_obstructions_flag():
     assert hole_specs[0].style == "wireframe"
 
     api.viewport.set_visibility(VisibilityFlags.OBSTRUCTIONS, False)
-    specs2 = build_scene(api)
-    assert not [s for s in specs2 if s.entity_kind in ("obstruction", "hole")]
+    kinds = {s.entity_kind for s in build_scene(api)}
+    assert "obstruction" not in kinds and "hole" in kinds           # holes follow their own flag now
+    api.viewport.set_visibility(VisibilityFlags.HOLES, False)
+    assert not [s for s in build_scene(api) if s.entity_kind in ("obstruction", "hole")]
 
 
 def test_build_scene_all_obstructions_rendered_not_just_first():

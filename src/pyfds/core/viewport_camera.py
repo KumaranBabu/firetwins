@@ -209,6 +209,8 @@ class ViewportState:
     })
     background_color: Tuple[int, int, int]  = (40, 40, 40)
     show_wireframe:   bool                  = False
+    render_mode:      str                   = "solid"      # wireframe | solid | outlines | realistic
+    mesh_display:     str                   = "outline"    # hidden | outline | lines | boundary
     show_normals:     bool                  = False
     highlight_color:  Tuple[int, int, int]  = (255, 200, 0)
     clip_plane_z:     Optional[float]       = None   # horizontal section cut (m)
@@ -227,6 +229,8 @@ class ViewportState:
             "visibility": dict(self.visibility),
             "background_color": list(self.background_color),
             "show_wireframe": self.show_wireframe,
+            "render_mode": self.render_mode,
+            "mesh_display": self.mesh_display,
             "show_normals": self.show_normals,
             "highlight_color": list(self.highlight_color),
             "clip_plane_z": self.clip_plane_z,

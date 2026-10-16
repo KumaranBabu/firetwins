@@ -153,6 +153,27 @@ class ViewportController:
     def toggle_wireframe(self) -> None:
         with self._lock:
             self._state.show_wireframe = not self._state.show_wireframe
+            self._state.render_mode = "wireframe" if self._state.show_wireframe else "solid"
+        self._emit_state()
+
+    def set_render_mode(self, mode: str) -> None:
+        """wireframe | solid | outlines (solid with edges) | realistic (smooth shading)."""
+        from .viewport_types import RENDER_MODES
+        if mode not in RENDER_MODES:
+            raise ValueError(f"render mode must be one of {', '.join(RENDER_MODES)}")
+        with self._lock:
+            self._state.render_mode = mode
+            self._state.show_wireframe = mode == "wireframe"
+        self._emit_state()
+
+    def set_mesh_display(self, mode: str) -> None:
+        """hidden | outline | lines | boundary."""
+        from .viewport_types import MESH_DISPLAYS
+        if mode not in MESH_DISPLAYS:
+            raise ValueError(f"mesh display must be one of {', '.join(MESH_DISPLAYS)}")
+        with self._lock:
+            self._state.mesh_display = mode
+            self._state.set_visibility(VisibilityFlags.MESHES, mode != "hidden")
         self._emit_state()
 
     def set_clip_plane(self, z: Optional[float]) -> None:

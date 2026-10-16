@@ -6,6 +6,7 @@ from PySide6.QtGui import QActionGroup
 from .shared import (
     _CAMERA_PRESETS,
     _DRAW_ACTIONS,
+    _DRAW_TOOL_ACTIONS,
     _VISIBILITY_TOGGLES,
 )
 
@@ -35,17 +36,18 @@ class MenusViewDrawMixin:
         view_menu.addSeparator()
 
         # Render modes (new and existing)
-        self._wireframe_action = view_menu.addAction("&Wireframe Mode")
-        self._wireframe_action.setCheckable(True)
-        self._wireframe_action.triggered.connect(self._on_toggle_wireframe)
-
-        shaded_action = view_menu.addAction("&Shaded Mode")
-        shaded_action.setCheckable(True)
-        shaded_action.triggered.connect(self._on_placeholder_toggle_shaded)
-
-        realistic_action = view_menu.addAction("&Realistic Mode")
-        realistic_action.setCheckable(True)
-        realistic_action.triggered.connect(self._on_placeholder_toggle_realistic)
+        mode_group = QActionGroup(self)
+        mode_group.setExclusive(True)
+        self._render_menu_actions = {}
+        for mode, label in (("wireframe", "&Wireframe Mode"), ("solid", "&Shaded Mode"),
+                            ("outlines", "&Outlines Mode"), ("realistic", "&Realistic Mode")):
+            action = view_menu.addAction(label)
+            action.setCheckable(True)
+            action.triggered.connect(lambda _c=False, m=mode: self._on_render_mode(m))
+            mode_group.addAction(action)
+            self._render_menu_actions[mode] = action
+        self._wireframe_action = self._render_menu_actions["wireframe"]
+        view_menu.addAction("Save &Image...", self._on_save_view_image)
 
         view_menu.addSeparator()
 
@@ -108,7 +110,7 @@ class MenusViewDrawMixin:
         self._draw_actions = {}
 
         # Basic drawing tools (existing)
-        for label, tool_name in _DRAW_ACTIONS:
+        for label, tool_name in _DRAW_ACTIONS + _DRAW_TOOL_ACTIONS:
             action = draw_menu.addAction(label)
             action.setCheckable(True)
             draw_group.addAction(action)
@@ -130,7 +132,7 @@ class MenusViewDrawMixin:
         draw_menu.addSeparator()
 
         # Architectural elements (new) — no backend primitive yet
-        for elem in ["Wall", "Floor", "Ceiling", "Stair", "Door", "Window", "Ramp"]:
+        for elem in ["Floor", "Ceiling", "Stair", "Door", "Window", "Ramp"]:
             draw_menu.addAction(f"Draw {elem}...", lambda checked=False, e=elem: self._on_placeholder_geometry_primitive(e))
 
         draw_menu.addSeparator()

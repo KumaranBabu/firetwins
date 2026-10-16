@@ -102,6 +102,15 @@ _DRAW_ACTIONS = [
     ("Draw &Hole", "add_hole"),
 ]
 
+# Viewport tools that need no agent tool: they create objects themselves (see gui/viewport_tools).
+_DRAW_TOOL_ACTIONS = [
+    ("Draw &Mesh", "add_mesh"),
+    ("Draw &Wall (click corners)", "wall"),
+    ("&Measure", "measure"),
+    ("&Paint Surface", "paint"),
+    ("Pic&k Surface", "pick"),
+]
+
 _HVAC_ACTIONS = [
     ("Add HVAC &Node...", "add_hvac_node"),
     ("Add HVAC &Duct...", "add_hvac_duct"),

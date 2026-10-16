@@ -46,3 +46,12 @@ class VisibilityFlags(Enum):
     GRID            = auto()
     AXES            = auto()
     LABELS          = auto()
+    HOLES           = auto()
+
+
+#: How solid objects are drawn (View toolbar).
+RENDER_MODES = ("wireframe", "solid", "outlines", "realistic")
+
+#: How solution meshes are drawn (Filter toolbar): hidden, their outline box, the cell lines on their faces, or
+#: their faces as a translucent shell.
+MESH_DISPLAYS = ("hidden", "outline", "lines", "boundary")

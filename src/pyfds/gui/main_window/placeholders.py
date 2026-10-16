@@ -114,24 +114,6 @@ PLACEHOLDERS = {
 
 class PlaceholderMixin:
     """"Coming Soon" handlers for menu entries whose backend is not built yet (one table, one factory)."""
-    def _on_placeholder_toggle_shaded(self, checked: bool) -> None:
-        """Toggle shaded rendering mode."""
-        QMessageBox.information(
-            self,
-            "Coming Soon",
-            "Shaded mode will be available in Phase 2.\n\n"
-            "This is a placeholder."
-        )
-
-    def _on_placeholder_toggle_realistic(self, checked: bool) -> None:
-        """Toggle realistic rendering mode."""
-        QMessageBox.information(
-            self,
-            "Coming Soon",
-            "Realistic mode will be available in Phase 2.\n\n"
-            "This is a placeholder."
-        )
-
     def _on_placeholder_geometry_primitive(self, shape_name: str) -> None:
         QMessageBox.information(
             self,

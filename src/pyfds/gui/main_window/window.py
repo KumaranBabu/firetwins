@@ -14,6 +14,7 @@ from PySide6.QtWidgets import QApplication, QDockWidget, QLabel, QMainWindow
 from pyfds.agent import AgentToolDispatcher
 from pyfds.api import FdsApi
 from pyfds.core.viewport import CameraPreset
+from pyfds.gui.viewport_tools import ToolManager
 
 from .shared import (
     _REFRESH_EVENTS,
@@ -34,6 +35,7 @@ from .menus_file_edit import MenusFileEditMixin
 from .shell_bars import ShellBarsMixin
 from .actions_shell import ActionsShellMixin
 from .actions_editors import ActionsEditorsMixin
+from .viewport_bars import ViewportBarsMixin
 from .actions_run_dialog import ActionsRunDialogMixin
 from .menus_view_draw import MenusViewDrawMixin
 from .menus_model import MenusModelMixin
@@ -65,6 +67,7 @@ class MainWindow(
     ShellBarsMixin,
     ActionsShellMixin,
     ActionsEditorsMixin,
+    ViewportBarsMixin,
     ActionsRunDialogMixin,
     PanelsMixin,
     WorkspacesMixin,
@@ -95,6 +98,7 @@ class MainWindow(
         self.addDockWidget(Qt.LeftDockWidgetArea, self.explorer_dock)
 
         self.viewport_widget = self._build_viewport_widget()
+        self.tool_manager = getattr(self.viewport_widget, "tools", None) or ToolManager(self.api)
         self._build_central_tabs()
         if hasattr(self.viewport_widget, "entity_picked"):
             self.viewport_widget.entity_picked.connect(self.explorer.select_entity)
@@ -116,6 +120,7 @@ class MainWindow(
         self._install_editor_menu()
         self._build_toolbar()
         self._build_shell_bars()
+        self._build_viewport_bars()
         from pyfds.gui.icons import install_icons
         install_icons(self, "pyfds")      # task-coloured icons on every menu entry and toolbar button
         self._default_window_state = self.saveState()

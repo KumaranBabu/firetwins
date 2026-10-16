@@ -5,6 +5,7 @@ from PySide6.QtWidgets import QDialog, QFileDialog, QInputDialog, QMessageBox
 
 from pyfds.gui.entity_dialogs import SchemaFormDialog
 
+_TOOL_FOR_AGENT = {"add_obstruction": "obstruction", "add_vent": "vent", "add_hole": "hole", "add_mesh": "mesh"}
 
 class ActionsDrawMixin:
     def _on_draw_sphere(self) -> None:
@@ -118,15 +119,18 @@ class ActionsDrawMixin:
             QMessageBox.critical(self, f"Could not compute {op}", str(exc))
 
     def _on_set_draw_mode(self, tool_name: str) -> None:
-        if hasattr(self.viewport_widget, "set_draw_mode"):
-            self.viewport_widget.set_draw_mode(tool_name)
-        self.statusBar().showMessage(
-            f"Draw mode ({tool_name}): click two points in the 3D view to set the footprint..."
-        )
+        """Start a viewport tool from the Draw menu ("add_obstruction" ... or "wall", "measure" ...)."""
+        if hasattr(self.viewport_widget, "activate_tool"):
+            self.viewport_widget.activate_tool(tool_name)
+        else:
+            self.tool_manager.activate(_TOOL_FOR_AGENT.get(tool_name, tool_name))
+        self.statusBar().showMessage(f"Draw mode ({tool_name}): {self.tool_manager.current.hint}")
 
     def _on_cancel_draw_mode(self) -> None:
-        if hasattr(self.viewport_widget, "set_draw_mode"):
-            self.viewport_widget.set_draw_mode(None)
+        if hasattr(self.viewport_widget, "activate_tool"):
+            self.viewport_widget.activate_tool("select")
+        else:
+            self.tool_manager.activate("select")
         for action in self._draw_actions.values():
             action.setChecked(False)
         self._refresh_status()

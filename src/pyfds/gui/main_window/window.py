@@ -40,6 +40,7 @@ from .actions_misc import ActionsMiscMixin
 from .actions_import import ActionsImportMixin
 from .actions_building import ActionsBuildingMixin
 from .actions_tools_extra import ActionsToolsExtraMixin
+from .actions_keymap import ActionsKeymapMixin
 from .context_menus import ContextMenusMixin
 from .view_split import ViewSplitMixin
 from .actions_print import ActionsPrintMixin
@@ -81,6 +82,7 @@ class MainWindow(
     ActionsToolsExtraMixin,
     ViewSplitMixin,
     ContextMenusMixin,
+    ActionsKeymapMixin,
     ActionsPrintMixin,
     ActionsRunDialogMixin,
     PanelsMixin,

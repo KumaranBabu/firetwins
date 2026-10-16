@@ -155,15 +155,3 @@ class ActionsToolsHelpMixin:
             "A Python-native FDS/Smokeview modeling backend and desktop GUI — "
             "a PyroSim-workflow-inspired open alternative built on NIST FDS.",
         )
-
-    def _on_keyboard_shortcuts(self) -> None:
-        actions = (
-            self._new_action, self._open_action, self._save_as_action,
-            self._undo_action, self._redo_action, self._cut_action,
-            self._copy_action, self._paste_action, self._delete_action,
-        )
-        lines = [
-            f"{action.text().replace('&', ''):<28} {action.shortcut().toString() or '(none)'}"
-            for action in actions
-        ]
-        TextReportDialog("Keyboard Shortcuts", "\n".join(lines), self).exec()

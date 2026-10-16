@@ -25,5 +25,6 @@ def main() -> None:
     window.api.library.use_default_path()      # the user library is kept between sessions
     window._persist_layout = True      # remember the dock arrangement between sessions
     window.restore_saved_layout()
+    window.restore_keymap()            # shortcuts changed in Help > Keyboard Shortcuts
     window.show()
     app.exec()

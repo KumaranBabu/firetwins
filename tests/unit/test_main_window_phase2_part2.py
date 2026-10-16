@@ -57,24 +57,6 @@ class _FakeFigureDialog:
         return QDialog.Accepted
 
 
-def test_keyboard_shortcuts_lists_real_bindings(monkeypatch):
-    window = _make_window()
-    captured = {}
-
-    class _FakeReport:
-        def __init__(self, title, text, parent=None):
-            captured["text"] = text
-
-        def exec(self):
-            return QDialog.Accepted
-
-    monkeypatch.setattr(mw, "TextReportDialog", _FakeReport)
-    window._on_keyboard_shortcuts()
-    assert "Copy" in captured["text"]
-    assert "Paste" in captured["text"]
-    assert "Ctrl" in captured["text"]
-    window.close()
-
 def test_slice_browser_lists_indexed_slices(monkeypatch, tmp_path):
     window = _make_window()
     monkeypatch.setattr(mw.QFileDialog, "getExistingDirectory", lambda *a, **k: str(tmp_path))

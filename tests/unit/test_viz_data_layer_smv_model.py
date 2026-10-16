@@ -160,7 +160,7 @@ def test_wrong_file_type_is_refused(copy):
 def test_tree_groups_output_like_pyrosim(tree):
     root, _ = tree
     top = [c.label for c in root.children]
-    assert top == ["Scene Geometry", "Views", "FDS Results", "Dimensions", "Labels", "XY Plot Data"]
+    assert top == ["Scene Geometry", "Devices", "Views", "FDS Results", "Dimensions", "Labels", "XY Plot Data"]
     res = root.find("root/FDS Results")
     assert [c.label for c in res.children] == ["3D Smoke", "3D Slices", "Plot3D", "Isosurfaces", "2D Slices",
                                                "2D Slice Vectors", "Boundaries", "Particles", "Maximum Errors"]

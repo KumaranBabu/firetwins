@@ -9,6 +9,7 @@ from . import max_errors as me
 from . import units as un
 from .fds_run import SliceFile
 from .primitives import (
+    DevicePoints,
     ErrorBoxes,
     GeometryBoxes,
     GridSurface,
@@ -28,13 +29,49 @@ class ResultsDatasetPrimitivesMixin:
         t_fds = t - self.offset
         fn = {"geometry": self._geometry, "slice2d": self._slice2d, "slice3d": self._slice3d,
               "smoke3d": self._smoke, "plot3d": self._plot3d, "isosurface": self._iso, "boundary": self._boundary,
-              "particles": self._particles, "slice_vectors": self._vectors, "max_error": self._max_error}.get(leaf.kind)
+              "particles": self._particles, "slice_vectors": self._vectors, "max_error": self._max_error,
+              "devices": self._devices}.get(leaf.kind)
         if fn is None:
             return []
         return fn(leaf, t_fds)
 
     def _convert(self, values: np.ndarray, units: str) -> Tuple[np.ndarray, str]:
         return un.convert(values, units, self.viz.units)
+
+    # devices
+    def _device_series(self) -> dict:
+        """name -> (times, values, units) from the run's ``*_devc.csv`` (read once; empty when there is none)."""
+        if getattr(self, "_devc", None) is None:
+            self._devc = {}
+            from pyfds.results.reader_devc import DeviceReader
+            for f in self.run.csv_files:
+                path = self.run.directory / f
+                if f.lower().endswith("_devc.csv") and path.exists():
+                    try:
+                        for name, r in DeviceReader.read(str(path)).items():
+                            if name.lower() != "time":
+                                self._devc[name] = (r.times, r.data, r.units)
+                    except Exception:                       # a damaged file shows the devices without values
+                        pass
+        return self._devc
+
+    def _devices(self, leaf: NavNode, t: float) -> List[object]:
+        devs = self.run.devices
+        if not devs:
+            return []
+        series = self._device_series()
+        values, units = np.full(len(devs), np.nan), []
+        for i, d in enumerate(devs):
+            times, data, u = series.get(d.name, (None, None, ""))
+            units.append(u)
+            if times is not None and len(times):
+                values[i] = float(np.interp(t, times, data))
+        ext = [m.extents for m in self.run.meshes]
+        diag = float(np.linalg.norm([max(e[1] for e in ext) - min(e[0] for e in ext),
+                                     max(e[3] for e in ext) - min(e[2] for e in ext),
+                                     max(e[5] for e in ext) - min(e[4] for e in ext)])) if ext else 0.0
+        return [DevicePoints("Devices", [d.name for d in devs], np.array([d.xyz for d in devs], dtype=float), values, units,
+                             [d.quantity for d in devs], [d.active_at(t) for d in devs], max(0.012 * diag, 0.03))]
 
     # geometry
     def _geometry(self, leaf: NavNode, t: float) -> List[object]:

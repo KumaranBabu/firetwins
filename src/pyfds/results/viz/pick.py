@@ -7,7 +7,7 @@ from typing import Optional, Sequence, Tuple
 import numpy as np
 
 from .data3d import sample_point
-from .primitives import ErrorBoxes, GeometryBoxes, GridSurface, PointCloud, RectilinearVolume, TriMesh, VectorField
+from .primitives import DevicePoints, ErrorBoxes, GeometryBoxes, GridSurface, PointCloud, RectilinearVolume, TriMesh, VectorField
 
 XB = Tuple[float, float, float, float, float, float]
 
@@ -51,6 +51,13 @@ def describe(node_id: str, node_label: str, prim, point: Sequence[float], tol: f
         what = {"obstruction": "Obstruction", "vent": "Vent", "open_vent": "Open boundary", "mesh": "Mesh"}.get(kind, kind.title())
         size = f"{xb[1] - xb[0]:.2f} x {xb[3] - xb[2]:.2f} x {xb[5] - xb[4]:.2f} m"
         return PickInfo(node_id, kind, name, p, f"{what} {name}: XB = {', '.join(f'{c:g}' for c in xb)}  ({size})", xb)
+    if isinstance(prim, DevicePoints):
+        k = int(np.argmin(((prim.points - np.asarray(p)) ** 2).sum(axis=1))) if len(prim.points) else None
+        if k is None:
+            return PickInfo(node_id, "device", node_label, p, f"{node_label} at {where}")
+        v = None if prim.values[k] != prim.values[k] else float(prim.values[k])
+        return PickInfo(node_id, "device", prim.names[k], p, f"Device {prim.label(k)}  [{prim.quantities[k]}]", None, v,
+                        prim.units[k])
     if isinstance(prim, GridSurface):
         d = (prim.x - p[0]) ** 2 + (prim.y - p[1]) ** 2 + (prim.z - p[2]) ** 2
         k = np.unravel_index(int(np.argmin(d)), d.shape)

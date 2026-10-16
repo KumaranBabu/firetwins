@@ -57,14 +57,13 @@ ROWS = {
     "V-136": ("menu", "Tools", "Add Dimension", None),
     "V-140": ("api", "save"), "V-141": ("api", "open_results"), "V-144": ("api", "import_views"),
     "V-145": ("cli", "-screenshot"), "V-146": ("menu", "File", "Save Results Visualization", "Ctrl+S"),
-    "V-147": ("status", "status_state"), "V-99": ("status", "pick_at"), "V-148": ("menu", "File", "Follow Running Case", None),
+    "V-109": ("node", "Devices"), "V-147": ("status", "status_state"), "V-99": ("status", "pick_at"), "V-148": ("menu", "File", "Follow Running Case", None),
 }
 
 GAPS = {
     "V-63": "rendering mode is a toolbar drop-down (the five modes exist); no per-mode icons",
     "V-68": "real-time Record / Pause / Resume / Stop movie: only the offline Movie dialog exists",
     "V-102": "Plot3D quantities are listed per quantity, not as one file entry with five quantities",
-    "V-109": "not applicable (devices are CSV time series: use Load CSV)",
     "V-137": "PyroSim-side archive feature, already in the model application",
     "V-142": "the cache is `.pyfcache` (record index) plus in-memory frames, not `.tcframes` files",
     "V-143": "no per-user Results.props: preferences live in each .pyfdsv (a per-user file would sit under the user profile)",

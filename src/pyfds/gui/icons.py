@@ -197,7 +197,7 @@ def icon_for_entity(attr: str, entity=None, disabled: bool = False) -> QIcon:
 
 # -- the Results viewer's Navigation View --------------------------------------------------------------------------------
 NODE_KIND_GLYPHS = {
-    "geometry": "box", "view": "viewsaved", "smoke3d": "smoke", "slice2d": "slice", "slice3d": "slice", "slice_vectors": "vectors",
+    "geometry": "box", "devices": "device", "view": "viewsaved", "smoke3d": "smoke", "slice2d": "slice", "slice3d": "slice", "slice_vectors": "vectors",
     "boundary": "boundary", "isosurface": "iso", "plot3d": "plot3d", "particles": "particles", "max_error": "errors",
     "data3d_iso": "iso", "data3d_slice": "slice", "data3d_point": "particles", "dimension": "dimension", "label": "label",
     "keyframe": "keyframe", "tour": "tour", "csv": "csv", "xy": "chart",

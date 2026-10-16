@@ -22,6 +22,24 @@ class GeometryBoxes:
 
 
 @dataclass
+class DevicePoints:
+    """Devices at one moment: where each is, its recorded value and whether it has been activated."""
+    name: str
+    names: List[str]
+    points: np.ndarray                         # (n, 3)
+    values: np.ndarray                         # (n,) NaN where the run recorded nothing for the device
+    units: List[str]
+    quantities: List[str]
+    active: List[bool]
+    radius: float = 0.05                       # drawing size in metres, scaled to the model
+
+    def label(self, i: int) -> str:
+        v = self.values[i]
+        text = "" if v != v else f" {v:.4g} {self.units[i]}".rstrip()
+        return f"{self.names[i]}{text}" + (" (activated)" if self.active[i] else "")
+
+
+@dataclass
 class VectorField:
     """Arrows on a slice: where they start, which way they point, and the value that colours them."""
     name: str

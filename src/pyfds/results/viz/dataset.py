@@ -96,7 +96,7 @@ class ResultsDataset(ResultsDatasetStatsMixin, ResultsDatasetPrimitivesMixin):
 
     def timeline(self, leaves: Sequence[NavNode]) -> np.ndarray:
         """The union of the leaves' frame times on the global clock (empty when nothing animated is active)."""
-        parts = [self.leaf_times(l) for l in leaves if l.kind not in ("geometry", "view")]
+        parts = [self.leaf_times(l) for l in leaves if l.kind not in ("geometry", "view", "devices")]
         parts = [p for p in parts if len(p)]
         if not parts:
             return np.array([])

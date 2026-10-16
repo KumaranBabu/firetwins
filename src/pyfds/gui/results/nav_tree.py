@@ -10,7 +10,7 @@ from PySide6.QtWidgets import QMenu, QTreeWidget, QTreeWidgetItem, QWidget
 from pyfds.api.viz import RESULT_KINDS
 from pyfds.gui.icons import icon_for_node
 
-TOGGLE_KINDS = set(RESULT_KINDS) | {"geometry", "view"}
+TOGGLE_KINDS = set(RESULT_KINDS) | {"geometry", "view", "devices"}
 
 _ID = Qt.UserRole
 

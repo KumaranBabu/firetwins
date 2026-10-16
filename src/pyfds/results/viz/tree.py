@@ -92,6 +92,9 @@ def build_tree(run: Optional[FdsRun], viz: ResultsVisualization, have_project_ge
             geo.children.append(NavNode("geometry/ge1", GEOMETRY_LABELS["ge1"], "geometry"))
     if have_project_geometry:
         geo.children.append(NavNode("geometry/pyfds_geometry", GEOMETRY_LABELS["pyfds_geometry"], "geometry"))
+    if run is not None and run.devices:
+        dev = _group(root, "Devices")
+        dev.children.append(NavNode("devices/all", f"Devices ({len(run.devices)})", "devices"))
     # -- views --------------------------------------------------------------------------------
     views = _group(root, "Views")
     views.children.append(NavNode("view/Default", "Default", "view"))

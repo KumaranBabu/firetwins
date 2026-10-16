@@ -112,6 +112,16 @@ class Device:
     name: str
     quantity: str = ""
     xyz: Tuple[float, float, float] = (0.0, 0.0, 0.0)
+    #: (time, state) changes from the SMV's DEVICE_ACT lines; state 0 = not activated. Empty when nothing was recorded.
+    activations: List[Tuple[float, int]] = field(default_factory=list)
+
+    def active_at(self, t: float) -> bool:
+        """Whether the device is activated at time *t* (the last change at or before *t* decides)."""
+        state = 0
+        for when, s in sorted(self.activations):
+            if when <= t + 1e-9:
+                state = s
+        return state != 0
 
 
 @dataclass
@@ -227,6 +237,7 @@ def parse_smv(path: str) -> FdsRun:
     lines = p.read_text(encoding="utf-8", errors="replace").splitlines()
     mesh: Optional[Mesh] = None
     trn_target: Optional[str] = None
+    acts: Dict[str, List[Tuple[float, int]]] = {}
     for key, args, data in _blocks(lines):
         d = [x for x in data if x.strip()]
         if key == "TITLE":
@@ -315,6 +326,15 @@ def parse_smv(path: str) -> FdsRun:
             name, _, qty = d[0].partition("%")
             xyz = _floats(d[1])[:3]
             run.devices.append(Device(name.strip(), qty.strip(), tuple(xyz) if len(xyz) == 3 else (0, 0, 0)))   # type: ignore
+        elif key == "DEVICE_ACT" and args.strip() and d:
+            v = d[0].split()                                  # "index time state"
+            if len(v) >= 3:
+                try:
+                    acts.setdefault(args.strip(), []).append((float(v[1]), int(float(v[2]))))
+                except ValueError:
+                    pass
+    for dev in run.devices:
+        dev.activations = acts.get(dev.name, [])
     if not run.chid:
         run.chid = p.stem
     return run

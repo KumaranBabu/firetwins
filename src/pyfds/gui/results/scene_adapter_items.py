@@ -8,6 +8,7 @@ import pyvista as pv
 
 from pyfds.api.viz import model as vm
 from pyfds.api.viz import (
+    DevicePoints,
     ErrorBoxes,
     GeometryBoxes,
     GridSurface,
@@ -43,6 +44,8 @@ class SceneAdapterItemsMixin:
             pl.add_mesh(mesh, color="#9aa4b2", style="wireframe" if wire else "surface",
                         show_edges=mode.endswith("outlines") or wire, edge_color="#222222", opacity=1.0, name=f"{node.id}#{prim.kind}")
             return 1
+        if isinstance(prim, DevicePoints):
+            return self._devices(node, prim)
         if isinstance(prim, ErrorBoxes):
             mesh = _box_mesh(prim.boxes)
             if mesh is not None:
@@ -92,6 +95,23 @@ class SceneAdapterItemsMixin:
         if isinstance(prim, RectilinearVolume):
             return self._volume(node, prim, bar, viz)
         return 0
+
+    def _devices(self, node, prim: DevicePoints) -> int:
+        """Devices as small spheres - blue while waiting, red once activated - each with its name and current value."""
+        pl = self.pl
+        n = 0
+        for on, colour in ((False, "#8fd3ff"), (True, "#ff4d2e")):
+            idx = [i for i, a in enumerate(prim.active) if a == on]
+            if not idx:
+                continue
+            spheres = pv.PolyData(prim.points[idx]).glyph(geom=pv.Sphere(radius=prim.radius), scale=False, orient=False)
+            pl.add_mesh(spheres, color=colour, smooth_shading=True, name=f"{node.id}#{'on' if on else 'off'}")
+            n += 1
+        lift = np.array([0.0, 0.0, 2.2 * prim.radius])
+        pl.add_point_labels(prim.points + lift, [prim.label(i) for i in range(len(prim.names))], font_size=10,
+                            text_color="white", shape=None, show_points=False, always_visible=True, pickable=False,
+                            name=f"{node.id}#labels")
+        return n + 1
 
     def _add_scalar(self, mesh, bar, name: str, array: str = "v", fallback=None) -> None:
         if bar is None:

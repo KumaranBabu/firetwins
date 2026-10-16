@@ -29,6 +29,7 @@ class PlanView(QGraphicsView):
     selection_changed = Signal(list)
     cursor_moved = Signal(object)             # (x, y, level) in model metres, or None when the mouse leaves
     status_message = Signal(str)
+    context_requested = Signal(object, object)   # (manager_attr, entity) under a right click or None, global position
 
     def __init__(self, api: Any, tools: Optional[ToolManager] = None, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
@@ -256,6 +257,7 @@ class PlanView(QGraphicsView):
         self.setFocus()
         if event.button() in (Qt.MiddleButton, Qt.RightButton):
             self._pan_from = event.position()
+            self._pan_start = event.position()
             self.viewport().setCursor(Qt.ClosedHandCursor)
         elif event.button() == Qt.LeftButton:
             self._press = event.position()
@@ -277,6 +279,10 @@ class PlanView(QGraphicsView):
         if event.button() in (Qt.MiddleButton, Qt.RightButton) and self._pan_from is not None:
             self._pan_from = None
             self.viewport().unsetCursor()
+            d = event.position() - self._pan_start
+            if event.button() == Qt.RightButton and abs(d.x()) + abs(d.y()) <= _CLICK_SLOP:      # a right click, not a pan
+                hit = self._hit_at(self.to_model(self.mapToScene(event.position().toPoint())))
+                self.context_requested.emit(hit.entity, event.globalPosition().toPoint())
         elif event.button() == Qt.LeftButton and self._press is not None:
             moved = abs(event.position().x() - self._press.x()) + abs(event.position().y() - self._press.y())
             self._press = None

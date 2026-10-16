@@ -82,6 +82,10 @@ class PlanPanel(QWidget):
         return self.view.status_message
 
     @property
+    def context_requested(self):
+        return self.view.context_requested
+
+    @property
     def cursor_moved(self):
         return self.view.cursor_moved
 

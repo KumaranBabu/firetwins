@@ -67,6 +67,7 @@ class ViewSplitMixin:
         plan.selection_changed.connect(self.explorer.select_entities)
         plan.status_message.connect(lambda m: self.statusBar().showMessage(m, 8000))
         plan.cursor_moved.connect(self._update_cursor_label)
+        self.connect_context_menu(plan)
         return plan
 
     def _make_record_pane(self) -> Any:

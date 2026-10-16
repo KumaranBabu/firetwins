@@ -36,11 +36,13 @@ def pick_hit(plotter, picker, x: int, y: int) -> Optional[Tuple[Tuple[float, flo
 
 def install_input(plotter, on_click: Callable[[int, int, bool], None], on_double_click: Callable[[int, int], None],
                   on_key: Callable[[int, int], bool], on_wheel: Optional[Callable[[int], bool]] = None,
-                  on_drag: Optional[Callable[[int, int], bool]] = None):
+                  on_drag: Optional[Callable[[int, int], bool]] = None,
+                  on_context: Optional[Callable[[int, int, object], None]] = None):
     """Install the event filter on the plotter's widget; returns it (the caller keeps it alive).
 
     Callbacks get VTK display pixels (origin bottom-left). ``on_key(qt_key, modifiers)`` returns True when it used
-    the key. ``on_wheel`` / ``on_drag`` may return True to stop the event from also moving the camera."""
+    the key. ``on_wheel`` / ``on_drag`` may return True to stop the event from also moving the camera.
+    ``on_context(x, y, global_pos)`` is called for a right click that did not drag (a right drag still zooms)."""
     from PySide6.QtCore import QEvent, QObject, Qt
 
     widget = plotter.interactor
@@ -53,6 +55,7 @@ def install_input(plotter, on_click: Callable[[int, int, bool], None], on_double
 
     class _Filter(QObject):
         press = None
+        right = None
 
         def eventFilter(self, _obj, event):                         # noqa: N802 (Qt API)
             kind = event.type()
@@ -60,6 +63,13 @@ def install_input(plotter, on_click: Callable[[int, int, bool], None], on_double
                 widget.setFocus()
                 self.press = (event.position().x(), event.position().y())
                 self.last = self.press
+            elif kind == QEvent.MouseButtonPress and event.button() == Qt.RightButton:
+                self.right = (event.position().x(), event.position().y())
+            elif kind == QEvent.MouseButtonRelease and event.button() == Qt.RightButton and self.right is not None:
+                moved = abs(event.position().x() - self.right[0]) + abs(event.position().y() - self.right[1])
+                self.right = None
+                if moved <= _CLICK_SLOP and on_context is not None:
+                    on_context(*display(event), event.globalPosition().toPoint())
             elif kind == QEvent.MouseMove and self.press is not None and on_drag is not None:
                 now = (event.position().x(), event.position().y())
                 dx, dy = now[0] - self.last[0], now[1] - self.last[1]

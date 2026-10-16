@@ -64,6 +64,7 @@ class Viewport3D(ViewportQualityMixin, QWidget):
     #: Kept for older callers; the drawing tools no longer ask for a footprint through this signal.
     box_footprint_picked = Signal(str, float, float, float, float)
     cursor_moved = Signal(object)      # (x, y, z) in model coordinates under the mouse, or None when it leaves
+    context_requested = Signal(object, object)   # (manager_attr, entity) under a right click or None, global position
     tool_changed = Signal(str)         # the active tool's name
     status_message = Signal(str)       # what the tool wants the status bar to say
 
@@ -96,7 +97,7 @@ class Viewport3D(ViewportQualityMixin, QWidget):
         self._picker.SetTolerance(0.0005)
         self._cursor_filter = install_cursor_tracking(self.plotter, self._on_cursor)
         self._input_filter = install_input(self.plotter, self._on_click, self._on_double_click, self._on_key,
-                                           self._on_wheel, self._on_drag)
+                                           self._on_wheel, self._on_drag, self._on_context)
 
         self.refresh()
         self._fit()  # sensible initial framing only, once
@@ -261,6 +262,12 @@ class Viewport3D(ViewportQualityMixin, QWidget):
             self._select(hit, ctrl)
         else:
             self.tools.click(hit)
+
+    def _on_context(self, x: int, y: int, global_pos) -> None:
+        if self._roam is not None:
+            return
+        hit = self._hit_at(x, y)
+        self.context_requested.emit(hit.entity if hit is not None else None, global_pos)
 
     def _on_double_click(self, x: int, y: int) -> None:
         if self.tools.current.active():

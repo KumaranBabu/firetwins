@@ -40,6 +40,7 @@ from .actions_misc import ActionsMiscMixin
 from .actions_import import ActionsImportMixin
 from .actions_building import ActionsBuildingMixin
 from .actions_tools_extra import ActionsToolsExtraMixin
+from .context_menus import ContextMenusMixin
 from .view_split import ViewSplitMixin
 from .actions_print import ActionsPrintMixin
 from .actions_run_dialog import ActionsRunDialogMixin
@@ -79,6 +80,7 @@ class MainWindow(
     ActionsBuildingMixin,
     ActionsToolsExtraMixin,
     ViewSplitMixin,
+    ContextMenusMixin,
     ActionsPrintMixin,
     ActionsRunDialogMixin,
     PanelsMixin,
@@ -115,6 +117,7 @@ class MainWindow(
         self._build_central_tabs()
         if hasattr(self.viewport_widget, "entity_picked"):
             self.viewport_widget.entity_picked.connect(self.explorer.select_entity)
+        self.connect_context_menu(self.viewport_widget)
         if hasattr(self.viewport_widget, "selection_changed"):
             self.viewport_widget.selection_changed.connect(self.explorer.select_entities)
         if hasattr(self.viewport_widget, "box_footprint_picked"):

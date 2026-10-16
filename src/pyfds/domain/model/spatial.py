@@ -128,6 +128,10 @@ class PbrLook(BaseModel):
     roughness: float = Field(0.6, ge=0.0, le=1.0)
     emissive: Tuple[float, float, float] = (0.0, 0.0, 0.0)
     double_sided: bool = False
+    #: Base-colour image (base64 PNG/JPEG) and one (u, v) per vertex of the shape; ``uvs`` is only valid while the
+    #: shape keeps the same vertices, so the view ignores a texture whose count no longer matches.
+    texture: Optional[str] = None
+    uvs: Optional[List[Tuple[float, float]]] = None
 
     @field_validator("base_color", "emissive")
     @classmethod

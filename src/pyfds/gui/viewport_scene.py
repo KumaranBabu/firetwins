@@ -21,6 +21,7 @@ import math
 from dataclasses import dataclass
 from typing import Any, List, Optional, Tuple
 
+import numpy as np
 import pyvista as pv
 
 from pyfds.core.viewport import VisibilityFlags
@@ -67,6 +68,7 @@ class ActorSpec:
     edges: bool = False      # draw the object's edges on top of its faces (render mode "outlines")
     smooth: bool = False     # smooth shading (render mode "realistic")
     pbr: Optional[Tuple[float, float]] = None   # (metallic, roughness): physically based shading ("realistic" mode)
+    texture: Optional[str] = None   # base64 image drawn on the surface (the mesh then carries texture coordinates)
     helper: bool = False     # decoration (grid lines, shells): not an entity, so never picked
     # manager_attr/entity let a picked actor resolve back to exactly the
     # (attr, entity) pair ProjectExplorer.selected() returns, so viewport
@@ -293,9 +295,13 @@ def build_scene(api: Any) -> List[ActorSpec]:
             mesh = pv.PolyData(geom.verts, flat_faces).compute_normals(
                 cell_normals=True, point_normals=False, auto_orient_normals=False, consistent_normals=False)
             look = getattr(geom, "look", None)         # glTF material: colour and opacity show in every render mode
+            texture = None
+            if look is not None and look.texture and look.uvs and len(look.uvs) == len(geom.verts):
+                mesh.active_texture_coordinates = np.asarray(look.uvs, dtype=float)
+                texture = look.texture
             specs.append(finish(ActorSpec(mesh, look.hex() if look else _GEOM_COLOR, style=style("surface"),
                                           opacity=look.opacity if look else 1.0,
-                                          label=geom.name, entity_kind="geom",
+                                          label=geom.name, entity_kind="geom", texture=texture,
                                           manager_attr="geom", entity=geom),
                                 pbr=(look.metallic, look.roughness) if look else (0.0, 0.7)))
 

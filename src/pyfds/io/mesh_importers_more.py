@@ -10,6 +10,7 @@ from typing import List, Optional, Sequence, Tuple
 
 import numpy as np
 
+from .gltf_textures import base_color_image
 from .mesh_importers import IMPORTERS, _finish
 
 _CT = {5120: "i1", 5121: "u1", 5122: "<i2", 5123: "<u2", 5125: "<u4", 5126: "<f4"}
@@ -132,6 +133,14 @@ class GltfImporter:
         scene = doc.get("scenes", [{}])[doc.get("scene", 0)] if doc.get("scenes") else {}
         roots = scene.get("nodes", list(range(len(nodes))) if not doc.get("scenes") else [])
         groups: dict = {}                     # material index (or None) -> (verts, faces)
+        uv_groups: dict = {}                  # material index -> [(u, v)] per vertex, for textured materials
+        materials = doc.get("materials", [])
+        textured: dict = {}                   # material index -> (image data, TEXCOORD set)
+        if by_material:
+            for mi, mt in enumerate(materials):
+                found = base_color_image(doc, bufs, p.parent, mt)
+                if found:
+                    textured[mi] = found
 
         def visit(i, parent, depth=0):
             if depth > 64:
@@ -154,8 +163,14 @@ class GltfImporter:
                                          else (idx[k + 1], idx[k], idx[k + 2]) for k in range(len(idx) - 2)])
                     else:
                         tris = np.array([(idx[0], idx[k], idx[k + 1]) for k in range(1, len(idx) - 1)])
-                    verts, faces = groups.setdefault(prim.get("material") if by_material else None, ([], []))
+                    key = prim.get("material") if by_material else None
+                    verts, faces = groups.setdefault(key, ([], []))
                     base = len(verts)
+                    if key in textured:
+                        uv_name = f"TEXCOORD_{textured[key][1]}"
+                        uv = (_accessor(doc, bufs, prim["attributes"][uv_name]) if uv_name in prim["attributes"]
+                              else np.zeros((len(pos), 2)))
+                        uv_groups.setdefault(key, []).extend((float(a), 1.0 - float(b)) for a, b in uv[:, :2])
                     verts.extend(tuple(map(float, q)) for q in pos)
                     faces.extend((int(a) + base, int(b) + base, int(c) + base) for a, b, c in tris.reshape(-1, 3))
             for c in node.get("children", []):
@@ -163,17 +178,19 @@ class GltfImporter:
 
         for r in roots:
             visit(r, np.eye(4))
-        materials = doc.get("materials", [])
         stem = name or p.stem
         out = []
         for key, (verts, faces) in groups.items():
             mat = materials[key] if key is not None and key < len(materials) else None
             label = stem if len(groups) == 1 else f"{stem}_{_safe_id(str(mat.get('name') or f'material{key}')) if mat else 'default'}"
+            uvs = uv_groups.get(key) if key in textured else None
             g = _finish(verts, faces, p, surf_id=surf_id, name=label, units=units, up_axis=up_axis,
-                        translate=translate, scale=scale)
+                        translate=translate, scale=scale, weld=uvs is None)    # welding would renumber the vertices
             if mat is not None:
                 from pyfds.domain.model import PbrLook
                 g.look = PbrLook(**gltf_look(mat))
+                if uvs is not None and len(uvs) == len(g.verts or []):
+                    g.look.texture, g.look.uvs = textured[key][0], uvs
             out.append(g)
         if not out:
             raise ValueError(f"{p.name}: no triangles found")

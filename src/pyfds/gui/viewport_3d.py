@@ -135,11 +135,20 @@ class Viewport3D(ViewportQualityMixin, QWidget):
             # While drawing, mesh boxes and decorations must not intercept clicks meant for the floor or objects.
             pickable = not spec.helper and not (self._drawing and spec.entity_kind == "mesh")
             extra = {"pbr": True, "metallic": spec.pbr[0], "roughness": spec.pbr[1]} if spec.pbr else {}
+            if spec.texture:
+                extra["texture"] = self._texture(spec.texture)
+                color = "white"                 # the image supplies the colour (a selection still tints it)
+                if key in self._selected_keys:
+                    color = highlight
             actor = self.plotter.add_mesh(
                 spec.mesh, color=color, style=spec.style, opacity=spec.opacity, label=spec.label,
                 show_edges=spec.edges, edge_color="#101010",
                 smooth_shading=spec.smooth, split_sharp_edges=spec.smooth, pickable=pickable, **extra,
             )
+            if spec.texture and spec.pbr:
+                tex = extra["texture"]          # physically based shading takes its colour image from the property
+                tex.SetUseSRGBColorSpace(True)
+                actor.GetProperty().SetBaseColorTexture(tex)
             if spec.entity_kind == "mesh":
                 self._mesh_actors.append(actor)
             if spec.entity is not None:
@@ -151,6 +160,19 @@ class Viewport3D(ViewportQualityMixin, QWidget):
         self._environment.apply(self.plotter, self._api.viewport.state.render_mode == "realistic")
         self._draw_preview()
         self.plotter.render()
+
+    def _texture(self, data: str):
+        """The ``pv.Texture`` for base64 image data, decoded once and kept (a refresh redraws every actor)."""
+        cache = self.__dict__.setdefault("_textures", {})
+        if data not in cache:
+            import base64
+            import io
+            import numpy as np
+            import pyvista as pv
+            from PIL import Image
+            img = Image.open(io.BytesIO(base64.b64decode(data))).convert("RGB")
+            cache[data] = pv.Texture(np.asarray(img))
+        return cache[data]
 
     def _draw_decorations(self) -> None:
         """Reference grid, orientation axes and device name labels (View > Show, Devices > Device Labels)."""

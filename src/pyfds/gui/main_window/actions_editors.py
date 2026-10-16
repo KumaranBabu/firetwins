@@ -23,14 +23,18 @@ class ActionsEditorsMixin:
         first = model.actions()[0] if model.actions() else None
         model.insertActions(first, self._editor_scratch.actions())
 
-    def _on_edit_collection(self, attr: str, title: str, select: Optional[str] = None) -> EntityCollectionEditor:
-        """Open the editor for one collection (modal). *select* names the object to start on."""
+    def _on_edit_collection(self, attr: str, title: str, select: Optional[str] = None,
+                            new: bool = False) -> EntityCollectionEditor:
+        """Open the editor for one collection (modal). *select* names the object to start on; *new* starts with a
+        fresh object already created and selected."""
         if select is None:
             picked = self.explorer.selected()
             if picked is not None and picked[0] == attr:
                 select = picked[1].name
         dialog = EntityCollectionEditor(self.api, attr, title, self, select)
         self._collection_editor = dialog
+        if new:
+            dialog.new_object()
         dialog.exec()
         return dialog
 
@@ -67,12 +71,14 @@ class ActionsEditorsMixin:
         self.explorer.refresh()
         return dialog
 
-    def _on_edit_activation_controls(self) -> ActivationControlsDialog:
+    def _on_edit_activation_controls(self, new: bool = False) -> ActivationControlsDialog:
         """Edit the logic that switches objects on and off (modal); starts on the selected control if there is one."""
         picked = self.explorer.selected()
         select = picked[1].name if picked is not None and picked[0] == "controls" else None
         dialog = ActivationControlsDialog(self.api, self, select)
         self._activation_dialog = dialog
+        if new:
+            dialog.new_control()
         dialog.exec()
         self.explorer.refresh()
         return dialog

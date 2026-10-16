@@ -193,6 +193,10 @@ class SnapSettings:
         }
 
 
+#: Layers that start hidden: the reference grid and the device name labels (axes, meshes ... start visible).
+_OFF_BY_DEFAULT = {"GRID", "LABELS"}
+
+
 @dataclass
 class ViewportState:
     """
@@ -205,7 +209,7 @@ class ViewportState:
     transform_mode: TransformMode           = TransformMode.SELECT
     snap:           SnapSettings            = field(default_factory=SnapSettings)
     visibility:     Dict[str, bool]         = field(default_factory=lambda: {
-        f.name: True for f in VisibilityFlags
+        f.name: f.name not in _OFF_BY_DEFAULT for f in VisibilityFlags
     })
     background_color: Tuple[int, int, int]  = (40, 40, 40)
     show_wireframe:   bool                  = False

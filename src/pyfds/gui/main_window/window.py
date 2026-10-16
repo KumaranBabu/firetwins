@@ -36,6 +36,7 @@ from .shell_bars import ShellBarsMixin
 from .actions_shell import ActionsShellMixin
 from .actions_editors import ActionsEditorsMixin
 from .viewport_bars import ViewportBarsMixin
+from .actions_misc import ActionsMiscMixin
 from .actions_run_dialog import ActionsRunDialogMixin
 from .menus_view_draw import MenusViewDrawMixin
 from .menus_model import MenusModelMixin
@@ -68,6 +69,7 @@ class MainWindow(
     ActionsShellMixin,
     ActionsEditorsMixin,
     ViewportBarsMixin,
+    ActionsMiscMixin,
     ActionsRunDialogMixin,
     PanelsMixin,
     WorkspacesMixin,

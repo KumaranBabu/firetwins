@@ -26,7 +26,7 @@ FILE_MENU = [
     ]),
     Submenu("file.export", "&Export", items=[
         A("file.export.fds", "Export as FDS...", "_on_export_as_fds"),
-        A("file.export.stl", "Export Geometry (STL)...", "_on_placeholder_export_stl", placeholder=True),
+        A("file.export.stl", "Export Geometry (STL/OBJ)...", "_on_export_geometry"),
         A("file.export.config", "Export Configuration...", "_on_placeholder_export_config", placeholder=True),
     ]),
     SEPARATOR,

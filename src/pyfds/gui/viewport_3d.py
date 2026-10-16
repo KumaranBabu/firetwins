@@ -29,7 +29,7 @@ from pyvistaqt import QtInteractor
 
 from pyfds.api import FdsApi
 from pyfds.core.events import EventType
-from pyfds.core.viewport import CameraPreset
+from pyfds.core.viewport import CameraPreset, VisibilityFlags
 from pyfds.gui.viewport_environment import Environment, set_lights
 from pyfds.gui.viewport_input import install_input, pick_hit
 from pyfds.gui.viewport_preview import PreviewLayer
@@ -141,9 +141,38 @@ class Viewport3D(QWidget):
         self._selected_keys &= set(self._entity_lookup)
         # clear() removed the lights, and an unlit scene is drawn flat (and cannot shade physically based materials)
         set_lights(self.plotter)
+        self._draw_decorations()
         self._environment.apply(self.plotter, self._api.viewport.state.render_mode == "realistic")
         self._draw_preview()
         self.plotter.render()
+
+    def _draw_decorations(self) -> None:
+        """Reference grid, orientation axes and device name labels (View > Show, Devices > Device Labels)."""
+        state = self._api.viewport.state
+        p = self.plotter
+        try:
+            p.remove_bounds_axes()
+        except Exception:
+            pass
+        bbox = scene_bbox(self._api)
+        if state.is_visible(VisibilityFlags.GRID) and bbox is not None:
+            p.show_bounds(bounds=bbox, grid="back", location="outer", ticks="outside", color="#8a8f98",
+                          font_size=8, show_xlabels=True, show_ylabels=True, show_zlabels=True,
+                          xtitle="X (m)", ytitle="Y (m)", ztitle="Z (m)")
+        if state.is_visible(VisibilityFlags.AXES):
+            if not getattr(self, "_axes_shown", False):
+                p.show_axes()
+                self._axes_shown = True
+        elif getattr(self, "_axes_shown", False):
+            p.hide_axes()
+            self._axes_shown = False
+        if state.is_visible(VisibilityFlags.LABELS):
+            points = [(tuple(d.xyz), d.name) for d in self._api.devices.all()
+                      if getattr(d, "enabled", True) and getattr(d, "xyz", None) is not None]
+            if points:
+                p.add_point_labels([pt for pt, _n in points], [n for _pt, n in points], font_size=11,
+                                   text_color="#f5d76e", shape=None, show_points=False, always_visible=True,
+                                   pickable=False, name="pyfds_device_labels")
 
     # ── Tools ────────────────────────────────────────────────────────────────
 

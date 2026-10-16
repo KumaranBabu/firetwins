@@ -62,8 +62,11 @@ class MenusViewDrawMixin:
 
         # Additional show/hide items (new)
         show_submenu.addSeparator()
-        show_submenu.addAction("&Grid", self._on_placeholder_toggle_grid)
-        show_submenu.addAction("&Axes", self._on_placeholder_toggle_axes)
+        self._grid_action = show_submenu.addAction("&Grid")
+        self._axes_action = show_submenu.addAction("&Axes")
+        for action, handler in ((self._grid_action, self._on_toggle_grid), (self._axes_action, self._on_toggle_axes)):
+            action.setCheckable(True)
+            action.toggled.connect(handler)
 
         view_menu.addSeparator()
 

@@ -167,6 +167,13 @@ class ViewportBarsMixin:
         self.mesh_display_combo.blockSignals(True)
         self.mesh_display_combo.setCurrentIndex(max(0, self.mesh_display_combo.findData(st.mesh_display)))
         self.mesh_display_combo.blockSignals(False)
+        for action, flag in ((getattr(self, "_grid_action", None), VisibilityFlags.GRID),
+                             (getattr(self, "_axes_action", None), VisibilityFlags.AXES),
+                             (getattr(self, "_device_labels_action", None), VisibilityFlags.LABELS)):
+            if action is not None:
+                action.blockSignals(True)
+                action.setChecked(st.is_visible(flag))
+                action.blockSignals(False)
         self.snap_action.blockSignals(True)
         self.snap_action.setChecked(st.snap.enabled)
         self.snap_action.blockSignals(False)

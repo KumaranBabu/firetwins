@@ -19,7 +19,7 @@ class MenusToolsHelpMixin:
         tools_menu.addAction("&Validation...", self._on_tools_validation)
         tools_menu.addAction("&Find Errors...", self._on_find_errors)
         tools_menu.addAction("&Mesh Diagnostics...", self._on_mesh_diagnostics)
-        tools_menu.addAction("&Geometry Repair...", self._on_placeholder_tools_geometry_repair)
+        tools_menu.addAction("&Geometry Repair...", self._on_geometry_repair)
         tools_menu.addAction("&Mesh Checker...", self._on_mesh_checker)
 
         tools_menu.addSeparator()
@@ -71,7 +71,7 @@ class MenusToolsHelpMixin:
         help_menu.addSeparator()
 
         # Learning resources (new)
-        help_menu.addAction("&Examples...", self._on_placeholder_examples)
+        help_menu.addAction("&Examples...", self._on_examples)
         help_menu.addAction("&Tutorials...", self._on_placeholder_tutorials)
         help_menu.addAction("&Keyboard Shortcuts...", self._on_keyboard_shortcuts)
 

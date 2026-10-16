@@ -29,21 +29,9 @@ PLACEHOLDERS = {
         'Coming Soon',
         'Library import will be available in Phase 2.\n\nThis is a placeholder.',
     ),
-    '_on_placeholder_export_stl': (
-        'Coming Soon',
-        'STL export will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
     '_on_placeholder_export_config': (
         'Coming Soon',
         'Configuration export will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_toggle_grid': (
-        'Coming Soon',
-        'Grid toggle will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_toggle_axes': (
-        'Coming Soon',
-        'Axes toggle will be available in Phase 2.\n\nThis is a placeholder.',
     ),
     '_on_placeholder_split_horizontal': (
         'Coming Soon',
@@ -57,26 +45,6 @@ PLACEHOLDERS = {
         'Coming Soon',
         'View splitting will be available in Phase 2.\n\nThis is a placeholder.',
     ),
-    '_on_placeholder_add_control': (
-        'Coming Soon',
-        'Control elements will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_add_prop': (
-        'Coming Soon',
-        'Property elements will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_add_species': (
-        'Coming Soon',
-        'Species configuration will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_geometry_repair': (
-        'Coming Soon',
-        'Geometry repair will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_device_labels': (
-        'Coming Soon',
-        'Device labels will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
     '_on_placeholder_import_scenarios_dialog': (
         'Coming Soon',
         'Scenario import will be available in Phase 2.\n\nThis is a placeholder.',
@@ -89,17 +57,9 @@ PLACEHOLDERS = {
         'Coming Soon',
         'Simulation monitoring will be available in Phase 2.\n\nThis is a placeholder.',
     ),
-    '_on_placeholder_tools_geometry_repair': (
-        'Coming Soon',
-        'Geometry repair will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
     '_on_placeholder_script_console': (
         'Coming Soon',
         'Script console will be available in Phase 3.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_examples': (
-        'Coming Soon',
-        'Examples browser will be available in Phase 2.\n\nThis is a placeholder.',
     ),
     '_on_placeholder_tutorials': (
         'Coming Soon',

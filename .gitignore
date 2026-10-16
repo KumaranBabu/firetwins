@@ -66,3 +66,4 @@ examples/**/*.pyfstats
 # PyFDS backup-on-open and autosave side files
 *.~bak.pyfds
 ~*.pyfds
+user_data/

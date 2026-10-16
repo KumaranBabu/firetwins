@@ -22,6 +22,7 @@ def main() -> None:
     from pyfds.gui.theme import apply_theme, saved_theme
     apply_theme(saved_theme(), app, remember=False)
     window = MainWindow()
+    window.api.library.use_default_path()      # the user library is kept between sessions
     window._persist_layout = True      # remember the dock arrangement between sessions
     window.restore_saved_layout()
     window.show()

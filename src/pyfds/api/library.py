@@ -234,6 +234,28 @@ class LibraryManager(LibraryFiles):
             return {"added": [], "replaced": [], "skipped": [], "invalid": []}
         return self.import_library(target, overwrite=True)
 
+    @staticmethod
+    def default_path() -> str:
+        """Where the user library lives: ``$PYFDS_USER_DIR`` if set, else ``user_data/`` beside the application folder
+        (never the user profile). The file is ``user_library.json``."""
+        base = os.environ.get("PYFDS_USER_DIR")
+        if not base:
+            here = os.path.abspath(__file__)
+            base = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(here)))), "user_data")
+        return os.path.join(base, "user_library.json")
+
+    def use_default_path(self) -> Optional[Dict[str, List[Any]]]:
+        """Make the user library persistent at ``default_path()``: load what is there and save every later change.
+        Returns the load report, or ``None`` (and stays in-memory) if the file cannot be read or the folder written."""
+        target = self.default_path()
+        try:
+            os.makedirs(os.path.dirname(target), exist_ok=True)
+            report = self.load(target)
+        except (OSError, ValueError, KeyError):
+            return None
+        self.path = target
+        return report
+
     def _autosave(self) -> None:
         if self.path:
             self.save()

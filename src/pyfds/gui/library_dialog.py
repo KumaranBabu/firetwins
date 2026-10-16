@@ -1,12 +1,13 @@
-"""Library browser: pick a material, surface, reaction, detector ... and add it to the model."""
+"""Edit Libraries: browse the built-in and your own definitions, add them to the model, save model items into your
+library, remove your entries, and import/export library files."""
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any, Dict, List, Optional
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QComboBox, QDialog, QDialogButtonBox, QHBoxLayout, QLabel, QLineEdit, QListWidget, QListWidgetItem,
-    QMessageBox, QPlainTextEdit, QPushButton, QVBoxLayout, QWidget,
+    QComboBox, QDialog, QDialogButtonBox, QFileDialog, QHBoxLayout, QInputDialog, QLabel, QLineEdit, QListWidget,
+    QListWidgetItem, QMessageBox, QPlainTextEdit, QPushButton, QVBoxLayout, QWidget,
 )
 
 
@@ -16,7 +17,7 @@ class LibraryDialog(QDialog):
     def __init__(self, api: Any, parent: Optional[QWidget] = None, category: Optional[str] = None) -> None:
         super().__init__(parent)
         self.api = api
-        self.setWindowTitle("Library")
+        self.setWindowTitle("Edit Libraries")
         self.resize(760, 480)
         root = QVBoxLayout(self)
 
@@ -52,6 +53,17 @@ class LibraryDialog(QDialog):
         mid.addLayout(right, 2)
         root.addLayout(mid, 1)
 
+        files = QHBoxLayout()
+        self.save_button = QPushButton("Save Model Item to Library...")
+        self.remove_button = QPushButton("Remove from My Library")
+        self.import_button = QPushButton("Import...")
+        self.export_button = QPushButton("Export My Library...")
+        for b, slot in ((self.save_button, self.save_to_library_dialog), (self.remove_button, self.remove_selected),
+                        (self.import_button, self.import_file), (self.export_button, self.export_file)):
+            b.clicked.connect(lambda _c=False, f=slot: f())
+            files.addWidget(b)
+        files.addStretch(1)
+        root.addLayout(files)
         self.status = QLabel("")
         root.addWidget(self.status)
         buttons = QDialogButtonBox()
@@ -96,10 +108,12 @@ class LibraryDialog(QDialog):
             self.fields.setPlainText("")
             self.new_name.setText("")
             self.add_button.setEnabled(False)
+            self.remove_button.setEnabled(False)
             return
         entry = self.api.library.get(self._key(), cur.text())
         self.title.setText(entry.get("description") or cur.text())
         self.source.setText("Built-in" if entry["source"] == "builtin" else "Your library")
+        self.remove_button.setEnabled(entry["source"] == "user")
         lines = []
         for k, v in entry["fields"].items():
             if k == "layers":
@@ -119,3 +133,87 @@ class LibraryDialog(QDialog):
             QMessageBox.warning(self, "Could not add", str(exc))
             return
         self.status.setText(f"Added {ent.name} to the model.")
+
+    # -- your library: save, remove, import, export -----------------------------------------------------
+    def _refresh_counts(self) -> None:
+        self.category.blockSignals(True)
+        for i, c in enumerate(self.api.library.categories()):
+            self.category.setItemText(i, f"{c['label']}  ({c['builtin'] + c['user']})")
+        self.category.blockSignals(False)
+        self._fill()
+
+    def model_candidates(self) -> List[str]:
+        """Names of project objects that fit the shown category (what 'Save Model Item' offers)."""
+        return self.api.library.candidates(self._key())
+
+    def save_to_library(self, entity_name: str, name: Optional[str] = None, description: str = "",
+                        overwrite: bool = False) -> Optional[str]:
+        try:
+            key = self.api.library.add_to_library(self._key(), entity_name, name or None, overwrite, description)
+        except (ValueError, KeyError) as exc:
+            QMessageBox.warning(self, "Could not save", str(exc))
+            return None
+        self.status.setText(f"Saved {key} to your library.")
+        self._refresh_counts()
+        self._select(key)
+        return key
+
+    def save_to_library_dialog(self) -> Optional[str]:
+        names = self.model_candidates()
+        if not names:
+            QMessageBox.information(self, "Save to Library", "The model has nothing of this kind to save.")
+            return None
+        pick, ok = QInputDialog.getItem(self, "Save to Library", "Model item:", names, 0, False)
+        if not ok:
+            return None
+        key, ok = QInputDialog.getText(self, "Save to Library", "Name in the library:", text=pick)
+        if not ok or not key.strip():
+            return None
+        exists = key.strip() in self.api.library.names(self._key(), "user")
+        if exists and QMessageBox.question(self, "Save to Library", f"Replace your entry {key.strip()!r}?") != QMessageBox.Yes:
+            return None
+        return self.save_to_library(pick, key.strip(), "", overwrite=exists)
+
+    def remove_selected(self) -> bool:
+        item = self.names.currentItem()
+        if item is None:
+            return False
+        try:
+            self.api.library.remove_from_library(self._key(), item.text())
+        except KeyError as exc:
+            QMessageBox.warning(self, "Could not remove", str(exc))
+            return False
+        self.status.setText(f"Removed {item.text()} from your library.")
+        self._refresh_counts()
+        return True
+
+    def import_file(self, path: Optional[str] = None, overwrite: Optional[bool] = None) -> Optional[Dict[str, List[Any]]]:
+        path = path or QFileDialog.getOpenFileName(self, "Import Library", "", "Library files (*.json)")[0]
+        if not path:
+            return None
+        if overwrite is None:
+            overwrite = QMessageBox.question(self, "Import Library", "Replace entries that already exist in your library?",
+                                             QMessageBox.Yes | QMessageBox.No, QMessageBox.No) == QMessageBox.Yes
+        try:
+            report = (self.api.library.import_library(path, overwrite=overwrite) if path.lower().endswith(".json")
+                      else self.api.library.import_fds(path, overwrite=overwrite))
+        except (ValueError, OSError) as exc:
+            QMessageBox.warning(self, "Could not import", str(exc))
+            return None
+        self.status.setText("Imported: " + (", ".join(f"{len(v)} {k}" for k, v in report.items() if v) or "nothing new"))
+        self._refresh_counts()
+        return report
+
+    def export_file(self, path: Optional[str] = None) -> Optional[int]:
+        path = path or QFileDialog.getSaveFileName(self, "Export My Library", "my_library.json", "Library files (*.json)")[0]
+        if not path:
+            return None
+        count = self.api.library.export_library(path)
+        self.status.setText(f"Exported {count} entries.")
+        return count
+
+    def _select(self, name: str) -> None:
+        for i in range(self.names.count()):
+            if self.names.item(i).text() == name:
+                self.names.setCurrentRow(i)
+                return

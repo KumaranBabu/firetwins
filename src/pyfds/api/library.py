@@ -87,6 +87,11 @@ class LibraryManager(LibraryFiles):
         return entity
 
     # -- model -> library ------------------------------------------------------------
+    def candidates(self, category: str) -> List[str]:
+        """Names of the project's objects that can be saved into *category* (``add_to_library`` accepts them)."""
+        c = self._cat(category)
+        return [e.name for e in getattr(self._api.project, c.collection) if lib.matches(c, e)]
+
     def add_to_library(self, category: str, entity_or_name, name: Optional[str] = None,
                        overwrite: bool = False, description: str = "") -> str:
         """Save a project entity as a user library entry; returns the entry name."""

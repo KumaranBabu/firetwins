@@ -274,6 +274,6 @@ def test_roam_from_the_current_camera_and_model_scaled_step():
     c = RoamCamera.looking((0, 0, 0), (0, 5, 5))
     assert c.yaw == pytest.approx(90.0) and c.pitch == pytest.approx(45.0)
     c.set_step_for_model((0, 60, 0, 0, 0, 0))                          # a 60 m long model
-    assert c.step == pytest.approx(1.0)
+    assert c.step == pytest.approx(3.0)
     c.set_step_for_model((0, 0.1, 0, 0.1, 0, 0.1))
     assert c.step == 0.05                                             # never absurdly small

@@ -18,7 +18,7 @@ class RoamCamera:
     yaw: float = 0.0
     pitch: float = 0.0
     step: float = 0.25                  # metres per key press / wheel notch
-    turn: float = 3.0                   # degrees per arrow-key press
+    turn: float = 4.0                   # degrees per arrow-key press
 
     # -- directions ------------------------------------------------------------------------------------
     def forward(self) -> Vec:
@@ -46,9 +46,9 @@ class RoamCamera:
         self.pitch = max(-89.0, min(89.0, self.pitch + d_pitch))
 
     def set_step_for_model(self, extent: Sequence[float]) -> None:
-        """Scale the step to the model so a tunnel and a room both feel right (about 1/60 of the diagonal)."""
+        """Scale the step to the model so a tunnel and a room both feel right (about 1/20 of the diagonal)."""
         diag = math.dist((extent[0], extent[2], extent[4]), (extent[1], extent[3], extent[5]))
-        self.step = max(0.05, diag / 60.0)
+        self.step = max(0.05, diag / 20.0)
 
     @classmethod
     def looking(cls, position: Sequence[float], target: Sequence[float]) -> "RoamCamera":

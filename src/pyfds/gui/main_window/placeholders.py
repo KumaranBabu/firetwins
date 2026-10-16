@@ -25,18 +25,6 @@ PLACEHOLDERS = {
         'Coming Soon',
         'GPU settings will be available in Phase 2.\n\nThis is a placeholder.',
     ),
-    '_on_placeholder_script_console': (
-        'Coming Soon',
-        'Script console will be available in Phase 3.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_tutorials': (
-        'Coming Soon',
-        'Tutorials will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_check_updates': (
-        'Coming Soon',
-        'Update checker will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
 }
 
 

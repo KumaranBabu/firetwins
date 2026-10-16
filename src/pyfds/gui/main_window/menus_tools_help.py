@@ -34,7 +34,7 @@ class MenusToolsHelpMixin:
 
         # Development/preview
         tools_menu.addAction("&FDS Preview (EXPERIMENTAL)...", self._on_fds_preview)
-        tools_menu.addAction("&Script Console...", self._on_placeholder_script_console)
+        tools_menu.addAction("&Script Console...", self._on_script_console)
 
 
     def _build_window_menu(self) -> None:
@@ -72,11 +72,11 @@ class MenusToolsHelpMixin:
 
         # Learning resources (new)
         help_menu.addAction("&Examples...", self._on_examples)
-        help_menu.addAction("&Tutorials...", self._on_placeholder_tutorials)
+        help_menu.addAction("&Tutorials...", self._on_tutorials)
         help_menu.addAction("&Keyboard Shortcuts...", self._on_keyboard_shortcuts)
 
         help_menu.addSeparator()
 
         # About and updates (new)
-        help_menu.addAction("&Check for Updates...", self._on_placeholder_check_updates)
+        help_menu.addAction("&Check for Updates...", self._on_check_updates)
         help_menu.addAction("&About PyFDS", self._on_about)

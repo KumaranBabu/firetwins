@@ -39,6 +39,7 @@ from .viewport_bars import ViewportBarsMixin
 from .actions_misc import ActionsMiscMixin
 from .actions_import import ActionsImportMixin
 from .actions_building import ActionsBuildingMixin
+from .actions_tools_extra import ActionsToolsExtraMixin
 from .actions_run_dialog import ActionsRunDialogMixin
 from .menus_view_draw import MenusViewDrawMixin
 from .menus_model import MenusModelMixin
@@ -74,6 +75,7 @@ class MainWindow(
     ActionsMiscMixin,
     ActionsImportMixin,
     ActionsBuildingMixin,
+    ActionsToolsExtraMixin,
     ActionsRunDialogMixin,
     PanelsMixin,
     WorkspacesMixin,

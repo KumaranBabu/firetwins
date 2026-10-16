@@ -8,6 +8,7 @@ from PySide6.QtWidgets import QMenu
 from pyfds.gui.actions import EDITOR_MENU
 from pyfds.gui.editors.collection_editor import EntityCollectionEditor
 from pyfds.gui.editors.model_checks import ModelChecksDialog
+from pyfds.gui.editors.scenarios import ScenariosDialog
 
 
 class ActionsEditorsMixin:
@@ -53,3 +54,14 @@ class ActionsEditorsMixin:
         report = self.api.validation.validate()
         self._show_check_report(report)
         return report
+
+    def _on_edit_scenarios(self) -> ScenariosDialog:
+        """Create, clone, rename and delete scenarios and edit what each one changes (modal)."""
+        def changed():
+            self.explorer.refresh()
+            self._refresh_status()
+        dialog = ScenariosDialog(self.api, self, changed)
+        self._scenarios_dialog = dialog
+        dialog.exec()
+        self.explorer.refresh()
+        return dialog

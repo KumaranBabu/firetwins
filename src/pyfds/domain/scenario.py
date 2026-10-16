@@ -98,6 +98,34 @@ class ScenarioStore:
     def get(self, name: str) -> Optional[Scenario]:
         return self._scenarios.get(name)
 
+    def rename(self, old: str, new: str) -> Scenario:
+        """Give a scenario a new name, keeping its place in the list."""
+        s = self.get(old)
+        if s is None:
+            raise KeyError(f"Scenario {old!r} not found.")
+        if new == old:
+            return s
+        if not new.strip():
+            raise ValueError("A scenario needs a name.")
+        if new in self._scenarios:
+            raise ValueError(f"Scenario {new!r} already exists.")
+        if old == self._active:
+            raise RuntimeError(f"Cannot rename active scenario {old!r}. Call reset() first.")
+        s.name = new
+        items = [(new if k == old else k, v) for k, v in self._scenarios.items()]
+        self._scenarios.clear()
+        self._scenarios.update(items)
+        return s
+
+    def remove_override(self, scenario_name: str, entity: Any, field_name: str) -> None:
+        s = self._scenarios.get(scenario_name)
+        if s is None:
+            raise KeyError(f"Scenario {scenario_name!r} not found.")
+        uid = entity.uid if hasattr(entity, "uid") else str(id(entity))
+        if field_name not in s.overrides.get(uid, {}):
+            raise KeyError(f"{scenario_name!r} has no override of {field_name!r}")
+        s.remove_override(uid, field_name)
+
     def all(self) -> List[Scenario]:
         return list(self._scenarios.values())
 

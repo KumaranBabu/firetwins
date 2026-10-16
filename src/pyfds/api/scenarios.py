@@ -78,6 +78,39 @@ class ScenarioManager(_UndoableStore):
             lambda: self._store.set_override(scenario_name, entity, field_name, value),
         )
 
+    def update(self, name: str, *, new_name: Optional[str] = None, description: Optional[str] = None,
+               tags: Optional[List[str]] = None) -> Any:
+        """Rename a scenario and/or change its description or tags (one undo step). Not allowed while it is applied."""
+        def edit():
+            s = self._store.get(name)
+            if s is None:
+                raise KeyError(f"Scenario {name!r} not found.")
+            if new_name is not None:
+                self._store.rename(name, new_name)
+            if description is not None:
+                s.description = description
+            if tags is not None:
+                s.tags = [str(t).strip() for t in tags if str(t).strip()]
+            return s
+        return self._do(f"edit scenario {name!r}", edit)
+
+    def remove_override(self, scenario_name: str, entity: Any, field_name: str) -> None:
+        """Forget that *scenario_name* changes *entity*.*field_name*."""
+        self._do(f"scenario {scenario_name!r}: drop override {field_name}",
+                 lambda: self._store.remove_override(scenario_name, entity, field_name))
+
+    def overrides(self, name: str) -> List[Dict[str, Any]]:
+        """What scenario *name* changes: ``[{"entity", "kind", "field", "value", "uid"}]`` (``entity`` is ``None``
+        when the object no longer exists in the project)."""
+        s = self._store.get(name)
+        if s is None:
+            raise KeyError(f"Scenario {name!r} not found.")
+        from pyfds.domain.scenario import _build_uid_map
+        by_uid = _build_uid_map(self._api.project)
+        return [{"entity": by_uid.get(uid), "kind": type(by_uid[uid]).__name__ if uid in by_uid else "",
+                 "field": f, "value": v, "uid": uid}
+                for uid, fields in s.overrides.items() for f, v in fields.items()]
+
     def apply(self, name: str) -> None:
         """Apply scenario *name* to the active project."""
         self._do(f"apply scenario {name!r}", lambda: self._store.apply(self._api.project, name))

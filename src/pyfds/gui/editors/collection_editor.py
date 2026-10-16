@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
 
 from . import layouts
 from .extras import EditorExtrasMixin
+from .mesh_tools import MeshToolsMixin
 from .model import EntityEditorModel, FieldSpec
 from .widgets import FieldWidget, make_field_widget
 
@@ -33,7 +34,7 @@ def changed_tokens(original: str, edited: str) -> List[str]:
     return [t for t in tokens(edited) if t not in old]
 
 
-class EntityCollectionEditor(EditorExtrasMixin, QDialog):
+class EntityCollectionEditor(MeshToolsMixin, EditorExtrasMixin, QDialog):
     def __init__(self, api: Any, attr: str, title: str, parent: Optional[QWidget] = None,
                  select: Optional[str] = None) -> None:
         super().__init__(parent)
@@ -66,6 +67,7 @@ class EntityCollectionEditor(EditorExtrasMixin, QDialog):
         self.delete_button = self._button(lv, "Delete...", self.delete_object)
         self.library_button = self._button(lv, "Add From Library...", self.add_from_library)
         self.library_button.setVisible(bool(self.model.library_names()))
+        self._build_mesh_tools(lv, left)
 
         right = QWidget(split)
         rv = QVBoxLayout(right)
@@ -74,6 +76,7 @@ class EntityCollectionEditor(EditorExtrasMixin, QDialog):
         self.info.setWordWrap(True)
         rv.addWidget(self.info)
         self._build_type_row(rv, right)
+        self._build_division_row(rv, right)
         self.tabs = QTabWidget(right)
         rv.addWidget(self.tabs, 1)
         self.preview = QPlainTextEdit(right)
@@ -109,8 +112,7 @@ class EntityCollectionEditor(EditorExtrasMixin, QDialog):
         keep = select or (self._current.name if self._current is not None else None)
         self._loading = True
         self.list.clear()
-        for name in self.model.names():
-            self.list.addItem(name)
+        self.list.addItems(self.model.names())
         self._loading = False
         row = self.names().index(keep) if keep in self.names() else (0 if self.list.count() else -1)
         self._current = None
@@ -141,6 +143,7 @@ class EntityCollectionEditor(EditorExtrasMixin, QDialog):
         self._widgets = {}
         self.info.setText("")
         self.preview.setPlainText("")
+        self._refresh_division()
 
     def _ref_names(self, collection: str) -> List[str]:
         try:
@@ -280,6 +283,7 @@ class EntityCollectionEditor(EditorExtrasMixin, QDialog):
             self.preview.setPlainText(f"(cannot preview: {exc})")
             return
         self.preview.setPlainText(edited)
+        self._refresh_division()
         marks = []
         fmt = QTextCharFormat()
         fmt.setBackground(QColor("#fff2a8"))

@@ -152,6 +152,27 @@ class MeshOperations:
             self._pipe.execute(AddEntityCommand(self._project, new))
         return new
 
+    def partition(self, mesh_or_name, parts: int, axis: Optional[str] = None) -> List[Any]:
+        """Cut a mesh into *parts* slabs of (nearly) equal cell count for MPI load balancing; returns
+        ``[mesh, *new meshes]`` in order along *axis* (default: the axis with the most cells). One undo step."""
+        mesh = self._mesh(mesh_or_name)
+        if not isinstance(parts, int) or parts < 2:
+            raise ValueError("parts must be an integer >= 2")
+        a = _AXES[axis.strip().upper()] if axis else max(range(3), key=lambda i: mesh.cell_count[i])
+        n = mesh.cell_count[a]
+        if parts > n:
+            raise ValueError(f"{mesh.name} has only {n} cells along {'XYZ'[a]}; cannot make {parts} parts")
+        lo, hi = _bounds(mesh)
+        h = (hi[a] - lo[a]) / n
+        pieces = [mesh]
+        with self._tx(f"partition mesh {mesh.name} into {parts}"):
+            rest = mesh
+            for i in range(1, parts):
+                k = round(i * n / parts)
+                rest = self.split(rest, "XYZ"[a], lo[a] + k * h)
+                pieces.append(rest)
+        return pieces
+
     def merge(self, names: Sequence[Any], new_name: Optional[str] = None) -> Any:
         """Join meshes that exactly tile one box and share a cell size into the first mesh."""
         meshes = [self._mesh(n) for n in names]

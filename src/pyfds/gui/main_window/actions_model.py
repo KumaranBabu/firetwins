@@ -23,26 +23,13 @@ class ActionsModelMixin:
         except Exception as exc:
             QMessageBox.critical(self, "Could not add entity", str(exc))
 
-    def _on_simulation_parameters(self) -> None:
-        tool = get_tool("configure_simulation_params")
-        # Same schema the agent tool uses, but with defaults patched to the
-        # project's *current* values — an Add-Entity dialog starts blank,
-        # this one should show what's already set.
-        schema = copy.deepcopy(tool.input_schema)
-        params = self.api.project.params
-        schema["properties"]["t_end"]["default"] = params.t_end
-        schema["properties"]["t_begin"]["default"] = params.t_begin
-        if params.dt is not None:
-            schema["properties"]["dt"]["default"] = params.dt
-        schema["properties"]["restrict_time_step"]["default"] = params.restrict_time_step
-
-        dialog = SchemaFormDialog(tool.name, tool.description, schema, self)
-        if dialog.exec() != QDialog.Accepted:
-            return
-        try:
-            self.dispatcher.call(tool.name, dialog.values())
-        except Exception as exc:
-            QMessageBox.critical(self, "Could not update simulation parameters", str(exc))
+    def _on_simulation_parameters(self) -> Any:
+        """Edit the global parameters (time, output, environment, pressure, radiation) in one dialog."""
+        from pyfds.gui.editors.sim_params import SimulationParametersDialog
+        dialog = SimulationParametersDialog(self.api, self)
+        self._sim_params_dialog = dialog
+        dialog.exec()
+        return dialog
 
     def _on_validate(self) -> None:
         report = self.api.validation.validate()

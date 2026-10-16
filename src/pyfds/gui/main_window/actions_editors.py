@@ -8,6 +8,7 @@ from PySide6.QtWidgets import QMenu
 from pyfds.gui.actions import EDITOR_MENU
 from pyfds.gui.editors.collection_editor import EntityCollectionEditor
 from pyfds.gui.editors.model_checks import ModelChecksDialog
+from pyfds.gui.editors.activation_controls import ActivationControlsDialog
 from pyfds.gui.editors.scenarios import ScenariosDialog
 
 
@@ -62,6 +63,16 @@ class ActionsEditorsMixin:
             self._refresh_status()
         dialog = ScenariosDialog(self.api, self, changed)
         self._scenarios_dialog = dialog
+        dialog.exec()
+        self.explorer.refresh()
+        return dialog
+
+    def _on_edit_activation_controls(self) -> ActivationControlsDialog:
+        """Edit the logic that switches objects on and off (modal); starts on the selected control if there is one."""
+        picked = self.explorer.selected()
+        select = picked[1].name if picked is not None and picked[0] == "controls" else None
+        dialog = ActivationControlsDialog(self.api, self, select)
+        self._activation_dialog = dialog
         dialog.exec()
         self.explorer.refresh()
         return dialog

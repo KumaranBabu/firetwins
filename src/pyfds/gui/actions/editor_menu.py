@@ -21,6 +21,7 @@ EDITABLE = {attr for _l, attr, _t in EDITORS} | {"obstructions", "vents", "holes
 
 EDITOR_MENU = [A(f"model.edit.{attr}", label, ("_on_edit_collection", attr, title))
                for label, attr, title in EDITORS] + [
+    A("model.edit.activation", "Edit &Activation Controls...", "_on_edit_activation_controls"),
     A("model.edit.scenarios", "Edit Sce&narios...", "_on_edit_scenarios"),
     A("model.edit.checks", "Edit Model Chec&ks...", "_on_edit_model_checks"),
     A("model.run.checks", "Run Model Chec&ks", "_on_run_model_checks"),

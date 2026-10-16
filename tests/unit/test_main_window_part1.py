@@ -243,53 +243,30 @@ def test_model_menu_add_entity_creates_mesh_via_dispatcher(monkeypatch):
     window.close()
 
 def test_simulation_parameters_dialog_prefills_current_values(monkeypatch):
-    from tests.mw_proxy import main_window_mod
-
+    from PySide6.QtWidgets import QDialog
+    from pyfds.gui.editors.sim_params import SimulationParametersDialog
+    monkeypatch.setattr(SimulationParametersDialog, "exec", lambda self: QDialog.Rejected)
     window = _make_window()
     window.api.project.params.t_end = 999.0
-
-    seen_schema = {}
-
-    class _FakeDialog:
-        def __init__(self, title, description, schema, parent=None):
-            seen_schema["t_end_default"] = schema["properties"]["t_end"]["default"]
-            seen_schema["restrict_default"] = schema["properties"]["restrict_time_step"]["default"]
-
-        def exec(self):
-            from PySide6.QtWidgets import QDialog
-            return QDialog.Rejected  # cancel — only checking prefill, not the mutation
-
-        def values(self):
-            return {}
-
-    monkeypatch.setattr(main_window_mod, "SchemaFormDialog", _FakeDialog)
-
-    window._on_simulation_parameters()
-
-    assert seen_schema["t_end_default"] == 999.0
-    assert seen_schema["restrict_default"] is True
+    dlg = window._on_simulation_parameters()
+    assert dlg.field_widget("time", "t_end").value() == 999.0
+    assert dlg.field_widget("time", "restrict_time_step").value() is True
+    assert not dlg.is_dirty()
     window.close()
 
-def test_simulation_parameters_dialog_applies_via_dispatcher(monkeypatch):
+def test_simulation_parameters_dialog_applies_through_the_api(monkeypatch):
     from PySide6.QtWidgets import QDialog
-    from tests.mw_proxy import main_window_mod
+    from pyfds.gui.editors.sim_params import SimulationParametersDialog
 
+    def fake_exec(self):
+        self.field_widget("time", "t_end").set_value(250.0)
+        self.field_widget("time", "t_begin").set_value(5.0)
+        self.field_widget("time", "restrict_time_step").set_value(False)
+        return QDialog.Accepted if self._apply_quietly() else QDialog.Rejected
+
+    monkeypatch.setattr(SimulationParametersDialog, "exec", fake_exec)
     window = _make_window()
-
-    class _FakeDialog:
-        def __init__(self, title, description, schema, parent=None):
-            pass
-
-        def exec(self):
-            return QDialog.Accepted
-
-        def values(self):
-            return {"t_end": 250.0, "t_begin": 5.0, "restrict_time_step": False}
-
-    monkeypatch.setattr(main_window_mod, "SchemaFormDialog", _FakeDialog)
-
     window._on_simulation_parameters()
-
     assert window.api.project.params.t_end == 250.0
     assert window.api.project.params.t_begin == 5.0
     assert window.api.project.params.restrict_time_step is False

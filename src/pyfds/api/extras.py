@@ -17,8 +17,10 @@ def install_extra_managers(api: Any) -> None:
     from .examples import ExamplesManager
     from .solvers import SolverManager
     from .transform_ops import TransformManager
+    from .sim_params import SimParamsManager
 
     api.units = UnitsManager(api)
+    api.sim = SimParamsManager(api)
     api.views = ViewsManager(api)
     api.ui_history = UiHistory(api)
     api.find = FindManager(api)

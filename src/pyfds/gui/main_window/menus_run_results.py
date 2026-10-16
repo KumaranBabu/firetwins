@@ -71,7 +71,7 @@ class MenusRunResultsMixin:
         self._cancel_action.setEnabled(False)
 
         run_menu.addSeparator()
-        run_menu.addAction("&GPU Settings...", self._on_placeholder_gpu_settings)
+        run_menu.addAction("&Hardware && Graphics Settings...", self._on_hardware_settings)
         run_menu.addAction("&Monitor Simulation...", self._on_monitor_simulation)
 
 

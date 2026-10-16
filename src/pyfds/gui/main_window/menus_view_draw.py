@@ -76,9 +76,7 @@ class MenusViewDrawMixin:
 
         # Split view (new)
         split_submenu = view_menu.addMenu("&Split")
-        split_submenu.addAction("Horizontal", self._on_placeholder_split_horizontal)
-        split_submenu.addAction("Vertical", self._on_placeholder_split_vertical)
-        split_submenu.addAction("Four-Way", self._on_placeholder_split_four_way)
+        self._build_split_menu_actions(split_submenu)
 
         # Fullscreen (new)
         view_menu.addAction("&Fullscreen", self._on_toggle_fullscreen)

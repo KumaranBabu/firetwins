@@ -83,7 +83,7 @@ def test_viewport_degrades_to_label_under_offscreen_platform():
     window = _make_window()
     assert isinstance(window.viewport_widget, QLabel)
     assert "offscreen" in window.viewport_widget.text()
-    assert window.view_tabs.widget(0) is window.viewport_widget and window.centralWidget() is window.view_tabs
+    assert window.view_tabs.widget(0) is window.model_split and window.model_top.widget(0) is window.viewport_widget and window.centralWidget() is window.view_tabs
     window.close()
 
 def test_edit_properties_via_menu_action_is_undoable(monkeypatch):

@@ -40,6 +40,8 @@ from .actions_misc import ActionsMiscMixin
 from .actions_import import ActionsImportMixin
 from .actions_building import ActionsBuildingMixin
 from .actions_tools_extra import ActionsToolsExtraMixin
+from .view_split import ViewSplitMixin
+from .actions_print import ActionsPrintMixin
 from .actions_run_dialog import ActionsRunDialogMixin
 from .menus_view_draw import MenusViewDrawMixin
 from .menus_model import MenusModelMixin
@@ -76,6 +78,8 @@ class MainWindow(
     ActionsImportMixin,
     ActionsBuildingMixin,
     ActionsToolsExtraMixin,
+    ViewSplitMixin,
+    ActionsPrintMixin,
     ActionsRunDialogMixin,
     PanelsMixin,
     WorkspacesMixin,
@@ -216,12 +220,14 @@ class MainWindow(
         # native access violation, not a catchable Python exception. Never
         # build the real widget under that platform.
         if QApplication.instance().platformName() == "offscreen":
-            return QLabel(
+            label = QLabel(
                 "3D viewport unavailable under the offscreen Qt platform "
                 "(no OpenGL context here).\nRun the desktop app normally to "
                 "see the 3D view.",
                 self,
             )
+            label.setWordWrap(True)                 # a wrapped label can be narrow; an unwrapped one forces a wide window
+            return label
         try:
             from pyfds.gui.viewport_3d import Viewport3D
         except ImportError:
@@ -235,6 +241,7 @@ class MainWindow(
         if self._results_window is not None and not self._results_window.close():
             event.ignore()                # the user cancelled "Save changes?" in the results tab: stay open
             return
+        self._clear_split_panes()
         self.explorer.shutdown()
         self.output_panel.shutdown()
         if getattr(self, "_persist_layout", False):

@@ -33,6 +33,7 @@ from pyfds.core.viewport import CameraPreset, VisibilityFlags
 from pyfds.gui.viewport_environment import Environment, set_lights
 from pyfds.gui.viewport_input import install_input, pick_hit
 from pyfds.gui.viewport_preview import PreviewLayer
+from pyfds.gui.viewport_quality import ViewportQualityMixin
 from pyfds.gui.viewport_scene import FIELD_DATA_KEY, build_scene, entity_key, preset_distance, scene_bbox
 from pyfds.gui.viewport_tools import SELECT, Hit, ToolManager
 from pyfds.gui.viewport_tools.roam import RoamCamera
@@ -53,7 +54,7 @@ _REFRESH_EVENTS = (
 )
 
 
-class Viewport3D(QWidget):
+class Viewport3D(ViewportQualityMixin, QWidget):
     """3D scene view. Rebuilds from ``api`` state; edits only through the tools (which call ``api``)."""
 
     #: A click in the 3D view selected one object — (manager_attr, entity), as ProjectExplorer.selected() returns.
@@ -99,6 +100,11 @@ class Viewport3D(QWidget):
 
         self.refresh()
         self._fit()  # sensible initial framing only, once
+        try:                                                  # the anti-aliasing chosen in Hardware & Graphics Settings
+            from PySide6.QtCore import QSettings
+            self.set_antialiasing(str(QSettings("PyFDS", "PyFDS").value("graphics/antialiasing", "off") or "off"))
+        except Exception:
+            pass
 
     # ── Event-driven refresh ─────────────────────────────────────────────────
 
@@ -354,13 +360,6 @@ class Viewport3D(QWidget):
         cam.up = (0.0, 0.0, 1.0)
         self.plotter.reset_camera_clipping_range()
         self.plotter.render()
-
-    # ── Snapshot (UX-15) ─────────────────────────────────────────────────────
-
-    def snapshot(self, path: str, scale: int = 1) -> str:
-        """Save the current view as an image (PNG/JPG by extension); *scale* 2 doubles the resolution."""
-        self.plotter.screenshot(path, scale=max(1, int(scale)))
-        return path
 
     # ── Teardown ─────────────────────────────────────────────────────────────
 

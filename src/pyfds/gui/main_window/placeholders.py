@@ -5,26 +5,6 @@ from PySide6.QtWidgets import QMessageBox
 
 
 PLACEHOLDERS = {
-    '_on_placeholder_print': (
-        'Coming Soon',
-        'Print functionality will be available in Phase 3.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_split_horizontal': (
-        'Coming Soon',
-        'View splitting will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_split_vertical': (
-        'Coming Soon',
-        'View splitting will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_split_four_way': (
-        'Coming Soon',
-        'View splitting will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_gpu_settings': (
-        'Coming Soon',
-        'GPU settings will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
 }
 
 

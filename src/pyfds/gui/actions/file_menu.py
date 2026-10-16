@@ -13,7 +13,7 @@ FILE_MENU = [
     SEPARATOR,
     A("file.save", "&Save", "_on_save", attr="_save_action"),
     A("file.save_as", "&Save As...", "_on_save_as", attr="_save_as_action"),
-    A("file.print", "&Print...", "_on_placeholder_print", placeholder=True),
+    A("file.print", "&Print...", "_on_print"),
     SEPARATOR,
     A("file.preferences", "&Preferences...", "_on_preferences"),
     Submenu("file.import", "&Import", items=[

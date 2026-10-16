@@ -12,7 +12,7 @@ class CentralTabsMixin:
         self.view_tabs = QTabWidget(self)
         self.view_tabs.setDocumentMode(True)
         self.view_tabs.setTabsClosable(True)
-        self.view_tabs.addTab(self.viewport_widget, "Model")
+        self.view_tabs.addTab(self._build_model_split(), "Model")        # the 3D view sits inside it
         self.view_tabs.tabBar().setTabButton(0, QTabBar.RightSide, None)      # the Model tab cannot be closed
         self.view_tabs.tabCloseRequested.connect(self._on_close_view_tab)
         self.setCentralWidget(self.view_tabs)
@@ -35,14 +35,9 @@ class CentralTabsMixin:
 
     def show_plan_tab(self) -> Any:
         """Show the 2D plan view in a tab next to the model (created on first use)."""
-        from pyfds.gui.plan import PlanPanel
         plan = getattr(self, "_plan_panel", None)
         if plan is None:
-            plan = PlanPanel(self.api, self.tool_manager, self)
-            plan.entity_picked.connect(self.explorer.select_entity)
-            plan.selection_changed.connect(self.explorer.select_entities)
-            plan.status_message.connect(lambda m: self.statusBar().showMessage(m, 8000))
-            plan.cursor_moved.connect(self._update_cursor_label)
+            plan = self._make_plan_panel()
             self._plan_panel = plan
             self.view_tabs.insertTab(1, plan, "2D")
         self.view_tabs.setCurrentWidget(plan)
@@ -51,9 +46,11 @@ class CentralTabsMixin:
 
     def _sync_plan_selection(self) -> None:
         """Highlight in the plan what the project tree has selected."""
-        plan = getattr(self, "_plan_panel", None)
-        if plan is not None:
-            plan.view.set_selection([e for _a, e in self.explorer.selected_entities()])
+        chosen = [e for _a, e in self.explorer.selected_entities()]
+        panels = [getattr(self, "_plan_panel", None)] + list(getattr(self, "_split_panes", []))
+        for plan in panels:
+            if plan is not None and hasattr(plan, "view") and hasattr(plan.view, "set_selection"):
+                plan.view.set_selection(chosen)
 
     def show_record_tab(self) -> Any:
         """Show the FDS input as live text in a tab next to the model (created on first use)."""
@@ -80,11 +77,11 @@ class CentralTabsMixin:
             view.show_entity(*picked)
 
     def show_model_tab(self) -> None:
-        self.view_tabs.setCurrentWidget(self.viewport_widget)
+        self.view_tabs.setCurrentWidget(self.model_split)
 
     def _on_close_view_tab(self, index: int) -> None:
         widget = self.view_tabs.widget(index)
-        if widget is self.viewport_widget:
+        if widget is self.model_split:
             return
         self.view_tabs.removeTab(index)
         if widget is self._results_window:

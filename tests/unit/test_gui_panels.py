@@ -169,7 +169,7 @@ def test_results_open_in_a_tab_beside_the_model(win, monkeypatch):
     assert win._results_window is first and not first.isWindow()
     assert win.show_results_tab("b.smv") is first and win.view_tabs.count() == 2     # reused, not duplicated
     win.show_model_tab()
-    assert win.view_tabs.currentWidget() is win.viewport_widget
+    assert win.view_tabs.currentWidget() is win.model_split
     win._on_close_view_tab(0)                                                      # the Model tab cannot be closed
     assert win.view_tabs.count() == 2
     win._on_close_view_tab(1)

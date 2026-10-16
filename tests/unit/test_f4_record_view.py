@@ -204,7 +204,7 @@ def test_record_tab_in_the_main_window(monkeypatch):
     view.editor.setTextCursor(QTextCursor(view.editor.document().findBlockByNumber(line)))
     assert w.explorer.selected()[1].name == "Box"
     w.show_model_tab()
-    assert w.view_tabs.currentWidget() is w.viewport_widget
+    assert w.view_tabs.currentWidget() is w.model_split
     idx = w.view_tabs.indexOf(view)
     w._on_close_view_tab(idx)
     assert w._record_view is None and w.view_tabs.indexOf(view) == -1

@@ -91,6 +91,7 @@ class MainWindow(
         self.explorer = ProjectExplorer(self.api, self)
         self.explorer.itemDoubleClicked.connect(lambda item, col: self._on_edit_properties())
         self.explorer.itemSelectionChanged.connect(lambda: self._sync_record_view())
+        self.explorer.itemSelectionChanged.connect(lambda: self._sync_plan_selection())
         self.explorer.entity_context_menu_requested.connect(self._on_explorer_context_menu)
         self.explorer_dock = QDockWidget("Project Explorer", self)
         self.explorer_dock.setObjectName("ProjectExplorerDock")

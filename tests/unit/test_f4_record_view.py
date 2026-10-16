@@ -184,7 +184,7 @@ def test_record_tab_in_the_main_window(monkeypatch):
     w = MainWindow(_api())
     view_menu = next(a.menu() for a in w.menuBar().actions() if a.text() == "&View")
     labels = [a.text().replace("&", "") for a in view_menu.actions()]
-    assert labels[:2] == ["Show 3D View", "Show Record View"]
+    assert labels[:3] == ["Show 3D View", "Show 2D View", "Show Record View"]
     obst = w.api.obstructions.get("Box")
     w.explorer.select_entity("obstructions", obst)
     view = w.show_record_tab()

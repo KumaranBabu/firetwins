@@ -26,6 +26,7 @@ _FILTERS = [("Meshes", VisibilityFlags.MESHES), ("Obstructions", VisibilityFlags
             ("Slices", VisibilityFlags.SLICES), ("Init", VisibilityFlags.INIT_REGIONS),
             ("Geometry", VisibilityFlags.GEOMETRY)]
 _GRIDS = [0.05, 0.1, 0.25, 0.5, 1.0]
+_POLAR = [None, 15.0, 30.0, 45.0, 90.0]
 _AGENT_TOOL = {"add_obstruction": "obstruction", "add_vent": "vent", "add_hole": "hole", "add_mesh": "mesh"}
 _NAV = [("orbit", "Orbit"), ("turntable", "Turntable (Smokeview-like)"), ("roam", "Roam (WASD)")]
 
@@ -139,6 +140,13 @@ class ViewportBarsMixin:
             self.grid_combo.addItem(f"{self.api.units.to_display(g, 'length'):g} {self.api.units.label('length')}", g)
         self.grid_combo.activated.connect(lambda i: self.api.viewport.set_snap(grid_size=self.grid_combo.itemData(i)))
         bar.addWidget(self.grid_combo)
+        bar.addWidget(QLabel(" Polar "))
+        self.polar_combo = QComboBox(bar)
+        for deg in _POLAR:
+            self.polar_combo.addItem("Off" if deg is None else f"{deg:g} deg", deg)
+        self.polar_combo.setToolTip("Limit the drawing direction to multiples of this angle from the first point")
+        self.polar_combo.activated.connect(lambda i: self.api.viewport.set_snap(polar_step_deg=self.polar_combo.itemData(i)))
+        bar.addWidget(self.polar_combo)
         self.ortho_action = bar.addAction("Ortho")
         self.ortho_action.setCheckable(True)
         self.ortho_action.setToolTip("Keep drawing along one axis from the first point")
@@ -165,6 +173,9 @@ class ViewportBarsMixin:
         self.ortho_action.blockSignals(True)
         self.ortho_action.setChecked(st.snap.ortho)
         self.ortho_action.blockSignals(False)
+        self.polar_combo.blockSignals(True)
+        self.polar_combo.setCurrentIndex(max(0, self.polar_combo.findData(st.snap.polar_step_deg)))
+        self.polar_combo.blockSignals(False)
         i = min(range(len(_GRIDS)), key=lambda k: abs(_GRIDS[k] - st.snap.grid_size))
         self.grid_combo.blockSignals(True)
         self.grid_combo.setCurrentIndex(i)

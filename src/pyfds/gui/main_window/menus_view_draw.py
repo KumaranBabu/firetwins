@@ -20,6 +20,7 @@ class MenusViewDrawMixin:
 
         # Which view is in front (PyroSim: Show 3D / 2D / Record View)
         view_menu.addAction("Show &3D View", self.show_model_tab)
+        view_menu.addAction("Show &2D View", self.show_plan_tab)
         view_menu.addAction("Show Re&cord View", self.show_record_tab)
         view_menu.addSeparator()
 

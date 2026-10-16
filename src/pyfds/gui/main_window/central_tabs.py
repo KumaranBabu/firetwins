@@ -33,6 +33,28 @@ class CentralTabsMixin:
             win.open_results(smv)
         return win
 
+    def show_plan_tab(self) -> Any:
+        """Show the 2D plan view in a tab next to the model (created on first use)."""
+        from pyfds.gui.plan import PlanPanel
+        plan = getattr(self, "_plan_panel", None)
+        if plan is None:
+            plan = PlanPanel(self.api, self.tool_manager, self)
+            plan.entity_picked.connect(self.explorer.select_entity)
+            plan.selection_changed.connect(self.explorer.select_entities)
+            plan.status_message.connect(lambda m: self.statusBar().showMessage(m, 8000))
+            plan.cursor_moved.connect(self._update_cursor_label)
+            self._plan_panel = plan
+            self.view_tabs.insertTab(1, plan, "2D")
+        self.view_tabs.setCurrentWidget(plan)
+        self._sync_plan_selection()
+        return plan
+
+    def _sync_plan_selection(self) -> None:
+        """Highlight in the plan what the project tree has selected."""
+        plan = getattr(self, "_plan_panel", None)
+        if plan is not None:
+            plan.view.set_selection([e for _a, e in self.explorer.selected_entities()])
+
     def show_record_tab(self) -> Any:
         """Show the FDS input as live text in a tab next to the model (created on first use)."""
         from pyfds.gui.record_view import RecordView
@@ -67,6 +89,9 @@ class CentralTabsMixin:
         self.view_tabs.removeTab(index)
         if widget is self._results_window:
             self._results_window = None
+        if widget is getattr(self, "_plan_panel", None):
+            widget.shutdown()
+            self._plan_panel = None
         if widget is getattr(self, "_record_view", None):
             self._record_view = None
         widget.close()

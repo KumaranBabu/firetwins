@@ -165,6 +165,21 @@ class ActionsRunDialogMixin:
         self.show_results_tab(smv)
         return smv
 
+    def _on_run_jobs(self) -> Any:
+        """Run > Run Jobs: every run of this session with its state, progress and the actions that fit it."""
+        from PySide6.QtCore import QUrl
+        from PySide6.QtGui import QDesktopServices
+        from pyfds.gui.run.jobs_dialog import JobsDialog
+        dlg = getattr(self, "_jobs_dialog", None)
+        if dlg is None:
+            dlg = JobsDialog(self.api, open_results=self.show_results_tab,
+                             open_folder=lambda p: QDesktopServices.openUrl(QUrl.fromLocalFile(p)), parent=self)
+            self._jobs_dialog = dlg
+        dlg.refresh()
+        dlg.show()
+        dlg.raise_()
+        return dlg
+
     def _on_view_results(self) -> None:
         """Open the last run's results in the viewer tab (or ask which case to open)."""
         folder = getattr(self, "_last_run_dir", None)

@@ -73,6 +73,7 @@ class MenusRunResultsMixin:
         run_menu.addSeparator()
         run_menu.addAction("&Hardware && Graphics Settings...", self._on_hardware_settings)
         run_menu.addAction("&Monitor Simulation...", self._on_monitor_simulation)
+        run_menu.addAction("Run &Jobs...", self._on_run_jobs)
 
 
     def _build_results_menu(self) -> None:

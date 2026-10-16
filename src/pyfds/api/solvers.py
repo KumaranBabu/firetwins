@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import re
+import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
@@ -93,9 +94,53 @@ class SolverManager:
 
     def _keep(self, adapter, handle):
         handle.extra.setdefault("chid", self._api.project.chid)
+        handle.extra.setdefault("created", time.time())
         handle.extra.setdefault("t_end", self._api.project.params.t_end)
         self._handles[handle.id] = (adapter, handle)
         return handle
+
+    # -- the list of runs started in this session (the Run Jobs window) ---------------------------------------
+    def jobs(self) -> List[Dict[str, Any]]:
+        """Every run started this session, newest first: ``id``, ``kind`` (local / cluster / cloud), ``state``, ``chid``,
+        ``work_dir``, ``created`` (epoch seconds), ``message``, ``progress`` (text), ``smv`` (the case's .smv when it is
+        in ``work_dir``) and what can be done with it (``can_stop``, ``can_cancel``, ``can_fetch``). A provider that
+        cannot be reached shows state ``unknown`` with the reason in ``message`` instead of raising."""
+        out = []
+        for adapter, h in self._handles.values():
+            try:
+                state, note = adapter.status(h), h.message
+            except Exception as exc:                         # a remote service being down must not blank the list
+                state, note = "unknown", str(exc)
+            chid = h.extra.get("chid", "")
+            running = state == _ad.RUNNING
+            smv = Path(h.work_dir) / f"{chid}.smv"
+            try:
+                text = self.progress(h)["text"] if running else ""
+            except Exception:
+                text = ""
+            out.append({"id": h.id, "kind": h.adapter, "state": state, "chid": chid, "work_dir": h.work_dir,
+                        "created": h.extra.get("created", 0.0), "message": note, "progress": text,
+                        "smv": str(smv) if smv.is_file() else None,
+                        "can_stop": running and h.adapter in ("local", "cluster"),
+                        "can_cancel": state in (_ad.QUEUED, _ad.RUNNING),
+                        "can_fetch": h.adapter == "cloud" and state == _ad.DONE})
+        return sorted(out, key=lambda j: j["created"], reverse=True)
+
+    def forget(self, handle) -> None:
+        """Drop a finished run from the list (its files stay). A run that is still going cannot be dropped."""
+        _adapter, h = self._pair(handle)
+        if self.status(h) in (_ad.QUEUED, _ad.RUNNING):
+            raise ValueError("the run is still going: cancel it first")
+        self._handles.pop(h.id, None)
+
+    def forget_finished(self) -> int:
+        """Drop every finished run from the list; returns how many."""
+        n = 0
+        for j in self.jobs():
+            if j["state"] not in (_ad.QUEUED, _ad.RUNNING, "unknown"):
+                self._handles.pop(j["id"], None)
+                n += 1
+        return n
 
     def progress(self, handle) -> Dict[str, Any]:
         """How far a run has got, from the files in its case folder (which may be on a network share): ``time``,

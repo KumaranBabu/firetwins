@@ -251,15 +251,6 @@ def test_draw_cone_calls_geom_cone(monkeypatch):
     assert recorded["args"] == ([0, 0, 0], 1.0, 3.0)
     window.close()
 
-def test_unsupported_draw_primitive_shows_clean_placeholder_not_error(monkeypatch):
-    window = _make_window()
-    captured = {}
-    monkeypatch.setattr(mw.QMessageBox, "information", lambda self, title, text: captured.update(title=title, text=text))
-    monkeypatch.setattr(mw.QMessageBox, "critical", lambda *a, **k: pytest.fail("must not show an error dialog"))
-    window._on_placeholder_geometry_primitive("Wall")
-    assert "Wall" in captured["text"]
-    window.close()
-
 @pytest.mark.parametrize("handler_name,expected_quantity", [
     ("_on_add_heat_flux", "HEAT FLUX"),
     ("_on_add_smoke_detector", "OPTICAL DENSITY"),

@@ -42,12 +42,8 @@ PLACEHOLDERS = {
 
 class PlaceholderMixin:
     """"Coming Soon" handlers for menu entries whose backend is not built yet (one table, one factory)."""
-    def _on_placeholder_geometry_primitive(self, shape_name: str) -> None:
-        QMessageBox.information(
-            self,
-            "Coming Soon",
-            f"Draw {shape_name} has no geometry backend yet — this is a placeholder."
-        )
+    pass
+
 
 def _make_handler(title: str, text: str):
     def handler(self) -> None:

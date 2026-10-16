@@ -130,14 +130,14 @@ class MenusViewDrawMixin:
         draw_menu.addAction("Draw &Cylinder...", self._on_draw_cylinder)
         draw_menu.addAction("Draw &Sphere...", self._on_draw_sphere)
         draw_menu.addAction("Draw C&one...", self._on_draw_cone)
-        draw_menu.addAction("Draw &Pipe...", lambda: self._on_placeholder_geometry_primitive("Pipe"))
-        draw_menu.addAction("Draw &Beam...", lambda: self._on_placeholder_geometry_primitive("Beam"))
+        draw_menu.addAction("Draw &Pipe...", self._on_draw_pipe)
+        draw_menu.addAction("Draw &Beam...", self._on_draw_beam)
 
         draw_menu.addSeparator()
 
-        # Architectural elements (new) — no backend primitive yet
+        # Architectural elements (dialogs: see actions_building.py)
         for elem in ["Floor", "Ceiling", "Stair", "Door", "Window", "Ramp"]:
-            draw_menu.addAction(f"Draw {elem}...", lambda checked=False, e=elem: self._on_placeholder_geometry_primitive(e))
+            draw_menu.addAction(f"Draw {elem}...", getattr(self, f"_on_draw_{elem.lower()}"))
 
         draw_menu.addSeparator()
 

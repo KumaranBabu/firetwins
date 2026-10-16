@@ -8,6 +8,7 @@ import logging
 from typing import Any, List, TYPE_CHECKING
 
 from .base import _CollectionManager
+from .building_elements import BuildingElements
 from .generators import BuildingGenerators
 from .geom_import import GeomImportOps
 
@@ -84,7 +85,7 @@ class HoleManager(_CollectionManager):
         return hole
 
 
-class GeomManager(BuildingGenerators, GeomImportOps):
+class GeomManager(BuildingElements, BuildingGenerators, GeomImportOps):
     """
     High-level geometry manager: STL import, parametric primitives, voxelization.
 

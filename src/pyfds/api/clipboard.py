@@ -36,6 +36,27 @@ def _shift(entity: Any, dx: float, dy: float, dz: float) -> None:
 
 
 class ClipboardManager:
+    # -- merge a whole file ---------------------------------------------------------------------------------------
+    def merge_file(self, path: str, categories: Optional[Sequence[str]] = None,
+                   offset: Sequence[float] = (0.0, 0.0, 0.0)) -> Dict[str, Any]:
+        """Add the objects of an ``.fds`` or ``.pyfds`` file to the open project (File > Import). One undo step;
+        objects other things refer to by name are reused on a clash, the rest are renamed (see the module note).
+        *categories* limits it (``["devices", "controls", "props"]``)."""
+        from pathlib import Path
+        p = Path(path)
+        if not p.exists():
+            raise FileNotFoundError(f"file not found: {path}")
+        if p.suffix.lower() == ".pyfds":
+            from pyfds.io.fds_writer import FdsWriter
+            from pyfds.io.serializer import Serializer
+            try:
+                text = FdsWriter().to_string(Serializer().load(str(p)))
+            except Exception as exc:
+                raise ValueError(f"cannot read {p.name}: {exc}") from None
+        else:
+            text = p.read_text(encoding="utf-8", errors="replace")
+        return self.paste_fds_text(text, offset, categories)
+
     def __init__(self, api) -> None:
         self._api = api
         self._text: str = ""
@@ -98,8 +119,10 @@ class ClipboardManager:
             raise ValueError("the clipboard is empty")
         return self.paste_fds_text(self._text, offset)
 
-    def paste_fds_text(self, text: str, offset: Sequence[float] = (0.0, 0.0, 0.0)) -> Dict[str, Any]:
-        """Add the objects in FDS *text*, moved by *offset*. One undo step.
+    def paste_fds_text(self, text: str, offset: Sequence[float] = (0.0, 0.0, 0.0),
+                       categories: Optional[Sequence[str]] = None) -> Dict[str, Any]:
+        """Add the objects in FDS *text*, moved by *offset*. One undo step. *categories* limits what is taken to
+        those collections (``["materials", "ramps"]``); everything else in the text is ignored.
 
         Returns ``{"added": [entities], "renamed": {old: new}, "skipped": [names reused], "warnings": [...]}``."""
         if len(offset) != 3:
@@ -114,7 +137,14 @@ class ClipboardManager:
         report: Dict[str, Any] = {"added": [], "renamed": {}, "skipped": [], "warnings": list(parser.warnings)}
         from pyfds.automation.commands import AddEntityCommand
         plan = []
+        wanted = set(categories) if categories is not None else None
+        if wanted is not None:
+            unknown = wanted - set(tmp._TYPE_MAP.values())
+            if unknown:
+                raise ValueError(f"unknown categories: {', '.join(sorted(unknown))}")
         for attr in sorted(set(tmp._TYPE_MAP.values())):
+            if wanted is not None and attr not in wanted:
+                continue
             existing = {e.name for e in getattr(p, attr)}
             for e in getattr(tmp, attr):
                 name = getattr(e, "name", None)
@@ -132,7 +162,8 @@ class ClipboardManager:
                 _shift(e, *[float(v) for v in offset])
                 plan.append(e)
         if not plan and not report["skipped"]:
-            raise ValueError("no FDS objects found in the text")
+            what = f" of kind {', '.join(sorted(wanted))}" if wanted else ""
+            raise ValueError(f"no FDS objects{what} found in the text")
         if plan:
             with self._api.history.transaction("paste"):
                 for e in plan:

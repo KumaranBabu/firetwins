@@ -9,30 +9,6 @@ PLACEHOLDERS = {
         'Coming Soon',
         'Print functionality will be available in Phase 3.\n\nThis is a placeholder.',
     ),
-    '_on_placeholder_import_fds': (
-        'Coming Soon',
-        'FDS file import will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_import_materials': (
-        'Coming Soon',
-        'Materials import will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_import_scenarios': (
-        'Coming Soon',
-        'Scenario import will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_import_devices': (
-        'Coming Soon',
-        'Device import will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_import_library': (
-        'Coming Soon',
-        'Library import will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_export_config': (
-        'Coming Soon',
-        'Configuration export will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
     '_on_placeholder_split_horizontal': (
         'Coming Soon',
         'View splitting will be available in Phase 2.\n\nThis is a placeholder.',
@@ -45,17 +21,9 @@ PLACEHOLDERS = {
         'Coming Soon',
         'View splitting will be available in Phase 2.\n\nThis is a placeholder.',
     ),
-    '_on_placeholder_import_scenarios_dialog': (
-        'Coming Soon',
-        'Scenario import will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
     '_on_placeholder_gpu_settings': (
         'Coming Soon',
         'GPU settings will be available in Phase 2.\n\nThis is a placeholder.',
-    ),
-    '_on_placeholder_monitor_simulation': (
-        'Coming Soon',
-        'Simulation monitoring will be available in Phase 2.\n\nThis is a placeholder.',
     ),
     '_on_placeholder_script_console': (
         'Coming Soon',

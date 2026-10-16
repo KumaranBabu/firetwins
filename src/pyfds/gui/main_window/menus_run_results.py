@@ -22,7 +22,7 @@ class MenusRunResultsMixin:
         scenarios_menu.addSeparator()
 
         scenarios_menu.addAction("&Export All Scenarios (folder)...", self._on_export_scenarios)
-        scenarios_menu.addAction("&Import Scenarios...", self._on_placeholder_import_scenarios_dialog)
+        scenarios_menu.addAction("&Import Scenarios...", self._on_import_scenarios_dialog)
 
 
     def _build_floors_menu(self) -> None:
@@ -72,7 +72,7 @@ class MenusRunResultsMixin:
 
         run_menu.addSeparator()
         run_menu.addAction("&GPU Settings...", self._on_placeholder_gpu_settings)
-        run_menu.addAction("&Monitor Simulation...", self._on_placeholder_monitor_simulation)
+        run_menu.addAction("&Monitor Simulation...", self._on_monitor_simulation)
 
 
     def _build_results_menu(self) -> None:

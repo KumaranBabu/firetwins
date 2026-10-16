@@ -111,6 +111,68 @@ class ScenarioManager(_UndoableStore):
                  "field": f, "value": v, "uid": uid}
                 for uid, fields in s.overrides.items() for f, v in fields.items()]
 
+    DEFINITIONS_FORMAT = "pyfds-scenarios"
+
+    def export_definitions(self, filepath: str) -> int:
+        """Write every scenario (name, description, tags and what it changes) to a JSON file. Objects are named by
+        type and name, not by internal id, so the file can be imported into another version of the model."""
+        import json
+        from pathlib import Path
+        out = []
+        for s in self.all():
+            changes = []
+            for o in self.overrides(s.name):
+                if o["entity"] is None:
+                    continue
+                changes.append({"type": o["kind"], "name": getattr(o["entity"], "name", ""), "field": o["field"],
+                                "value": o["value"]})
+            out.append({"name": s.name, "description": s.description, "tags": list(s.tags), "changes": changes})
+        path = Path(filepath)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps({"format": self.DEFINITIONS_FORMAT, "version": 1, "scenarios": out}, indent=2,
+                                   default=list), encoding="utf-8")
+        return len(out)
+
+    def import_definitions(self, filepath: str, overwrite: bool = False) -> Dict[str, Any]:
+        """Add the scenarios of a definitions file (one undo step). A change is applied to the object of the same
+        type and name in this model; changes with no such object are reported in ``missing`` and left out.
+        Existing scenarios of the same name are skipped, or replaced with ``overwrite=True`` (never the applied one).
+        Returns ``{"added", "replaced", "skipped", "missing"}``."""
+        import json
+        from pathlib import Path
+        try:
+            doc = json.loads(Path(filepath).read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            raise ValueError(f"cannot read {filepath}: {exc}") from None
+        if not isinstance(doc, dict) or doc.get("format") != self.DEFINITIONS_FORMAT:
+            raise ValueError(f"{filepath} is not a PyFDS scenario definitions file")
+        by_key = {(type(e).__name__, getattr(e, "name", None)): e for e in self._api.project.all_entities}
+        report: Dict[str, Any] = {"added": [], "replaced": [], "skipped": [], "missing": []}
+        with self._api.history.transaction("import scenarios"):
+            for sc in doc.get("scenarios", []):
+                name = str(sc.get("name", "")).strip()
+                if not name:
+                    continue
+                exists = self.get(name) is not None
+                if exists and not overwrite:
+                    report["skipped"].append(name)
+                    continue
+                if exists:
+                    if name == self.active:
+                        report["skipped"].append(name)
+                        continue
+                    self.delete(name)
+                self.create(name, str(sc.get("description", "")))
+                self.update(name, tags=[str(t) for t in sc.get("tags", [])])
+                for ch in sc.get("changes", []):
+                    ent = by_key.get((ch.get("type"), ch.get("name")))
+                    if ent is None or ch.get("field") not in type(ent).model_fields:
+                        report["missing"].append(f"{name}: {ch.get('type')} {ch.get('name')} . {ch.get('field')}")
+                        continue
+                    self.set_override(name, ent, ch["field"], ch.get("value"))
+                report["replaced" if exists else "added"].append(name)
+        return report
+
     def apply(self, name: str) -> None:
         """Apply scenario *name* to the active project."""
         self._do(f"apply scenario {name!r}", lambda: self._store.apply(self._api.project, name))

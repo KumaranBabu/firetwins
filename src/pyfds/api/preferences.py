@@ -21,9 +21,47 @@ _SCHEMA: Dict[str, tuple] = {
 }
 
 
+CONFIG_FORMAT = "pyfds-config"
+
+
 class PreferencesManager:
     def __init__(self, api) -> None:
         self._api = api
+
+    def export_config(self, filepath: str) -> int:
+        """Write the preferences and the display-unit system to a JSON file (File > Export Configuration).
+        Returns the number of settings written. Paths such as ``fds_binary`` are machine specific."""
+        import json
+        from pathlib import Path
+        data = {"format": CONFIG_FORMAT, "version": 1, "units": self._api.units.system,
+                "preferences": {k: self._cfg().get(k) for k in _SCHEMA}}
+        path = Path(filepath)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+        return len(data["preferences"]) + 1
+
+    def import_config(self, filepath: str) -> Dict[str, Any]:
+        """Apply a configuration file. Settings this version does not know, or whose value is not valid here, are
+        listed in ``rejected`` and left alone. Returns ``{"applied": [...], "rejected": {key: reason}}``."""
+        import json
+        from pathlib import Path
+        try:
+            doc = json.loads(Path(filepath).read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            raise ValueError(f"cannot read {filepath}: {exc}") from None
+        if not isinstance(doc, dict) or doc.get("format") != CONFIG_FORMAT:
+            raise ValueError(f"{filepath} is not a PyFDS configuration file")
+        applied, rejected = [], {}
+        for key, value in (doc.get("preferences") or {}).items():
+            try:
+                self.set(key, value)
+                applied.append(key)
+            except (KeyError, ValueError) as exc:
+                rejected[key] = str(exc)
+        if doc.get("units") in ("SI", "EN"):
+            self._api.units.set_system(doc["units"])
+            applied.append("units")
+        return {"applied": applied, "rejected": rejected}
 
     @staticmethod
     def _cfg():

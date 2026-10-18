@@ -19,3 +19,4 @@ imageio-ffmpeg>=0.4.9
 python-gmsh>=4.11
 # tests
 pytest>=7.0
+python-docx>=1.1          # the results-viewer parity test reads docs/PYFDS.docx

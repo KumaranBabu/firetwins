@@ -2,7 +2,7 @@
 views-and-tours and floor items, main toolbar, tree right-click actions, status-bar fields and "follow running case".
 
 ``install_parity(win)`` is called once by :class:`ResultsWindow`. Every action calls ``api.viewer`` through
-``win._try`` so errors show in a box. Which inventory row (``V-nn`` in docs/active_docs/SMV_RESULTS_VIEWER_PLAN.md) each
+``win._try`` so errors show in a box. Which inventory row (``V-nn`` in docs/PYFDS.docx appendix B) each
 item closes is noted beside it and checked by ``tests/unit/test_viewer_parity.py``.
 """
 from __future__ import annotations

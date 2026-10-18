@@ -1,7 +1,7 @@
 """Undo/redo acceptance suite.
 
 Each test maps to a foundation-reliability criterion (see
-docs/active_docs/PYROSIM_IMPLEMENTATION_PLAN.md / the architecture review): identity-preserving
+docs/PYFDS.docx / the architecture review): identity-preserving
 undo/redo, dependency restoration, atomic compound actions, redo-branch
 clearing, AI/agent grouped transactions, plugin-failure isolation, and
 save/reopen.

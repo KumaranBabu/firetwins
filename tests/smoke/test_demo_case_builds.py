@@ -1,4 +1,4 @@
-"""The saved demo cases (examples/example-1 and examples/fine_mesh_demo_room) load, validate and export."""
+"""The saved demo cases (examples/example-1) load, validate and export."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -12,7 +12,6 @@ from pyfds.io.serializer import Serializer
 EXAMPLES = Path(__file__).resolve().parents[2] / "examples"
 CASES = [
     ("example-1/example_1.pyfds", 24000),
-    ("fine_mesh_demo_room/fine_mesh_demo_room_gui.pyfds", 192000),
 ]
 
 

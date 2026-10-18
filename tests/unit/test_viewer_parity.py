@@ -1,4 +1,4 @@
-"""V12 parity audit: every inventory row (V-nn) of SMV_RESULTS_VIEWER_PLAN.md is either backed by something that exists
+"""V12 parity audit: every inventory row (V-nn) of docs/PYFDS.docx (appendix B) is either backed by something that exists
 in the window / API / command line, or listed here as a known gap with the reason. Adding a feature means moving its row
 from GAPS to ROWS; a row that silently appears in the plan without either fails the test."""
 from __future__ import annotations
@@ -16,7 +16,7 @@ from pyfds.gui.results.window import ResultsWindow
 from pyfds.results.viz import capture as cap
 
 FIX = Path(__file__).parent.parent / "fixtures" / "results_room"
-PLAN = Path(__file__).parents[2] / "docs" / "active_docs" / "SMV_RESULTS_VIEWER_PLAN.md"
+PLAN = Path(__file__).parents[2] / "docs" / "PYFDS.docx"
 
 # ("menu", top menu, item text start, shortcut or None) | ("api", attr of api.viewer) | ("cli", option)
 # | ("tool", toolbar action text) | ("dialog", class in gui.results.dialogs) | ("node", tree group label) | ("status", attr)
@@ -85,7 +85,15 @@ def win(app, monkeypatch):
 
 
 def plan_ids():
-    return set(re.findall(r"\|\s*(V-\d{2,3})\s*\|", PLAN.read_text(encoding="utf-8")))
+    """The ``V-nn`` ids in the first column of the handbook's tables (needs python-docx)."""
+    docx = pytest.importorskip("docx")
+    found = set()
+    for table in docx.Document(str(PLAN)).tables:
+        for row in table.rows:
+            m = re.fullmatch(r"(V-\d{2,3})", row.cells[0].text.strip())
+            if m:
+                found.add(m.group(1))
+    return found
 
 
 def test_every_inventory_row_is_covered_or_a_stated_gap():

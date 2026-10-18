@@ -1,6 +1,6 @@
 """Architecture guard-rails (plan step G1).
 
-Enforces the layering from ``docs/active_docs/PYROSIM_IMPLEMENTATION_PLAN.md`` §4.1
+Enforces the layering from ``docs/PYFDS.docx`` §4
 with a **ratchet**: ``KNOWN_VIOLATIONS`` / ``OVERSIZE_BASELINE`` list today's debt.
 New violations fail the test; fixing one without removing its entry also fails, so
 the lists only ever shrink.
@@ -22,7 +22,7 @@ import pytest
 
 SRC = Path(__file__).resolve().parents[2] / "src" / "pyfds"
 REPO = Path(__file__).resolve().parents[2]
-MAX_LINES = 400           # every module stays small (docs/active_docs/FILE_SIZE_SPLIT_PLAN.md); split before adding more
+MAX_LINES = 400           # every module stays small (docs/PYFDS.docx §3); split before adding more
 
 _LOW = {"core", "utils"}
 ALLOWED: dict[str, set[str]] = {

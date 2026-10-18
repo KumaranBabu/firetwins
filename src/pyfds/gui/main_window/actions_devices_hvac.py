@@ -53,6 +53,18 @@ class ActionsDevicesHvacMixin:
     def _on_add_pressure_probe(self) -> None:
         self._on_add_device_by_quantity("PRESSURE", "Add Pressure Probe")
 
+    def _on_add_hrr_device(self) -> None:
+        self._on_add_device_by_quantity("HRR", "Add Heat Release Rate Device")
+
+    def _on_add_layer_zoning(self) -> None:
+        self._on_add_device_by_quantity("LAYER HEIGHT", "Add Layer Zoning Device")
+
+    def _on_add_flow_measurement(self) -> None:
+        self._on_add_device_by_quantity("MASS FLOW RATE", "Add Flow Measurement")
+
+    def _on_add_statistics_device(self) -> None:
+        self._on_add_device_by_quantity("TEMPERATURE", "Add Statistics Device (fill in a statistic)")
+
     def _on_output_frequency(self) -> None:
         dump = self.api.project.dump
         schema = {

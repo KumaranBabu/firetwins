@@ -55,13 +55,23 @@ TOOLS: List[ToolSpec] = [
                 "name": {"type": "string"},
                 "prop_id": {"type": "string",
                             "description": "Optional PROP reference (activation properties)."},
+                "statistics": {"type": "string",
+                               "description": "Optional temporal statistic (MEAN, MAX, MIN, RMS, COV, ...)."},
+                "spatial_statistic": {"type": "string",
+                                      "description": "Optional spatial statistic over xb (MEAN, MAX, VOLUME INTEGRAL, ...)."},
+                "xb": {"type": "array", "items": {"type": "number"}, "minItems": 6, "maxItems": 6,
+                       "description": "Optional box for a spatial statistic."},
             },
             "required": ["quantity", "xyz"],
         },
-        handler=lambda api, quantity, xyz, name=None, prop_id=None: api.devices.add_device(
+        handler=lambda api, quantity, xyz, name=None, prop_id=None, statistics=None, spatial_statistic=None, xb=None:
+        api.devices.add_device(
             quantity=quantity, xyz=xyz,
             **({"name": name} if name else {}),
             **({"prop_id": prop_id} if prop_id else {}),
+            **({"statistics": statistics} if statistics else {}),
+            **({"spatial_statistic": spatial_statistic} if spatial_statistic else {}),
+            **({"xb": tuple(xb)} if xb else {}),
         ),
     ),
     ToolSpec(

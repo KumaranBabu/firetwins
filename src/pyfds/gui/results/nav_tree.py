@@ -5,7 +5,7 @@ from typing import Dict, Optional
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QFont
-from PySide6.QtWidgets import QMenu, QTreeWidget, QTreeWidgetItem, QWidget
+from PySide6.QtWidgets import QAbstractItemView, QMenu, QTreeWidget, QTreeWidgetItem, QWidget
 
 from pyfds.api.viz import RESULT_KINDS
 from pyfds.gui.icons import icon_for_node
@@ -24,6 +24,7 @@ class NavTree(QTreeWidget):
         super().__init__(parent)
         self.viewer = viewer
         self.setHeaderHidden(True)
+        self.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self._items: Dict[str, QTreeWidgetItem] = {}
         self._busy = False
         self.itemClicked.connect(self._clicked)

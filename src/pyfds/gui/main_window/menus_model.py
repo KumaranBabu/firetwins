@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from .shared import (
     _DEVICE_ACTIONS,
+    _SPECIAL_DEVICE_ACTIONS,
     _HVAC_ACTIONS,
     _MODEL_ACTIONS,
     _OUTPUT_ACTIONS,
@@ -66,6 +67,16 @@ class MenusModelMixin:
         devices_menu.addAction("Add &Nozzle...", self._on_add_nozzle)
         devices_menu.addAction("Add &Velocity Probe...", self._on_add_velocity_probe)
         devices_menu.addAction("Add &Pressure Probe...", self._on_add_pressure_probe)
+
+        devices_menu.addSeparator()
+
+        # Special devices (each is the generic device with its quantity filled in, or its own tool)
+        devices_menu.addAction("Add Heat &Release Rate Device...", self._on_add_hrr_device)
+        devices_menu.addAction("Add Layer &Zoning Device...", self._on_add_layer_zoning)
+        devices_menu.addAction("Add &Flow Measurement...", self._on_add_flow_measurement)
+        devices_menu.addAction("Add S&tatistics Device...", self._on_add_statistics_device)
+        for label, tool_name in _SPECIAL_DEVICE_ACTIONS:
+            devices_menu.addAction(label, lambda checked=False, t=tool_name: self._on_add_entity(t))
 
         devices_menu.addSeparator()
 

@@ -19,6 +19,7 @@ def install_extra_managers(api: Any) -> None:
     from .transform_ops import TransformManager
     from .sim_params import SimParamsManager
     from .updates import UpdatesManager
+    from .dependencies import DependencyManager
 
     api.units = UnitsManager(api)
     api.sim = SimParamsManager(api)
@@ -26,6 +27,7 @@ def install_extra_managers(api: Any) -> None:
     api.views = ViewsManager(api)
     api.ui_history = UiHistory(api)
     api.find = FindManager(api)
+    api.dependencies = DependencyManager(api)
     api.measure = MeasureManager(api)
     api.hygiene = HygieneManager(api)
     api.preferences = PreferencesManager(api)

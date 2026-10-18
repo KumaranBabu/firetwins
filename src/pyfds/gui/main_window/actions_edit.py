@@ -140,8 +140,23 @@ class ActionsEditMixin:
         name = getattr(entity, "name", repr(entity))
         if QMessageBox.question(self, "Delete", f"Remove {name!r}?") != QMessageBox.Yes:
             return
+        replacement = None
+        uses = self.api.dependencies.dependents(entity)
+        if uses:
+            others = [e.name for e in getattr(self.api, attr).all() if e is not entity and getattr(e, "name", None)]
+            if others:
+                keep = "(leave them as they are)"
+                choice, ok = QInputDialog.getItem(
+                    self, "Delete", f"{len(uses)} use(s) of {name!r} by other objects. Point them at:",
+                    [keep] + others, 0, False)
+                if not ok:
+                    return
+                replacement = None if choice == keep else choice
         try:
-            getattr(self.api, attr).remove(entity)
+            if replacement is None:
+                getattr(self.api, attr).remove(entity)
+            else:
+                self.api.dependencies.delete(entity, replacement)
         except Exception as exc:
             QMessageBox.critical(self, "Could not remove entity", str(exc))
 

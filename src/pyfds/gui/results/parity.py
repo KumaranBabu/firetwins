@@ -265,7 +265,9 @@ def _delete_node(win, nid: str) -> None:
 
 def _selection_changed(win) -> None:
     sel = win.tree.selectedItems()
-    if sel:
+    if len(sel) > 1:
+        win.statusBar().showMessage(f"{len(sel)} objects selected")
+    elif sel:
         win.statusBar().showMessage(sel[0].text(0).lstrip("●◐ "))
 
 

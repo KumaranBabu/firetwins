@@ -39,6 +39,8 @@ class SceneAdapter(SceneAdapterItemsMixin, SceneAdapterExtrasMixin):
         self.skybox_state = "none"
         self._owners: dict = {}                    # actor name -> (node, primitive), for click-picking
         self.selection = None                      # the PickInfo that is highlighted (kept across redraws)
+        self.selections: list = []                 # every highlighted PickInfo (Ctrl / Alt click adds one)
+        self._n_highlights = 0
         self.fast_volumes = False                  # True: smoke / fire use the software mapper (set when the GPU one is slow)
 
     # -- camera ------------------------------------------------------------------------------------
@@ -121,19 +123,31 @@ class SceneAdapter(SceneAdapterItemsMixin, SceneAdapterExtrasMixin):
             label = f"{node.id.split('/')[-2]} / {label}"
         return pk.describe(node.id, label, prim, picker.GetPickPosition())
 
-    def select(self, info) -> None:
-        """Highlight the picked object (``None`` clears the highlight)."""
-        self.selection = info
+    def select(self, info, add: bool = False) -> None:
+        """Highlight the picked object (``None`` clears the highlight). With *add* the object joins the ones already
+        highlighted, or leaves them if it was already one of them."""
+        if info is None:
+            self.selections = []
+        elif add:
+            same = [i for i in self.selections if i.node_id == info.node_id and i.text == info.text]
+            self.selections = [i for i in self.selections if i not in same] if same else self.selections + [info]
+        else:
+            self.selections = [info]
+        self.selection = self.selections[-1] if self.selections else None
         self._highlight()
 
     def _highlight(self) -> None:
         pl = self.pl
-        pl.remove_actor("pick_highlight", render=False)
-        info = self.selection
-        if info is None or info.box is None:
-            return
-        pl.add_mesh(pv.Box(bounds=info.box).extract_all_edges(), color="#ffe14d", line_width=3, name="pick_highlight",
-                    pickable=False, render_lines_as_tubes=False)
+        for k in range(max(self._n_highlights, 1)):
+            pl.remove_actor("pick_highlight" if k == 0 else f"pick_highlight_{k}", render=False)
+        shown = [i for i in self.selections if i.box is not None]
+        if not self.selections and self.selection is not None:          # set directly (a restored selection)
+            shown = [self.selection] if self.selection.box is not None else []
+        for k, info in enumerate(shown):
+            pl.add_mesh(pv.Box(bounds=info.box).extract_all_edges(), color="#ffe14d", line_width=3,
+                        name="pick_highlight" if k == 0 else f"pick_highlight_{k}", pickable=False,
+                        render_lines_as_tubes=False)
+        self._n_highlights = len(shown)
 
     def _scalar_bar(self, q: str, units: str, bar, slot: int) -> None:
         a = pv.PolyData(np.array([[0.0, 0, 0], [1, 0, 0], [0, 1, 0]]), faces=np.array([3, 0, 1, 2]))

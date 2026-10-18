@@ -373,3 +373,24 @@ def test_edit_properties_with_several_selected_edits_them_together(monkeypatch):
     window.api.history.undo()
     assert a.setpoint != 70.0 and b.setpoint != 70.0
     window.close()
+
+
+def test_delete_of_a_used_surface_offers_a_replacement(monkeypatch):
+    from tests.mw_proxy import main_window_mod
+    from pyfds.domain.model import Surface
+
+    window = _make_window()
+    window.api.surfaces.add(Surface(name="OLD"))
+    window.api.surfaces.add(Surface(name="NEW"))
+    window.api.obstructions.add_obstruction(xb=[0, 1, 0, 1, 0, 1], name="o1", surf_id="OLD")
+    old = next(s for s in window.api.surfaces.all() if s.name == "OLD")
+    window.explorer.select_entity("surfaces", old)
+    monkeypatch.setattr(main_window_mod.QMessageBox, "question", lambda *a, **k: main_window_mod.QMessageBox.Yes)
+    asked = {}
+    monkeypatch.setattr(main_window_mod.QInputDialog, "getItem",
+                        lambda parent, title, label, items, *a, **k: (asked.setdefault("items", items) and "NEW", True))
+    window._on_delete_selected()
+    assert asked["items"][0].startswith("(leave") and "NEW" in asked["items"]
+    assert [s.name for s in window.api.surfaces.all()] == ["NEW"]
+    assert window.api.obstructions.all()[0].surface_id == "NEW"
+    window.close()

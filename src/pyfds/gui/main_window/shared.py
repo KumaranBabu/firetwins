@@ -85,6 +85,13 @@ _DEVICE_ACTIONS = [
     ("Add Device (by &Quantity)...", "add_device"),
 ]
 
+_SPECIAL_DEVICE_ACTIONS = [
+    ("Add &FED Device...", "add_fed_device"),
+    ("Add &Aspiration Detection System...", "add_aspiration_system"),
+    ("Add HVAC &Output Device...", "add_hvac_output"),
+    ("Add Ti&me Device...", "add_time_device"),
+]
+
 _OUTPUT_ACTIONS = [
     ("Add &Slice...", "add_slice"),
     ("Add &Boundary File...", "add_boundary_file"),
@@ -118,6 +125,7 @@ _HVAC_ACTIONS = [
     ("Add Da&mper...", "add_damper"),
     ("Add &Filter...", "add_hvac_filter"),
     ("Add &Leakage...", "add_hvac_leakage"),
+    ("Add &Aircoil...", "add_hvac_aircoil"),
 ]
 
 _ENTITY_COLLECTIONS = [

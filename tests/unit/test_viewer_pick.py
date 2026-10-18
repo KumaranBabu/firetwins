@@ -104,3 +104,26 @@ def test_a_rebuilt_tree_forgets_the_selection(win):
     win.pick_at(*display(win, BURNER))
     win.sync(True)
     assert win.selected is None and win.view.adapter.selection is None
+
+
+def test_ctrl_click_adds_to_the_selection_and_ctrl_click_again_removes_it(win):
+    first = win.pick_at(*display(win, BURNER))
+    other = pick.PickInfo("geometry/fds_actual", "obstruction", "WALL", (0, 0, 0), "WALL", box=(0, 0.2, 0, 0.2, 0, 0.2))
+    win.select(other, add=True)
+    assert win.view.adapter.selections == [first, other]
+    actors = win.view.plotter.renderer.actors
+    assert "pick_highlight" in actors and "pick_highlight_1" in actors
+    assert "2 objects selected" in win.statusBar().currentMessage()
+    win.select(other, add=True)                      # the same object again: out of the selection
+    assert win.view.adapter.selections == [first]
+    assert "pick_highlight_1" not in win.view.plotter.renderer.actors
+    win.select(None)
+    assert win.view.adapter.selections == [] and "pick_highlight" not in win.view.plotter.renderer.actors
+
+
+def test_a_plain_click_replaces_the_selection_and_a_ctrl_miss_keeps_it(win):
+    first = win.pick_at(*display(win, BURNER))
+    assert win.pick_at(2, 2, add=True) is None and win.view.adapter.selections == [first]
+    win.select(pick.PickInfo("geometry/fds_actual", "obstruction", "X", (0, 0, 0), "X", box=(0, 1, 0, 1, 0, 1)), add=True)
+    again = win.pick_at(*display(win, BURNER), add=False)
+    assert win.view.adapter.selections == [again]

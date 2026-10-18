@@ -9,9 +9,9 @@ import time
 from pathlib import Path
 from typing import Any, Callable, Optional
 
-from PySide6.QtCore import QTimer, Qt
+from PySide6.QtCore import QItemSelectionModel, QTimer, Qt
 from PySide6.QtGui import QAction, QKeySequence, QShortcut
-from PySide6.QtWidgets import QDockWidget, QFileDialog, QMainWindow, QMessageBox, QWidget
+from PySide6.QtWidgets import QApplication, QDockWidget, QFileDialog, QMainWindow, QMessageBox, QWidget
 
 from pyfds.api.viz import RectilinearVolume
 from pyfds.api.viz import timelines as tml
@@ -99,6 +99,7 @@ class ResultsWindow(ResultsWindowRecordMixin, ResultsWindowTimebarMixin, Results
         v = self.viewer
         if rebuild_tree:
             self.view.adapter.selection = self.selected = None        # the tree is rebuilt: what was selected may be gone
+            self.view.adapter.selections = []
             self.tree.rebuild()
         else:
             self.tree.refresh_states()
@@ -137,28 +138,40 @@ class ResultsWindow(ResultsWindowRecordMixin, ResultsWindowTimebarMixin, Results
             self.statusBar().showMessage(f"Could not draw: {exc}")
 
     # -- selecting in the 3D view ------------------------------------------------------------------------------
-    def pick_at(self, x: int, y: int):
-        """A click at display point (x, y) in the 3D view: select what is under it (nothing: clear the selection)."""
+    def pick_at(self, x: int, y: int, add: Optional[bool] = None):
+        """A click at display point (x, y) in the 3D view: select what is under it (nothing: clear the selection).
+        With Ctrl or Alt held (*add*), the object is added to the selection, or taken out of it when it is already there."""
+        if add is None:
+            add = bool(QApplication.keyboardModifiers() & (Qt.ControlModifier | Qt.AltModifier))
         info = self.view.adapter.pick(x, y)
-        self.select(info)
+        if info is None and add:
+            return None                       # a miss with Ctrl held keeps what is selected
+        self.select(info, add)
         return info
 
-    def select(self, info) -> None:
+    def select(self, info, add: bool = False) -> None:
         """Highlight *info* (a ``pick.PickInfo``) in the 3D view, select its row in the tree and describe it in the status bar."""
-        self.view.adapter.select(info)
+        self.view.adapter.select(info, add)
+        chosen = self.view.adapter.selections
         if info is None:
             self.tree.clearSelection()
             self.statusBar().showMessage("Nothing selected")
         else:
-            item = self.tree.item_for(info.node_id)
-            if item is not None:
+            self.tree.clearSelection()
+            for one in chosen:
+                item = self.tree.item_for(one.node_id)
+                if item is None:
+                    continue
                 p = item.parent()
                 while p is not None:
                     p.setExpanded(True)
                     p = p.parent()
-                self.tree.setCurrentItem(item)
-            self.statusBar().showMessage(info.text)
-        self.selected = info
+                item.setSelected(True)
+            last = self.tree.item_for(chosen[-1].node_id) if chosen else None
+            if last is not None:
+                self.tree.setCurrentItem(last, 0, QItemSelectionModel.NoUpdate)
+            self.statusBar().showMessage(f"{len(chosen)} objects selected" if len(chosen) > 1 else info.text)
+        self.selected = info if chosen else None
         if self.view.interactive:
             self.view.plotter.render()
 

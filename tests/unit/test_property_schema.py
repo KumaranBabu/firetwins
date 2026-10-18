@@ -88,3 +88,29 @@ def test_apply_edits_converts_list_back_to_tuple_for_comparison(api):
     changed2 = apply_edits(api, device, {"xyz": [9.0, 9.0, 9.0]})
     assert changed2 == 1
     assert device.xyz == (9.0, 9.0, 9.0)
+
+
+def test_multi_edit_changes_only_the_fields_the_user_touched_on_every_device(api):
+    from pyfds.gui.property_schema import apply_multi_edits, build_multi_edit_schema
+    d1 = api.devices.add_thermocouple([1, 1, 1], devc_id="T1")
+    d2 = api.devices.add_thermocouple([2, 2, 2], devc_id="T2")
+    d3 = api.devices.add_thermocouple([3, 3, 3], devc_id="T3")
+    d3.setpoint = 99.0
+    devices = [d1, d2, d3]
+    schema = build_multi_edit_schema(devices)
+    assert "name" not in schema["properties"] and "setpoint" in schema["properties"]
+    values = {k: p.get("default") for k, p in schema["properties"].items()}
+    values["setpoint"] = 55.0                       # the one field changed in the form
+    assert apply_multi_edits(api, devices, values) == 3
+    assert [d.setpoint for d in devices] == [55.0, 55.0, 55.0]
+    assert [d.name for d in devices] == ["T1", "T2", "T3"] and d2.xyz == (2, 2, 2) or list(d2.xyz) == [2, 2, 2]
+    api.history.undo()                               # one step undoes all three
+    assert [d.setpoint for d in devices] == [d1.setpoint, d2.setpoint, 99.0]
+    assert d1.setpoint != 55.0 and d2.setpoint != 55.0
+
+
+def test_multi_edit_with_nothing_changed_does_nothing(api):
+    from pyfds.gui.property_schema import apply_multi_edits, build_multi_edit_schema
+    devices = [api.devices.add_thermocouple([1, 1, 1], devc_id="A"), api.devices.add_thermocouple([2, 1, 1], devc_id="B")]
+    values = {k: p.get("default") for k, p in build_multi_edit_schema(devices)["properties"].items()}
+    assert apply_multi_edits(api, devices, values) == 0

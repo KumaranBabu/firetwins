@@ -111,12 +111,37 @@ def apply_edits(api: Any, entity: Any, values: Dict[str, Any]) -> int:
     Parameters dialog). Returns the number of fields actually changed —
     fields left equal to their current value are skipped, not re-applied."""
     changed = 0
+    shown = build_edit_schema(entity)["properties"]          # what the form showed (an unset field shows as '' or 0)
     for key, value in values.items():
         current = getattr(entity, key, None)
         if isinstance(current, tuple) and isinstance(value, list):
             value = tuple(value)
-        if current == value:
+        if current == value or (key in shown and value == shown[key].get("default")):
             continue
         api.set_property(entity, key, value)
         changed += 1
     return changed
+
+
+def build_multi_edit_schema(entities: Any) -> Dict[str, Any]:
+    """The edit form for several objects of one type: the first object's fields and values, without the name (every
+    object keeps its own)."""
+    schema = build_edit_schema(entities[0])
+    schema["properties"].pop("name", None)
+    return schema
+
+
+def apply_multi_edits(api: Any, entities: Any, values: Dict[str, Any]) -> int:
+    """Give every object the fields the user changed in the form (compared with the first object's values the form was
+    filled from); fields left alone keep each object's own value. One undo step. Returns the number of changes made."""
+    shown = build_edit_schema(entities[0])["properties"]     # the values the form was filled with
+    changed = {key: value for key, value in values.items()
+               if key in shown and value != shown[key].get("default")
+               and not (isinstance(value, list) and tuple(value) == tuple(shown[key].get("default") or ()))}
+    if not changed:
+        return 0
+    count = 0
+    with api.history.transaction(f"edit {len(entities)} objects"):
+        for entity in entities:
+            count += apply_edits(api, entity, changed)
+    return count

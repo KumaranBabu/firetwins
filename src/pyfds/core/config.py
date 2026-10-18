@@ -6,7 +6,7 @@ Hierarchical configuration with named profiles.
 Resolution order (highest wins):
   1. Runtime overrides (set via ``FdsConfig.set``)
   2. Environment variables (``PYFDS_FDS_BIN``, ``PYFDS_SMV_BIN``, etc.)
-  3. User config file (``~/.pyfds/config.json``)
+  3. User config file (``user_data/config.json``, or under ``$PYFDS_USER_DIR``)
   4. Built-in defaults
 
 Usage::
@@ -14,7 +14,7 @@ Usage::
     cfg = get_config()
     fds_bin = cfg.fds_binary
     cfg.set("fds_binary", "/usr/local/bin/fds")
-    cfg.save()                      # writes ~/.pyfds/config.json
+    cfg.save()                      # writes user_data/config.json
 
     # Named profiles for different machines / HPC clusters
     cfg.set_profile("hpc_cluster")
@@ -34,7 +34,13 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
-_CONFIG_DIR = Path.home() / ".pyfds"
+def _user_dir() -> Path:
+    """``$PYFDS_USER_DIR`` if set, else ``user_data/`` beside the application folder (never the user profile)."""
+    base = os.environ.get("PYFDS_USER_DIR")
+    return Path(base) if base else Path(__file__).resolve().parents[3] / "user_data"
+
+
+_CONFIG_DIR = _user_dir()
 _CONFIG_FILE = _CONFIG_DIR / "config.json"
 
 
@@ -46,7 +52,7 @@ _DEFAULTS: Dict[str, Any] = {
     "fds_binary":            os.getenv("FDS_BIN", "fds"),
     "smv_binary":            os.getenv("SMV_BIN", "smokeview"),
     "mpiexec_binary":        os.getenv("MPIEXEC_BIN", "mpiexec"),
-    "temp_directory":        str(Path.home() / ".pyfds" / "temp"),
+    "temp_directory":        str(_CONFIG_DIR / "temp"),
     "output_directory":      str(Path.cwd()),
     "default_mpi_processes": 1,
     "auto_validate":         True,

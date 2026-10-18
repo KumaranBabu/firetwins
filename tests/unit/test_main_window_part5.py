@@ -337,3 +337,39 @@ def test_about_dialog_does_not_raise(monkeypatch):
 
     window._on_about()  # must not raise
     window.close()
+
+def test_find_matches_name_tag_and_type_and_selects_all(monkeypatch):
+    from tests.mw_proxy import main_window_mod
+
+    window = _make_window()
+    a = window.api.obstructions.add_obstruction(xb=[0, 1, 0, 1, 0, 1], name="wall_a")
+    b = window.api.obstructions.add_obstruction(xb=[2, 3, 0, 1, 0, 1], name="wall_b")
+    window.api.obstructions.add_obstruction(xb=[4, 5, 0, 1, 0, 1], name="desk")
+    a.tags.append("structure")
+    b.tags.append("structure")
+    ex = window.explorer
+    assert [r.data(0, 256)[1].name for r in ex.find_matches("wall")] == ["wall_a", "wall_b"]
+    assert len(ex.find_matches("tag:structure")) == 2
+    assert len(ex.find_matches("name:structure")) == 0          # the prefix limits the field
+    assert len(ex.find_matches("structure")) == 2               # plain text also looks at tags
+    assert len(ex.find_matches("type:obstruction")) == 3
+    assert ex.find_matches("   ") == []
+    monkeypatch.setattr(main_window_mod.QInputDialog, "getText", lambda *a_, **k: ("tag:structure", True))
+    window._on_find()
+    assert {e.name for _attr, e in ex.selected_entities()} == {"wall_a", "wall_b"}
+    window.close()
+
+def test_edit_properties_with_several_selected_edits_them_together(monkeypatch):
+    from tests.mw_proxy import main_window_mod
+    from tests.unit.test_main_window_phase2_part1 import _fake_dialog_returning
+
+    window = _make_window()
+    a = window.api.devices.add_thermocouple([1, 1, 1], devc_id="TA")
+    b = window.api.devices.add_thermocouple([2, 1, 1], devc_id="TB")
+    window.explorer.select_entities([("devices", a), ("devices", b)])
+    monkeypatch.setattr(main_window_mod, "SchemaFormDialog", _fake_dialog_returning({"setpoint": 70.0}))
+    window._on_edit_properties()
+    assert a.setpoint == 70.0 and b.setpoint == 70.0
+    window.api.history.undo()
+    assert a.setpoint != 70.0 and b.setpoint != 70.0
+    window.close()

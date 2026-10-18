@@ -34,15 +34,25 @@ class ActionsFileMixin:
                 "default_mpi_processes": {"type": "integer", "default": cfg.get("default_mpi_processes", 1)},
                 "max_job_workers": {"type": "integer", "default": cfg.get("max_job_workers", 4)},
                 "auto_validate": {"type": "boolean", "default": cfg.get("auto_validate", True)},
+                "auto_save": {"type": "boolean", "default": cfg.get("auto_save", False)},
+                "create_backup_on_open": {"type": "boolean", "default": cfg.get("create_backup_on_open", True)},
+                "undo_depth": {"type": "integer", "default": cfg.get("undo_depth", 200)},
                 "log_level": {"type": "string", "enum": ["DEBUG", "INFO", "WARNING", "ERROR"],
                               "default": cfg.get("log_level", "INFO")},
             },
             "required": [],
         }
-        dialog = SchemaFormDialog("Preferences", "Session overrides — not written to disk.", schema, self)
+        dialog = SchemaFormDialog("Preferences", "Kept between sessions (user_data/config.json).", schema, self)
         if dialog.exec() != QDialog.Accepted:
             return
-        cfg.set_many(dialog.values())
+        values = dialog.values()
+        cfg.set_many(values)
+        if values.get("undo_depth"):
+            self.api.history.set_depth(int(values["undo_depth"]))
+        try:
+            cfg.save()
+        except OSError as exc:
+            QMessageBox.warning(self, "Preferences", "The settings apply now but could not be saved:" + chr(10) + str(exc))
 
     def _recent_paths(self) -> list:
         settings = QSettings("PyFDS", "PyFDS")

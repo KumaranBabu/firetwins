@@ -117,6 +117,7 @@ class SimulationRunner:
         """
         self._cancel_event.clear()
         abs_input = os.path.abspath(input_file)
+        self._input_path = abs_input
         work_dir = os.path.dirname(abs_input)   # BUG-04 fix
 
         cmd = list(command) if command else self._build_command(abs_input, num_processes)
@@ -166,7 +167,8 @@ class SimulationRunner:
         self._cancel_event.set()
         if self._process and self._process.poll() is None:
             try:
-                self._process.terminate()
+                if not self._kill_tree():
+                    self._process.terminate()
                 logger.info("SimulationRunner: sent SIGTERM to FDS process")
             except OSError:
                 pass
@@ -176,10 +178,33 @@ class SimulationRunner:
         self._cancel_event.set()
         if self._process and self._process.poll() is None:
             try:
-                self._process.kill()
+                if not self._kill_tree():
+                    self._process.kill()
                 logger.warning("SimulationRunner: sent SIGKILL to FDS process")
             except OSError:
                 pass
+
+    def _kill_tree(self) -> bool:
+        """On Windows end the launcher, its FDS ranks and the hydra proxy that started them. The proxy is not a child of
+        mpiexec, so ending mpiexec alone leaves the ranks running and holding the output pipe open (the runner would
+        never return). The ranks are found by their command line (this run's input file), then their proxies. Returns
+        False where the plain process call should be used."""
+        if os.name != "nt" or self._process is None:
+            return False
+        try:
+            marker = getattr(self, "_input_path", "").replace("'", "''")
+            if marker:
+                script = ("$r = Get-CimInstance Win32_Process | Where-Object { $_.Name -like 'fds*.exe' -and "
+                          f"$_.CommandLine -like '*{marker}*' }}; "
+                          "$p = $r | ForEach-Object { $_.ParentProcessId } | Sort-Object -Unique; "
+                          "foreach ($i in $p) { $q = Get-Process -Id $i -ErrorAction SilentlyContinue; "
+                          "if ($q -and $q.ProcessName -like 'hydra*') { Stop-Process -Id $i -Force } }; "
+                          "$r | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }")
+                subprocess.run(["powershell", "-NoProfile", "-Command", script], capture_output=True, timeout=30)
+            subprocess.run(["taskkill", "/PID", str(self._process.pid), "/T", "/F"], capture_output=True, timeout=15)
+            return True
+        except (OSError, subprocess.SubprocessError):
+            return False
 
     def wait(self, timeout: Optional[float] = None) -> bool:
         """Block until the runner thread exits. Returns True if it finished."""

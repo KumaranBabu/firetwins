@@ -208,3 +208,12 @@ def fake_out_file(tmp_path):
     path = tmp_path / "room_fire.out"
     path.write_text(content)
     return str(path)
+
+
+@pytest.fixture(autouse=True)
+def _isolated_user_config(tmp_path_factory, monkeypatch):
+    """Tests never read or write the real user_data/config.json."""
+    import pyfds.core.config as cfg_mod
+    folder = tmp_path_factory.mktemp("userconf")
+    monkeypatch.setattr(cfg_mod, "_CONFIG_DIR", folder)
+    monkeypatch.setattr(cfg_mod, "_CONFIG_FILE", folder / "config.json")

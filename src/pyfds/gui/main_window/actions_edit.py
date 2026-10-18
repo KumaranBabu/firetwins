@@ -4,11 +4,12 @@ from __future__ import annotations
 import uuid
 from typing import Any, Optional
 
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QCursor
 from PySide6.QtWidgets import QDialog, QInputDialog, QMenu, QMessageBox
 
 from pyfds.gui.entity_dialogs import SchemaFormDialog
-from pyfds.gui.property_schema import apply_edits, build_edit_schema
+from pyfds.gui.property_schema import apply_edits, apply_multi_edits, build_edit_schema, build_multi_edit_schema
 
 from .shared import (
     _ENTITY_COLLECTIONS,
@@ -148,6 +149,10 @@ class ActionsEditMixin:
         selected = self.explorer.selected()
         if selected is None:
             return
+        many = [e for _attr, e in self.explorer.selected_entities()]
+        if len(many) > 1:
+            self._edit_several(many)
+            return
         _attr, entity = selected
         schema = build_edit_schema(entity)
         dialog = SchemaFormDialog(f"Edit {entity.name}", "", schema, self)
@@ -158,15 +163,34 @@ class ActionsEditMixin:
         except Exception as exc:
             QMessageBox.critical(self, "Could not update properties", str(exc))
 
+    def _edit_several(self, entities) -> None:
+        """Edit the objects selected together (all of one type) with one form: only the fields changed are applied."""
+        if len({type(e) for e in entities}) > 1:
+            QMessageBox.information(self, "Edit Properties", "Select objects of one type to edit them together.")
+            return
+        dialog = SchemaFormDialog(f"Edit {len(entities)} {type(entities[0]).__name__} objects",
+                                  "Only the fields you change are applied to all of them.",
+                                  build_multi_edit_schema(entities), self)
+        if dialog.exec() != QDialog.Accepted:
+            return
+        try:
+            n = apply_multi_edits(self.api, entities, dialog.values())
+        except Exception as exc:
+            QMessageBox.critical(self, "Could not update properties", str(exc))
+            return
+        self.statusBar().showMessage(f"Edited {len(entities)} objects ({n} change(s)).", 6000)
+
     def _on_find(self) -> None:
-        text, ok = QInputDialog.getText(self, "Find", "Search for (matches entity name):")
+        text, ok = QInputDialog.getText(
+            self, "Find", "Search for (name / ID, tag or type; or name:, tag:, type: in front):")
         if not ok or not text:
             return
-        match = self.explorer.find_entity_by_name(text)
-        if match is None:
-            QMessageBox.information(self, "Find", f"No entity found matching {text!r}.")
+        rows = self.explorer.find_matches(text)
+        if not rows:
+            QMessageBox.information(self, "Find", f"No object found matching {text!r}.")
             return
-        self.explorer.setCurrentItem(match)
+        self.explorer.select_entities([row.data(0, Qt.UserRole) for row in rows])
+        self.statusBar().showMessage(f"Find: {len(rows)} object(s) selected for {text!r}", 6000)
 
     def _on_rename_entity(self, entity: Any) -> None:
         new_name, ok = QInputDialog.getText(self, "Rename", "New name:", text=entity.name)

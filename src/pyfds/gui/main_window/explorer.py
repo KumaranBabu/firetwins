@@ -196,6 +196,29 @@ class ProjectExplorer(QTreeWidget):
                 return row
         return None
 
+    def find_matches(self, query: str) -> List[QTreeWidgetItem]:
+        """Every object row matching *query* (case-insensitive), at any depth. Plain text matches the name (the FDS ID),
+        a tag, or the kind of object (``obstructions``, ``Vent``...). ``name:``, ``tag:`` or ``type:`` in front limits the
+        search to that one field."""
+        text = query.strip().lower()
+        field = None
+        for prefix in ("name", "tag", "type"):
+            if text.startswith(prefix + ":"):
+                field, text = prefix, text[len(prefix) + 1:].strip()
+                break
+        if not text:
+            return []
+        rows = []
+        for row in self._iter_rows():
+            attr, entity = row.data(0, Qt.UserRole)
+            hay = {"name": [str(getattr(entity, "name", ""))],
+                   "tag": [str(t) for t in (getattr(entity, "tags", None) or [])],
+                   "type": [str(attr), type(entity).__name__]}
+            fields = [field] if field else ["name", "tag", "type"]
+            if any(text in value.lower() for f in fields for value in hay[f]):
+                rows.append(row)
+        return rows
+
     def shutdown(self) -> None:
         for sub_id in self._sub_ids:
             self._api.unsubscribe(sub_id)

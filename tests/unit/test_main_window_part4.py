@@ -72,69 +72,6 @@ def _finish_render(window):
         worker.wait(10000)
         QApplication.processEvents()
 
-def test_export_animation_nonzero_return_warns(monkeypatch):
-    window = _make_window()
-    _, shown = _patch_export_animation(monkeypatch, window, render=lambda *a, **k: 3)
-    window._on_export_animation()
-    _finish_render(window)
-    assert "warning" in shown and "information" not in shown
-    window.close()
-
-def test_export_animation_exception_shows_critical(monkeypatch):
-    window = _make_window()
-
-    def _boom(*a, **k):
-        raise RuntimeError("smokeview not found")
-
-    _, shown = _patch_export_animation(monkeypatch, window, render=_boom)
-    window._on_export_animation()
-    _finish_render(window)
-    assert "critical" in shown
-    window.close()
-
-def test_view_time_history_shows_figure_dialog(monkeypatch, tmp_path):
-    from tests.mw_proxy import main_window_mod
-
-    window = _make_window()
-    window.api.new(chid="room_fire")
-    _write_fake_devc_csv(tmp_path, chid="room_fire")
-
-    monkeypatch.setattr(main_window_mod.QFileDialog, "getExistingDirectory", lambda *a, **k: str(tmp_path))
-
-    shown = {}
-
-    class _FakeFigureDialog:
-        def __init__(self, title, figure, parent=None):
-            shown["title"] = title
-            shown["figure"] = figure
-
-        def exec(self):
-            shown["exec_called"] = True
-
-    monkeypatch.setattr(main_window_mod, "_import_figure_dialog", lambda: _FakeFigureDialog)
-
-    window._on_view_time_history()
-
-    assert shown.get("exec_called") is True
-    assert shown["title"] == "Device Time History"
-    window.close()
-
-def test_view_time_history_no_devices_shows_info(monkeypatch, tmp_path):
-    from tests.mw_proxy import main_window_mod
-
-    window = _make_window()
-    window.api.new(chid="empty_case")
-    # no devc.csv written — build_index() finds nothing
-
-    monkeypatch.setattr(main_window_mod.QFileDialog, "getExistingDirectory", lambda *a, **k: str(tmp_path))
-    shown = {}
-    monkeypatch.setattr(main_window_mod.QMessageBox, "information", lambda *a, **k: shown.setdefault("info", True))
-
-    window._on_view_time_history()
-
-    assert shown.get("info") is True
-    window.close()
-
 def test_archive_and_restore_results_round_trip(monkeypatch, tmp_path):
     from tests.mw_proxy import main_window_mod
 

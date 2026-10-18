@@ -141,10 +141,10 @@ def install_extras(w) -> None:
             results.addAction(act)
 
     def results_window(smv: Optional[str] = None) -> None:
-        w.show_results_tab(smv)               # a tab next to the 3D model (see central_tabs.py)
+        w.open_in_results(smv)                # PyFDS Results is its own program (see results/launcher.py)
 
     if results is not None:
-        act3d = QAction("&View Results (3D)...", results)
+        act3d = QAction("Open PyFDS &Results", results)
         act3d.triggered.connect(lambda _c=False: results_window())
         anchor = results.actions()[0] if results.actions() else None
         if anchor is not None:

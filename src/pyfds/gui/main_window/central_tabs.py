@@ -1,14 +1,14 @@
-"""Centre of the main window: a "Model" tab (3D editor view) and a closable "Results" tab holding the results viewer."""
+"""Centre of the main window: a "Model" tab (3D editor view) with the 2D plan and record views as extra tabs. Results open in PyFDS Results, a separate program."""
 from __future__ import annotations
 
 from typing import Any, Optional
 
-from PySide6.QtWidgets import QLabel, QTabBar, QTabWidget
+from PySide6.QtWidgets import QLabel, QMessageBox, QTabBar, QTabWidget
 
 
 class CentralTabsMixin:
     def _build_central_tabs(self) -> None:
-        """Put the 3D view in the first tab; the results viewer is added when the first results are opened."""
+        """Put the 3D view in the first tab; results open in PyFDS Results, a separate program."""
         self.view_tabs = QTabWidget(self)
         self.view_tabs.setDocumentMode(True)
         self.view_tabs.setTabsClosable(True)
@@ -16,22 +16,18 @@ class CentralTabsMixin:
         self.view_tabs.tabBar().setTabButton(0, QTabBar.RightSide, None)      # the Model tab cannot be closed
         self.view_tabs.tabCloseRequested.connect(self._on_close_view_tab)
         self.setCentralWidget(self.view_tabs)
-        self._results_window = None
 
-    def show_results_tab(self, smv: Optional[str] = None) -> Any:
-        """Show the results viewer in its own tab next to the model (created on first use) and open *smv* in it."""
-        from pyfds.gui.results.window import ResultsWindow
-        from PySide6.QtCore import Qt
-        win = self._results_window
-        if win is None:
-            win = ResultsWindow(self.api, self)
-            win.setWindowFlags(Qt.Widget)             # a plain child widget, not a separate top-level window
-            self._results_window = win
-            self.view_tabs.addTab(win, "Results")
-        self.view_tabs.setCurrentWidget(win)
-        if smv:
-            win.open_results(smv)
-        return win
+    def open_in_results(self, smv: Optional[str] = None) -> str:
+        """Show *smv* in PyFDS Results, which is its own program: a viewer that is already open takes the case (and refreshes
+        it when it is the one shown), otherwise a new viewer is started. Returns ``"sent"``, ``"started"`` or ``""`` on failure."""
+        from pyfds.gui.results.launcher import launch_results
+        try:
+            how = launch_results(smv)
+        except OSError as exc:
+            QMessageBox.warning(self, "PyFDS Results", f"Could not start PyFDS Results:\n{exc}")
+            return ""
+        self.statusBar().showMessage("Opened in PyFDS Results" if how == "sent" else "Starting PyFDS Results...", 5000)
+        return how
 
     def show_plan_tab(self) -> Any:
         """Show the 2D plan view in a tab next to the model (created on first use)."""
@@ -84,8 +80,6 @@ class CentralTabsMixin:
         if widget is self.model_split:
             return
         self.view_tabs.removeTab(index)
-        if widget is self._results_window:
-            self._results_window = None
         if widget is getattr(self, "_plan_panel", None):
             widget.shutdown()
             self._plan_panel = None

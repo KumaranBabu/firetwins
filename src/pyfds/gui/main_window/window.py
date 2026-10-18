@@ -246,9 +246,6 @@ class MainWindow(
         return Viewport3D(self.api, self)
 
     def closeEvent(self, event) -> None:
-        if self._results_window is not None and not self._results_window.close():
-            event.ignore()                # the user cancelled "Save changes?" in the results tab: stay open
-            return
         self._clear_split_panes()
         self.explorer.shutdown()
         self.output_panel.shutdown()

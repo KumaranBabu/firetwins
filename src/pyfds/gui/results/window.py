@@ -26,6 +26,7 @@ from .window_menus import (  # noqa: F401  (re-exported)
     ResultsWindowMenusMixin,
 )
 from .window_record import ResultsWindowRecordMixin  # noqa: F401
+from .window_analysis import ResultsAnalysisMixin
 from .window_timebar import (  # noqa: F401  (re-exported)
     ResultsWindowTimebarMixin,
 )
@@ -43,7 +44,7 @@ from .window_common import (  # noqa: F401  (re-exported)
 )
 
 
-class ResultsWindow(ResultsWindowRecordMixin, ResultsWindowTimebarMixin, ResultsWindowMenusMixin, ResultsWindowFilesMixin, ResultsWindowToolsMixin, QMainWindow):
+class ResultsWindow(ResultsAnalysisMixin, ResultsWindowRecordMixin, ResultsWindowTimebarMixin, ResultsWindowMenusMixin, ResultsWindowFilesMixin, ResultsWindowToolsMixin, QMainWindow):
     def __init__(self, api, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self.api = api

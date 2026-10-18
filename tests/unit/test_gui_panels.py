@@ -159,21 +159,24 @@ def test_status_labels_follow_selection_and_run(win, tmp_path):
     win.run_panel.timer.stop()
 
 
-def test_results_open_in_a_tab_beside_the_model(win, monkeypatch):
-    from pyfds.gui.results.window import ResultsWindow
-    opened = []
-    monkeypatch.setattr(ResultsWindow, "open_results", lambda self, smv=None: opened.append(smv))
+def test_results_open_in_pyfds_results_not_in_a_tab(win, monkeypatch):
+    sent = []
+    monkeypatch.setattr("pyfds.gui.results.launcher.launch_results", lambda p=None: sent.append(p) or "sent")
     assert win.view_tabs.count() == 1
-    first = win.show_results_tab("a.smv")
-    assert win.view_tabs.count() == 2 and win.view_tabs.currentWidget() is first and opened == ["a.smv"]
-    assert win._results_window is first and not first.isWindow()
-    assert win.show_results_tab("b.smv") is first and win.view_tabs.count() == 2     # reused, not duplicated
-    win.show_model_tab()
-    assert win.view_tabs.currentWidget() is win.model_split
+    assert win.open_in_results("a.smv") == "sent" and sent == ["a.smv"]
+    assert win.open_in_results() == "sent" and sent == ["a.smv", None]
+    assert win.view_tabs.count() == 1                                              # nothing embedded in the editor
+    assert not hasattr(win, "_results_window")
     win._on_close_view_tab(0)                                                      # the Model tab cannot be closed
-    assert win.view_tabs.count() == 2
-    win._on_close_view_tab(1)
-    assert win.view_tabs.count() == 1 and win._results_window is None
+    assert win.view_tabs.count() == 1
+
+
+def test_a_viewer_that_cannot_start_is_reported(win, monkeypatch):
+    shown = []
+    def boom(p=None): raise OSError("no such program")
+    monkeypatch.setattr("pyfds.gui.results.launcher.launch_results", boom)
+    monkeypatch.setattr("pyfds.gui.main_window.central_tabs.QMessageBox.warning", lambda *a, **k: shown.append(a[2]))
+    assert win.open_in_results("a.smv") == "" and "no such program" in shown[0]
 
 
 def test_cursor_label_formats_and_clears(win):
@@ -188,15 +191,3 @@ def test_ray_floor_point():
     assert ray_floor_point((0, 0, 10), (2, 4, -10)) == (1.0, 2.0, 0.0)
     assert ray_floor_point((0, 0, 5), (1, 1, 5)) is None          # parallel to the floor
     assert ray_floor_point((0, 0, 5), (1, 1, 9)) is None          # floor is behind the ray
-
-
-def test_closing_main_window_respects_cancel_in_results_tab(win, monkeypatch):
-    from pyfds.gui.results.window import ResultsWindow
-    monkeypatch.setattr(ResultsWindow, "open_results", lambda self, smv=None: None)
-    rw = win.show_results_tab()
-    monkeypatch.setattr(ResultsWindow, "close", lambda self: False)      # the user pressed Cancel
-    from PySide6.QtGui import QCloseEvent
-    ev = QCloseEvent()
-    win.closeEvent(ev)
-    assert not ev.isAccepted() and win._results_window is rw
-    monkeypatch.undo()

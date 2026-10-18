@@ -77,6 +77,13 @@ class ResultsWindowMenusMixin:
         tl.addSeparator()
         self._act(tl, "&Time History Plot...", self.time_plot)
         self._act(tl, "Data&3D: Add Isosurface...", self.add_iso)
+        tl.addSeparator()
+        an = tl.addMenu("Data &Browsers and Export")
+        for label, slot in (("&Slice Browser...", self._on_slice_browser), ("&Boundary Browser...", self._on_boundary_browser),
+                            ("&Plot Manager...", self._on_plot_manager), ("&Device Time History...", self._on_view_time_history),
+                            ("Export Device &CSV...", self._on_export_csv), ("Generate &Report...", self._on_generate_report),
+                            ("&Batch Export...", self._on_batch_export), ("Export &Animation (Smokeview)...", self._on_export_animation)):
+            self._act(an, label, slot)
 
         pf = mb.addMenu("&Preferences")
         self._act(pf, "&FDS Preferences...", self.fds_prefs)

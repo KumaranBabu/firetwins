@@ -78,7 +78,7 @@ class MenusRunResultsMixin:
 
     def _build_results_menu(self) -> None:
         # ════════════════════════════════════════════════════════════════════════
-        # RESULTS MENU (14 items) — Expanded from 5
+        # RESULTS MENU: launches PyFDS Results (its own program) and keeps the model-side items
         # ════════════════════════════════════════════════════════════════════════
         results_menu = self.menuBar().addMenu("&Results")
 
@@ -93,23 +93,11 @@ class MenusRunResultsMixin:
 
         results_menu.addSeparator()
 
-        # Data browsing (new and existing)
-        results_menu.addAction("View &Time History...", self._on_view_time_history)
-        results_menu.addAction("&Slice Browser...", self._on_slice_browser)
-        results_menu.addAction("&Boundary Browser...", self._on_boundary_browser)
-        results_menu.addAction("&Plot Manager...", self._on_plot_manager)
         results_menu.addAction("&Isosurface Settings...", self._on_isosurface_settings)
 
         results_menu.addSeparator()
 
-        # Archive and export
+        # Archive and restore the result index (the viewer has the data browsers and exports)
         results_menu.addAction("&Archive Results...", self._on_archive_results)
         results_menu.addAction("&Restore Results...", self._on_restore_results)
 
-        results_menu.addSeparator()
-
-        # Data export and reporting (new)
-        results_menu.addAction("&Export CSV...", self._on_export_csv)
-        results_menu.addAction("&Generate Report...", self._on_generate_report)
-        results_menu.addAction("&Export Animation...", self._on_export_animation)
-        results_menu.addAction("&Batch Export...", self._on_batch_export)

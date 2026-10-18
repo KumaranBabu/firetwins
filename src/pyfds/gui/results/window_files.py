@@ -1,6 +1,7 @@
 """Results window: open, save, load, export, screenshots and movies."""
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Optional
 
 from PySide6.QtCore import Qt
@@ -22,6 +23,21 @@ class ResultsWindowFilesMixin:
         if smv or (smv := self._ask_file(True, "Open Results", _SMV_FILTER)):
             self.viewer.open_results(smv)
             self.sync(True)
+
+    def open_or_refresh(self, smv: Optional[str] = None) -> None:
+        """Another program (the model editor) asks for *smv*: refresh it when it is the case already open, else open it;
+        either way come to the front. Errors are shown, not raised, because nobody is waiting for an answer."""
+        try:
+            if smv and self.viewer.run is not None and Path(self.viewer.run.path).resolve() == Path(smv).resolve():
+                self.refresh()
+            elif smv:
+                self.open_results(smv)
+        except Exception as exc:
+            QMessageBox.warning(self, "Open Results", f"Could not open {smv}:\n{exc}")
+        self.setWindowState((self.windowState() & ~Qt.WindowMinimized) | Qt.WindowActive)
+        self.show()
+        self.raise_()
+        self.activateWindow()
 
     def load_results(self) -> None:
         if p := self._ask_file(True, "Load Results", _SMV_FILTER):

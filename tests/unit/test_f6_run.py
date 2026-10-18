@@ -275,9 +275,9 @@ def test_mpi_preview_lists_processes_and_meshes(win):
     assert "at least two" in win._shown[-1][2]
 
 
-def test_preview_model_opens_the_viewer_tab(win, monkeypatch, tmp_path):
+def test_preview_model_opens_pyfds_results(win, monkeypatch, tmp_path):
     opened = []
-    monkeypatch.setattr(type(win), "show_results_tab", lambda self, smv=None: opened.append(smv))
+    monkeypatch.setattr(type(win), "open_in_results", lambda self, smv=None: opened.append(smv))
     win._current_project_path = str(tmp_path / "case.pyfds")
     smv = win._on_preview_model()
     assert smv == str(tmp_path / "preview" / "p.smv") and opened == [smv]
@@ -288,7 +288,7 @@ def test_preview_model_opens_the_viewer_tab(win, monkeypatch, tmp_path):
 
 def test_view_results_opens_the_last_run(win, monkeypatch, tmp_path):
     opened = []
-    monkeypatch.setattr(type(win), "show_results_tab", lambda self, smv=None: opened.append(smv))
+    monkeypatch.setattr(type(win), "open_in_results", lambda self, smv=None: opened.append(smv))
     win._on_view_results()
     assert opened == [None]
     (tmp_path / f"{win.api.project.chid}.smv").write_text("x")

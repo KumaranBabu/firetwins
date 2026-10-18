@@ -93,14 +93,15 @@ def test_a_run_started_from_the_main_window_is_followed_to_the_end(api, tmp_path
     w.close()
 
 
-def test_model_preview_opens_in_the_results_tab(api, tmp_path, monkeypatch):
+def test_model_preview_opens_in_pyfds_results(api, tmp_path, monkeypatch):
     from PySide6.QtWidgets import QApplication, QMessageBox
     from pyfds.gui.main_window import MainWindow
     QApplication.instance() or QApplication([])
-    monkeypatch.setattr(QMessageBox, "question", lambda *a, **k: QMessageBox.Discard)   # "save the visualization?"
+    launched = []
+    monkeypatch.setattr("pyfds.gui.results.launcher.launch_results", lambda p=None: launched.append(p) or "started")
     w = MainWindow(api)
     w._current_project_path = str(tmp_path / "case.pyfds")
     smv = w._on_preview_model()
     assert smv and Path(smv).is_file()
-    assert w.view_tabs.tabText(w.view_tabs.currentIndex()) == "Results" and w._results_window is not None
+    assert launched == [smv]                      # PyFDS Results is its own program: the editor only hands it the case
     w.close()

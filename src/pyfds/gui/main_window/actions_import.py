@@ -132,6 +132,6 @@ class ActionsImportMixin:
             QMessageBox.information(self, "Monitor Simulation", "Start a run first (Run > Run Simulation).")
             return False
         self.run_panel.watch(out, self.api.project.chid, self.api.project.params.t_end,
-                             lambda: self.show_results_tab(str(Path(out) / f"{self.api.project.chid}.smv")))
+                             lambda: self.open_in_results(str(Path(out) / f"{self.api.project.chid}.smv")))
         self._show_messages(self.run_panel)
         return True

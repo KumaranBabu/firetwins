@@ -1,6 +1,6 @@
 """Build the Windows application folder with PyInstaller: ``python packaging/build_windows.py [work_dir]``.
 
-Output goes to ``<work_dir>/dist/PyFDS`` (default: ``dist/`` and ``build/`` in the repository, both gitignored).
+Output goes to ``<work_dir>/dist/PyFDS`` with PyFDS.exe (the editor) and PyFDSResults.exe (the results viewer) side by side (default: ``dist/`` and ``build/`` in the repository, both gitignored).
 Then copy ``fds_smv/`` next to ``PyFDS.exe`` if the package should find FDS and Smokeview by itself."""
 from __future__ import annotations
 

@@ -162,7 +162,7 @@ class ActionsRunDialogMixin:
             QMessageBox.critical(self, "Could not preview the model", str(exc))
             return None
         QApplication.restoreOverrideCursor()
-        self.show_results_tab(smv)
+        self.open_in_results(smv)
         return smv
 
     def _on_run_jobs(self) -> Any:
@@ -172,7 +172,7 @@ class ActionsRunDialogMixin:
         from pyfds.gui.run.jobs_dialog import JobsDialog
         dlg = getattr(self, "_jobs_dialog", None)
         if dlg is None:
-            dlg = JobsDialog(self.api, open_results=self.show_results_tab,
+            dlg = JobsDialog(self.api, open_results=self.open_in_results,
                              open_folder=lambda p: QDesktopServices.openUrl(QUrl.fromLocalFile(p)), parent=self)
             self._jobs_dialog = dlg
         dlg.refresh()
@@ -181,7 +181,7 @@ class ActionsRunDialogMixin:
         return dlg
 
     def _on_view_results(self) -> None:
-        """Open the last run's results in the viewer tab (or ask which case to open)."""
+        """Open the last run's results in PyFDS Results (an empty viewer when there is no run yet)."""
         folder = getattr(self, "_last_run_dir", None)
         smv = Path(folder) / f"{self.api.project.chid}.smv" if folder else None
-        self.show_results_tab(str(smv) if smv is not None and smv.is_file() else None)
+        self.open_in_results(str(smv) if smv is not None and smv.is_file() else None)

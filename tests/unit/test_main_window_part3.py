@@ -357,37 +357,3 @@ def _finish_render(window):
         worker.wait(10000)
         QApplication.processEvents()
 
-def test_export_animation_success(monkeypatch):
-    window = _make_window()
-    calls, shown = _patch_export_animation(
-        monkeypatch, window,
-        values={"quantity": "VISIBILITY", "fps": 24, "start_time": 5.0, "end_time": 0.0},
-    )
-    window._on_export_animation()
-    _finish_render(window)
-    assert len(calls) == 1
-    assert calls[0][0] == ("case.smv", "a.mp4", "VISIBILITY")
-    assert {k: v for k, v in calls[0][1].items() if k != "cancel"} == {
-        "fps": 24, "start_time": 5.0, "end_time": None}
-    assert "information" in shown
-    window.close()
-
-def test_export_animation_zero_times_mean_full_range(monkeypatch):
-    window = _make_window()
-    calls, _ = _patch_export_animation(monkeypatch, window)
-    window._on_export_animation()
-    _finish_render(window)
-    assert calls[0][1]["start_time"] is None and calls[0][1]["end_time"] is None
-    window.close()
-
-@pytest.mark.parametrize("cancel", ["smv", "dialog", "out"])
-def test_export_animation_cancel_does_not_render(monkeypatch, cancel):
-    window = _make_window()
-    kwargs = {"smv": "" if cancel == "smv" else "case.smv",
-              "out": "" if cancel == "out" else "a.mp4",
-              "accepted": cancel != "dialog"}
-    calls, _ = _patch_export_animation(monkeypatch, window, **kwargs)
-    window._on_export_animation()
-    _finish_render(window)
-    assert calls == []
-    window.close()

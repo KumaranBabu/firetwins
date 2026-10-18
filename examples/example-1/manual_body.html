@@ -1,0 +1,340 @@
+<div class="wrap cover">
+  <div class="eyebrow">User manual · worked example</div>
+  <h1>Room fire, from empty model to results</h1>
+  <p class="lede">One complete simulation in the PyFDS desktop application, with a screenshot of every step: set up the project, mesh the domain, draw the room, define the fire, place instruments, check the model, run the real FDS solver, then explore the results in 3D: slices, flame, isosurfaces, plots, screenshots and an MP4 animation.</p>
+
+  <aside class="about">
+    <div class="eyebrow" style="margin-bottom:8px">About this case</div>
+    <p><b>A gas burner is lit in the middle of a small room, and we watch what happens for the first 20 seconds.</b> The room is 4.8 × 3.3 m and 2.4 m high, with plasterboard walls and ceiling, a door in the south wall and a window in the east wall. The burner grows from nothing to about 360 kW over 15 seconds. A heat detector under the ceiling above the fire and four thermocouples on a vertical line record the room's response.</p>
+    <p>The case answers three practical questions: how fast the fire grows, how soon a ceiling heat detector would respond, and how hot the gas gets at different heights. It is small and quick (about three minutes to compute) so every step can be shown end to end.</p>
+  </aside>
+
+  <div class="meta"><span>Application: PyFDS desktop</span><span>Solver: FDS 6.10.1</span><span>Viewer: Smokeview 6</span><span>Case: example_1</span><span>Run date: 18 Oct 2026</span></div>
+  <nav class="toc" aria-label="Contents"><strong>Contents</strong>
+    <ol>
+      <li><a href="#glance">The case at a glance</a></li>
+      <li><a href="#tour">The application window</a></li>
+      <li><a href="#s1">1 · Project and simulation setup</a></li>
+      <li><a href="#s2">2 · Mesh</a></li>
+      <li><a href="#s3">3 · Geometry</a></li>
+      <li><a href="#s4">4 · Physics: fire and boundaries</a></li>
+      <li><a href="#s5">5 · Instruments and outputs</a></li>
+      <li><a href="#s6">6 · Check the model</a></li>
+      <li><a href="#s7">7 · Save</a></li>
+      <li><a href="#s8">8 · Run</a></li>
+      <li><a href="#s9">9 · Results: a first look</a></li>
+      <li><a href="#s10">10 · The 3D Results Viewer</a></li>
+      <li><a href="#s11">11 · The work panels</a></li>
+      <li><a href="#files">Files, repeating, limits</a></li>
+    </ol>
+  </nav>
+</div>
+
+<div class="wrap">
+<h2 id="glance" style="border-top:0;padding-top:0">The case at a glance</h2>
+<div class="glance">
+  <div class="hot"><b>370 kW</b><span>peak heat release rate</span></div>
+  <div class="hot"><b>≈ 10 s</b><span>heat detector activates (FDS reports 9.7 s)</span></div>
+  <div><b>707 °C</b><span>gas temperature 0.6 m above the floor at 20 s</span></div>
+  <div><b>160 s</b><span>time FDS took to run the 20 s of fire</span></div>
+</div>
+<div class="scroll"><table>
+  <tr><th>Item</th><th>Value</th></tr>
+  <tr><td>Room</td><td>4.8 × 3.3 m floor, 2.4 m high; 0.15 m double-layer gypsum walls and ceiling</td></tr>
+  <tr><td>Openings</td><td>Door 0.9 × 2.1 m (south wall); window 1.2 × 1.05 m, 0.9 m above the floor (east wall)</td></tr>
+  <tr><td>Fire</td><td>Propane burner 0.6 × 0.6 m, 0.15 m high, 500 kW/m² on every exposed face (0.72 m², about 360 kW at full size), growing with t² to full size at 15 s</td></tr>
+  <tr><td>Calculation domain</td><td>6.0 × 4.5 × 3.0 m, open on all sides and above; 40 × 30 × 20 cells of 0.15 m (24,000 cells)</td></tr>
+  <tr><td>Instruments</td><td>Heat detector (74 °C, RTI 5) under the ceiling; thermocouples at 0.6, 1.2, 1.8 and 2.3 m</td></tr>
+  <tr><td>Output pictures</td><td>Temperature slices through the fire, every second</td></tr>
+  <tr><td>Simulated time</td><td>20 s</td></tr>
+</table></div>
+</div>
+
+<div class="wrap">
+<h2 id="tour">The application window</h2>
+<p>Start PyFDS with <code>python main.py</code>. A new, empty project opens. Everything in this manual is done from this window.</p>
+<figure><img alt="The PyFDS main window with an empty project" src="%%gui/01_new_project.png%%"><figcaption>The empty project. <b>Menus</b> across the top (File, Edit, View, Draw, Model, Devices, Output, Run, Results ...). <b>Toolbar</b> with the common actions, including Validate Project and Run Simulation. <b>Project Explorer</b> on the left lists every object in the model by type. The <b>3D view</b> is in the middle. The <b>status bar</b> along the bottom shows the case name and object counts. The AI Assistant panel on the right is not used in this walkthrough.</figcaption></figure>
+<p>Every object you add appears in the Project Explorer and the 3D view at once. Every action can be undone with Edit &gt; Undo or the toolbar button.</p>
+</div>
+
+<div class="wrap">
+<h2 id="s1">1 · Project and simulation setup</h2>
+<div class="where"><span class="tag">Menu</span>File &gt; Project Settings…, then Model &gt; Simulation Parameters…</div>
+<p>Give the case a name and set how long to simulate. The <b>case ID</b> (CHID) becomes the first part of every output file name, so keep it short and without spaces.</p>
+<div class="figrow">
+<figure><img alt="Project Settings dialog with case ID example_1" src="%%gui/02a_project_settings.png%%"><figcaption>Project Settings: case ID <code>example_1</code> and a title.</figcaption></figure>
+<figure><img alt="Simulation Parameters dialog with end time 20" src="%%gui/02b_simulation_parameters.png%%"><figcaption>Simulation Parameters: end time 20 s. The other values keep their defaults.</figcaption></figure>
+</div>
+</div>
+
+<div class="wrap">
+<h2 id="s2">2 · Mesh</h2>
+<div class="where"><span class="tag">Menu</span>Model &gt; Add Mesh…</div>
+<p>The mesh is the box FDS calculates in, divided into small cells. Enter the cell counts and the box corners. Here the box is 6.0 × 4.5 × 3.0 m, divided into 40 × 30 × 20 cells, so each cell is 0.15 m. That size puts the room walls exactly on cell boundaries.</p>
+<div class="figrow">
+<figure><img alt="Add Mesh dialog" src="%%gui/03a_add_mesh.png%%"><figcaption>Add Mesh. <b>Ijk</b> = cells in x, y, z. <b>Xb</b> = x min, x max, y min, y max, z min, z max in metres.</figcaption></figure>
+<figure><img alt="The mesh box in the 3D view" src="%%gui/03b_mesh_in_view.png%%"><figcaption>The mesh appears as a blue frame in the 3D view.</figcaption></figure>
+</div>
+<div class="note ok"><b>Cell counts are checked for you</b>FDS needs each cell count to be made of the factors 2, 3 and 5 (40, 30 and 20 are). The model check in step 6 flags a count such as 14 or 17 before anything is run.</div>
+</div>
+
+<div class="wrap">
+<h2 id="s3">3 · Geometry</h2>
+<h3>3a · Choose the wall construction from the library</h3>
+<div class="where"><span class="tag">Menu</span>Model &gt; Library…</div>
+<p>The library holds ready-made materials, wall constructions, fuels, detectors and more. Pick <b>Surfaces</b>, select <code>gypsum_wall_25mm</code> (two 12.5 mm gypsum boards), and press <b>Add to Model</b>. The gypsum board material it is made of comes along automatically.</p>
+<figure style="max-width:620px"><img alt="Library dialog showing the Surfaces category with gypsum_wall_25mm selected" src="%%gui/04_library_wall_surface.png%%"><figcaption>The library browser. The right side shows what the entry contains. “Added GYPSUM_WALL_25MM to the model” confirms it.</figcaption></figure>
+
+<h3>3b · Draw the room</h3>
+<div class="where"><span class="tag">Menu</span>Draw &gt; Draw Room (walls, door, window)…</div>
+<p>Describe the room once: the outline, height, wall thickness and the wall surface. Add the door and window in the table. <b>Wall</b> is S, E, N or W; <b>Centre</b> is the distance along that wall; <b>Sill</b> is the height of the bottom edge above the floor.</p>
+<figure style="max-width:640px"><img alt="Draw Room dialog with footprint, construction and a door and window listed" src="%%gui/05a_draw_room.png%%"><figcaption>Draw Room. The door is on the south wall, 3.0 m along, 0.9 × 2.1 m. The window is on the east wall, 2.25 m along, 1.2 × 1.05 m, sill at 0.9 m.</figcaption></figure>
+<p>One press of OK builds four walls and a ceiling and cuts both openings. The whole room is one undo step.</p>
+
+<h3>3c · The burner block</h3>
+<div class="where"><span class="tag">Menu</span>Model &gt; Add Obstruction…</div>
+<p>The burner is a low block on the floor in the middle of the room, 0.6 × 0.6 m and 0.15 m high. It uses a surface called <code>BURNER_SURF</code>, which is defined in the next step.</p>
+<figure style="max-width:300px"><img alt="Add Obstruction dialog" src="%%gui/06b_burner_block.png%%"><figcaption>Add Obstruction: position and size in <b>Xb</b>, and the surface it uses.</figcaption></figure>
+<figure><img alt="3D view showing the room with a door and a window" src="%%gui/05b_room_in_view.png%%"><figcaption>The room in the 3D view: walls and ceiling in grey, door and window outlined in red, mesh frame in blue. The green faces that mark the open boundaries are hidden here (View &gt; Show/Hide &gt; Vents) so the room can be seen.</figcaption></figure>
+</div>
+
+<div class="wrap">
+<h2 id="s4">4 · Physics: fire and boundaries</h2>
+<h3>4a · The burner surface</h3>
+<div class="where"><span class="tag">Menu</span>Model &gt; Add Typed Surface…</div>
+<p>Choose the surface type <b>burner</b> and give its heat release per square metre (500 kW/m²). A negative <b>Tau q</b> of −15 means the heat output grows with the square of time and reaches full strength after 15 seconds. The dialog asks only for what a burner needs.</p>
+<figure style="max-width:300px"><img alt="Add Surface dialog with kind burner, heat release rate 500 and tau q minus 15" src="%%gui/06a_burner_surface.png%%"><figcaption>A burner surface: 500 kW/m², t-squared growth over 15 s.</figcaption></figure>
+
+<h3>4b · The fuel</h3>
+<div class="where"><span class="tag">Menu</span>Model &gt; Add Reaction…</div>
+<p>Say what burns: propane, with its heat of combustion of 46,000 kJ/kg. FDS uses this, together with the burner's heat release, to work out how much gas to feed in and how much smoke it makes.</p>
+<figure style="max-width:300px"><img alt="Add Reaction dialog with fuel PROPANE" src="%%gui/06c_reaction.png%%"><figcaption>The reaction: fuel PROPANE, heat of combustion 46,000 kJ/kg.</figcaption></figure>
+
+<h3>4c · Open the outside</h3>
+<div class="where"><span class="tag">Menu</span>Model &gt; Open Mesh Boundaries</div>
+<p>One click closes the mesh with open vents on all six faces, so air can come in and hot gas can leave. Six vents appear in the Project Explorer.</p>
+<figure><img alt="Project Explorer listing six open-boundary vents" src="%%gui/07_open_boundaries.png%%"><figcaption>Six <code>DOMAIN_*_OPEN</code> vents were created, one per face. The 3D view shows them as green translucent faces.</figcaption></figure>
+</div>
+
+<div class="wrap">
+<h2 id="s5">5 · Instruments and outputs</h2>
+<h3>5a · Heat detector</h3>
+<div class="where"><span class="tag">Menu</span>Model &gt; Library… (Heat Detector Models), then Devices &gt; Add Device (by Quantity)…</div>
+<p>First add the detector's properties from the library: a heat detector that activates at 74 °C with a response time index (RTI) of 5. Then place a device that uses it, under the ceiling above the fire.</p>
+<div class="figrow">
+<figure><img alt="Library dialog with the heat detector 74 degrees entry" src="%%gui/08a_library_heat_detector.png%%"><figcaption>Library, Heat Detector Models: <code>heat_detector_74C</code>.</figcaption></figure>
+<figure><img alt="Add Device dialog for the heat detector" src="%%gui/08b_heat_detector_device.png%%"><figcaption>The detector device at x 3.0, y 2.4, z 2.35 m, using the property just added.</figcaption></figure>
+</div>
+<div class="note warn"><b>Check library values for your own work</b>The detector entry is a typical value, supplied as a starting point. Replace it with the data of the product you are modelling.</div>
+
+<h3>5b · Thermocouples and slices</h3>
+<div class="where"><span class="tag">Menu</span>Devices &gt; Add Thermocouple…, and Output &gt; Add Slice…</div>
+<p>Four thermocouples on a vertical line above the fire (0.6, 1.2, 1.8 and 2.3 m) record the gas temperature over time. A <b>slice</b> is a flat picture plane that FDS saves every second. Two temperature slices were added, one on the plane y = 2.4 m and one on x = 3.0 m, both through the fire.</p>
+<div class="figrow">
+<figure><img alt="Add Thermocouple dialog" src="%%gui/08c_thermocouple.png%%"><figcaption>Thermocouple at x 3.0, y 2.4, z 0.6 m. Repeat for 1.2, 1.8 and 2.3 m.</figcaption></figure>
+<figure><img alt="Add Slice dialog for temperature on plane Y at 2.4" src="%%gui/08d_slice.png%%"><figcaption>Temperature slice on the plane y = 2.4 m.</figcaption></figure>
+</div>
+</div>
+
+<div class="wrap">
+<h2 id="s6">6 · Check the model</h2>
+<div class="where"><span class="tag">Menu</span>Model &gt; Validate Project (also on the toolbar)</div>
+<p>Before running, look at the finished model from a few angles (View &gt; Standard Views), then run the model checks. PyFDS applies 28 checks and reports errors, which stop a run, and warnings, which do not.</p>
+<div class="figrow">
+<figure><img alt="Finished model in isometric view" src="%%gui/09a_model_complete_isometric.png%%"><figcaption>Isometric view of the finished model. The Project Explorer shows every object.</figcaption></figure>
+<figure><img alt="Finished model seen from the front" src="%%gui/09b_model_front.png%%"><figcaption>Front view: the door is visible on the south wall.</figcaption></figure>
+</div>
+<figure style="max-width:560px"><img alt="Validation report: 0 errors, 2 warnings" src="%%gui/10_validation_report.png%%"><figcaption>The validation report: <b>0 errors, 2 warnings</b>, so the run can go ahead.</figcaption></figure>
+<div class="note warn"><b>Warning 1 · Fire resolution is borderline</b>The fire-resolution ratio (D*/dx) is 4.9; 10 or more is recommended for results you rely on. Halving the cell size would reach that but takes about eight times as long to compute. Acceptable for a demonstration.</div>
+<div class="note warn"><b>Warning 2 · Fuel species not defined</b>PROPANE is named without its own species entry. FDS knows propane built in, so this run is unaffected.</div>
+</div>
+
+<div class="wrap">
+<h2 id="s7">7 · Save</h2>
+<div class="where"><span class="tag">Menu</span>File &gt; Save As… (or the toolbar)</div>
+<p>Save the project as a <code>.pyfds</code> file. It holds everything: geometry, library items, settings. Open it again later with File &gt; Open.</p>
+<figure><img alt="Main window after saving the project" src="%%gui/11_saved_project.png%%"><figcaption>Saved as <code>example_1.pyfds</code>.</figcaption></figure>
+</div>
+
+<div class="wrap">
+<h2 id="s8">8 · Run</h2>
+<div class="where"><span class="tag">Menu</span>Run &gt; Run Simulation… (or the toolbar). Choose an output folder and the number of processes (1 here).</div>
+<p>PyFDS checks the model again, writes the FDS input file, and starts the real FDS solver. The <b>Run Monitor</b> tab of the Messages panel (bottom of the window) opens by itself. It shows progress, the heat release rate as it develops, and the solver's own log. You can keep working in the main window or switch to another tab; the run continues.</p>
+<div class="figrow">
+<figure><img alt="Simulation monitor at 12 percent" src="%%gui/12a_run_monitor_12pct.png%%"><figcaption>Early in the run.</figcaption></figure>
+<figure><img alt="Simulation monitor at 45 percent" src="%%gui/12b_run_monitor_45pct.png%%"><figcaption>Fire growing along the t-squared curve.</figcaption></figure>
+</div>
+<figure style="max-width:720px"><img alt="Simulation monitor at 80 percent, heat release near 357 kilowatts" src="%%gui/12c_run_monitor_80pct.png%%"><figcaption>Close to full size: the heat release rate levels off near 360 kW.</figcaption></figure>
+<figure style="max-width:720px"><img alt="Run Monitor finished, 100 percent" src="%%gui/12d_run_monitor_finished.png%%"><figcaption>Finished. The log shows “FDS completed successfully”, the status bar shows <b>Run: done</b>, and <b>Open Results Viewer</b> is now available. This run took 158 s of computer time.</figcaption></figure>
+<p>If FDS rejects the input, the run is reported as failed together with FDS's own error message, and the monitor shows “FDS stopped with an error”.</p>
+</div>
+
+<div class="wrap">
+<h2 id="s9">9 · Results: a first look</h2>
+<p>This section uses the simple 2D results window. The full 3D viewer, with smoke, isosurfaces, animation and more, is in section 10.</p>
+<h3>9a · Quick results viewer: play the run back</h3>
+<div class="where"><span class="tag">Menu</span>Results &gt; Results Viewer… (or the button in the monitor)</div>
+<p>The viewer plays the saved slices back like a video. Use the controls at the bottom: jump to the start or end, step one frame, <b>Play</b> and <b>Pause</b>, speed from 0.25× to 10×, loop. Drag the slider to any time. The colour map and range can be changed on the left, and <b>Probe a point</b> reads the temperature at any position on the plane shown.</p>
+<figure><img alt="Results viewer at the first frame, all cool" src="%%gui/13a_results_viewer_first_frame.png%%"><figcaption>Start of the run: room at ambient temperature.</figcaption></figure>
+<div class="figrow">
+<figure><img alt="Results viewer at mid-run showing the plume growing" src="%%gui/13b_results_viewer_mid.png%%"><figcaption>Mid-run, t = 10 s: the plume reaches the ceiling and a hot layer begins to form.</figcaption></figure>
+<figure><img alt="Results viewer at 20 seconds" src="%%gui/13c_results_viewer_end.png%%"><figcaption>End of the run, t = 20 s: hot plume of about 780 °C at its base; the probe reads 415 °C at 1.2 m above the burner.</figcaption></figure>
+</div>
+<figure><img alt="Results viewer showing the second slice, plane x equals 3" src="%%gui/13d_results_viewer_second_slice.png%%"><figcaption>The second slice, on the plane x = 3.0 m, selected from the list on the left.</figcaption></figure>
+
+<h3>9b · Heat release and temperatures</h3>
+<p>The top curve is the heat release rate. It follows the t-squared growth and levels off near 360 kW once the burner is fully involved at 15 s. The lower curves are the four thermocouples. The hottest gas is just above the flame; temperature falls with height as the plume mixes with room air.</p>
+<figure><img alt="Heat release rate and four thermocouple temperatures against time" src="%%gui_results/hrr_and_thermocouples.png%%"><figcaption>Heat release rate (top) and gas temperature at four heights (bottom), from the run's output files.</figcaption></figure>
+<div class="glance">
+  <div><b>707 °C</b><span>thermocouple at 0.6 m, 20 s</span></div>
+  <div><b>432 °C</b><span>thermocouple at 1.2 m, 20 s</span></div>
+  <div><b>302 °C</b><span>thermocouple at 1.8 m, 20 s</span></div>
+  <div><b>280 °C</b><span>thermocouple at 2.3 m, 20 s</span></div>
+</div>
+<div class="note heat"><b>Detector response</b>FDS reports the heat detector activating at 9.7 s, when the fire was about 165 kW. The recorded link temperature (saved once per second) passes 74 °C between 10 and 11 s.</div>
+
+<h3>9c · The same fire in Smokeview</h3>
+<p>PyFDS can also drive FDS's own viewer, Smokeview, to make screenshots at chosen times. These show the temperature slice at 5, 10 and 20 s looking at the room from the south. The grey surfaces are the walls and the white gap is the door.</p>
+<div class="shots">
+<figure><img alt="Smokeview at 5 seconds" src="%%gui_results/smokeview/screenshot_0000_t5p0.png%%"><figcaption>5 s</figcaption></figure>
+<figure><img alt="Smokeview at 10 seconds" src="%%gui_results/smokeview/screenshot_0001_t10p0.png%%"><figcaption>10 s</figcaption></figure>
+<figure><img alt="Smokeview at 20 seconds" src="%%gui_results/smokeview/screenshot_0002_t20p0.png%%"><figcaption>20 s</figcaption></figure>
+</div>
+<p>Values read from the results at 20 s: <b>415 °C</b> 1.2 m above the burner, <b>229 °C</b> under the ceiling above it, <b>45 °C</b> in the doorway.</p>
+</div>
+
+<div class="wrap">
+<h2 id="s10">10 · The 3D Results Viewer</h2>
+<p>Section 9 looked at the run on flat slices. The <b>3D Results Viewer</b> is a second window, in the style of Smokeview's navigation view: the room, the fire and the data all sit in one 3D scene that you can turn, cut open, play like a film and save as pictures or a video. Everything below uses the same run as section 8 (<code>gui_run/example_1.smv</code>), and every screenshot is the real window.</p>
+
+<h3>10a · Open the viewer</h3>
+<div class="where"><span class="tag">Menu</span>Results &gt; View Results (3D)…</div>
+<p>The entry sits at the top of the Results menu of the main window.</p>
+<div class="figrow">
+<figure><img alt="Results menu of the main window with View Results (3D) at the top" src="%%gui_viewer/v01_results_menu.png%%"><figcaption>Results &gt; View Results (3D)…</figcaption></figure>
+<figure><img alt="File menu of the 3D viewer" src="%%gui_viewer/v03_file_menu.png%%"><figcaption>The viewer's own File menu: open or load results, load a CSV file, save screenshots and movies.</figcaption></figure>
+</div>
+<figure><img alt="The empty 3D Results Viewer" src="%%gui_viewer/v02_empty_viewer.png%%"><figcaption>The viewer before anything is loaded. <b>Left:</b> the Navigation View (a tree of everything that can be shown). <b>Centre:</b> the 3D scene. <b>Bottom:</b> the time bar with Play, a slider, speed and Loop. <b>Top:</b> menus and a toolbar with the camera tools and rendering mode.</figcaption></figure>
+
+<h3>10b · Load the results of the run</h3>
+<div class="where"><span class="tag">Menu</span>File &gt; Open Results (.smv)… then pick <code>example_1.smv</code> in the run folder</div>
+<p>The <code>.smv</code> file is the index FDS writes next to its data. The viewer reads it and builds the tree: scene geometry, <b>3D Smoke</b> (smoke and flame), <b>Plot3D</b> (the whole room at chosen times), <b>2D Slices</b> (the slices you asked for in step 5), and the solver's <b>Maximum Errors</b>. Nothing is drawn until you switch an item on. The case here has two slices, three kinds of smoke data and four Plot3D quantities.</p>
+<figure><img alt="Results loaded, tree filled, scene still empty" src="%%gui_viewer/v04_results_loaded.png%%"><figcaption>Results loaded. The tree is full; the scene is empty until something is switched on.</figcaption></figure>
+<p>Double-click an item in the tree to switch it on or off (active items are shown in bold). Switch on <b>FDS Actual</b> under Scene Geometry to see what FDS really built: the walls, door, window and burner, inside the outline of the computational mesh.</p>
+<figure><img alt="Room geometry in the 3D viewer: grey walls with door and window inside an orange domain outline" src="%%gui_viewer/v05_geometry_on.png%%"><figcaption>FDS Actual geometry. The orange outline is the open boundary of the domain; the grey boxes are the walls, ceiling, door and window opening.</figcaption></figure>
+<div class="note"><b>Rendering mode</b>The box in the toolbar chooses how solids are drawn (Solid, Solid outlines, Realistic, Realistic outlines, Wireframe). The next figures use <b>Wireframe</b> so the inside of the room stays visible.</div>
+<figure style="max-width:720px"><img alt="Room in wireframe mode" src="%%gui_viewer/v05b_wireframe_walls.png%%"><figcaption>Wireframe: walls drawn as edges only.</figcaption></figure>
+</div>
+
+<div class="wrap">
+<h3>10c · Slices and the time bar</h3>
+<div class="where"><span class="tag">Tree</span>2D Slices &gt; TEMPERATURE &gt; SLICE_T_Y &gt; Mesh 1 (double-click) · <span class="tag">Time bar</span>slider, Play, speed, Loop</div>
+<p>A slice is a flat cut through the room that shows one quantity in colour. Switching it on adds a <b>colour bar</b> at the right and a clock at the top left. Drag the slider to any time, step with <b>&lt;</b> and <b>&gt;</b>, or press <b>Play</b>. The speed box (×1.00) and the ÷2 and ×2 buttons change the playback speed; <b>Loop</b> repeats.</p>
+<div class="figrow">
+<figure><img alt="Temperature slice at 10 seconds in the 3D scene" src="%%gui_viewer/v06_slice_mid_run.png%%"><figcaption>t = 10 s: the plume rises from the burner and starts to spread under the ceiling.</figcaption></figure>
+<figure><img alt="Temperature slice at 20 seconds" src="%%gui_viewer/v07_slice_end.png%%"><figcaption>t = 20 s: a hot layer under the whole ceiling.</figcaption></figure>
+</div>
+<figure><img alt="Two temperature slices crossing in the room" src="%%gui_viewer/v08_two_slices.png%%"><figcaption>Both slices on at once (planes y = 2.4 m and x = 3.0 m). They cross exactly in the plume.</figcaption></figure>
+
+<h3>10d · 3D smoke and flame</h3>
+<div class="where"><span class="tag">Tree</span>3D Smoke &gt; HRRPUV &gt; Mesh 1 (flame) and SOOT DENSITY &gt; Mesh 1 (smoke)</div>
+<p>3D Smoke shows the fire itself as a volume, not a flat cut. <b>HRRPUV</b> (heat release rate per unit volume) is the flame: the brighter, the more heat is released in that spot. <b>SOOT DENSITY</b> is the smoke. In this short run with a clean-burning gas fire there is almost no soot, so the flame is the part to look at. Look at it from different sides by dragging with the mouse (Orbit), or use the Top, Front and Left side buttons.</p>
+<figure><img alt="Flame above the burner drawn as a 3D volume" src="%%gui_viewer/v09_smoke_and_fire.png%%"><figcaption>The flame at t = 20 s, drawn as a volume above the burner.</figcaption></figure>
+
+<h3>10e · Isosurfaces from Plot3D</h3>
+<div class="where"><span class="tag">Menu</span>Tools &gt; Data3D: Add Isosurface… · choose the quantity (Plot3D &gt; TEMPERATURE), enter the value (300), then switch the new item on in the tree</div>
+<p>Plot3D files hold the whole room at a few times. An <b>isosurface</b> is the skin of all points that have exactly one value, here 300 °C. It shows the shape of the hot plume as a solid body.</p>
+<figure><img alt="Isosurface at 300 C: a tall plume above the burner" src="%%gui_viewer/v10_isosurface_300C.png%%"><figcaption>The 300 °C surface (yellow) at t = 20 s: a tall column over the burner that has not yet reached the ceiling.</figcaption></figure>
+</div>
+
+<div class="wrap">
+<h3>10f · Select objects by clicking</h3>
+<div class="where"><span class="tag">Mouse</span>click an object in the 3D scene · <span class="tag">Esc</span> or click empty space to clear</div>
+<p>Click any object in the scene to find out what it is. A click is a press and release without moving the mouse; if you drag, the view turns instead. The object you hit is <b>outlined in yellow</b>, its row in the Navigation View is selected, and the <b>status bar</b> at the bottom describes it:</p>
+<ul class="plain">
+  <li><b>A wall, vent or other solid:</b> its name, its position (XB) and its size. In the figure below, the click on the north wall reports <code>Obstruction ROOM_N: XB = 0.6, 5.4, 3.75, 3.9, 0, 2.4 (4.80 × 0.15 × 2.40 m)</code>.</li>
+  <li><b>A slice or 3D data:</b> the value under the pointer. Clicking the temperature slice at the base of the plume reports <code>TEMPERATURE = 541.9 C at (3.01, 2.40, 0.89) m</code>.</li>
+  <li><b>An isosurface:</b> its level.</li>
+</ul>
+<figure><img alt="North wall outlined in yellow after a click; the status bar gives its name and size" src="%%gui_viewer/v05a_click_wall.png%%"><figcaption>A click on the north wall: yellow outline, the tree row is selected, and the status bar gives the name and size.</figcaption></figure>
+<figure><img alt="Temperature slice clicked at the plume; the status bar shows 541.9 C" src="%%gui_viewer/v07a_click_slice.png%%"><figcaption>A click on the slice at 0.89 m above the floor: the status bar reads 541.9 °C at that point (t = 20 s).</figcaption></figure>
+<div class="note"><b>Good to know</b>The open sides of the domain (the orange outline) are not clickable, so they never block the objects behind them. A click selects one object at a time; the 3D flame and smoke volumes cannot be selected by clicking.</div>
+</div>
+
+<div class="wrap">
+<h3>10g · Colour bar and rendering quality</h3>
+<div class="where"><span class="tag">Menu</span>Preferences &gt; Colorbar… (pick the quantity first) · Preferences &gt; Rendering…</div>
+<p>The <b>Colorbar</b> dialog sets the range of the colours (minimum, maximum, or automatic), the colour map (turbo, viridis, jet, …), whether values below or above a limit are hidden, and how see-through the data is. The <b>Rendering</b> dialog controls the picture quality. <b>Max Quality</b> switches on everything the graphics card can do and <b>Max Compatibility</b> picks the safe options for an older machine; the note at the top says which options are applied.</p>
+<div class="figrow">
+<figure><img alt="Colorbar dialog" src="%%gui_viewer/v11_colorbar_dialog.png%%"><figcaption>Colorbar settings for TEMPERATURE.</figcaption></figure>
+<figure><img alt="Rendering preferences dialog" src="%%gui_viewer/v12_rendering_dialog.png%%"><figcaption>Rendering preferences with the two quality presets.</figcaption></figure>
+</div>
+
+<h3>10h · Plots from the output files</h3>
+<div class="where"><span class="tag">Menu</span>File &gt; Load CSV File… (twice: <code>example_1_hrr.csv</code>, <code>example_1_devc.csv</code>) · Tools &gt; Time History Plot…</div>
+<p>The heat release file and the device file written by FDS can be loaded next to the 3D data. They appear under <b>XY Plot Data</b>. The plot window lists every column; tick the ones you want. A dashed line marks the time that the 3D scene is showing, so the curves and the picture can be read together. The plot type can be Line, Stem or Step, and <b>F11</b> saves the plot as an image.</p>
+<figure><img alt="Two CSV files listed under XY Plot Data" src="%%gui_viewer/v13a_csv_loaded.png%%"><figcaption>Both CSV files loaded and listed in the tree.</figcaption></figure>
+<figure style="max-width:760px"><img alt="Heat release rate and four thermocouples in the time history window" src="%%gui_viewer/v13_time_plot.png%%"><figcaption>The heat release rate (blue, kW) and four thermocouple temperatures (°C). The same curves as in 9b, now inside the viewer.</figcaption></figure>
+</div>
+
+<div class="wrap">
+<h3>10i · Views, section planes, dimensions and labels</h3>
+<div class="where"><span class="tag">Menu</span>View &gt; Top / Front / Side / Reset Camera · View &gt; Set Section Plane… · Tools &gt; Add Dimension… / Add Label… · View &gt; New View…</div>
+<p>Use the toolbar or the View menu to jump to the standard directions. A <b>section plane</b> cuts the model away on one side, like slicing a cake, so you can see inside without moving the camera. A <b>dimension</b> draws a measured line between two points; a <b>label</b> pins a text to a point. <b>New View</b> stores the current camera position under a name, so you can come back to it, or use it for screenshots and movies.</p>
+<div class="figrow">
+<figure><img alt="Top view" src="%%gui_viewer/v14_view_top.png%%"><figcaption>Top view.</figcaption></figure>
+<figure><img alt="Front view" src="%%gui_viewer/v14_view_front.png%%"><figcaption>Front view.</figcaption></figure>
+</div>
+<figure><img alt="Section plane cutting the room at y equals 2.4" src="%%gui_viewer/v15_section_plane.png%%"><figcaption>A section plane at y = 2.4 m: the far half of the room is removed and the plume is seen from the side.</figcaption></figure>
+<figure><img alt="Dimension line 4.800 m and the label Burner" src="%%gui_viewer/v16_view_dimension_label.png%%"><figcaption>A dimension (4.800 m along the south wall) and a saved view named “Detector view”, both listed in the tree.</figcaption></figure>
+
+<h3>10j · Screenshots and the animation</h3>
+<div class="where"><span class="tag">Menu</span>File &gt; Save Screenshot… (Ctrl+P) · File &gt; Save Movie… · File &gt; Save 360 Movie…</div>
+<p><b>Screenshot.</b> The dialog asks for a file name, the picture size, and how many pictures to make: a <b>single</b> picture at one time, <b>multiple</b> pictures between a start and end time at a fixed interval, or pictures at the times listed in a text file. You can also choose which saved views to photograph.</p>
+<p><b>Movie.</b> The dialog asks for the file name, size, frame rate, speed (2× means two seconds of fire per second of film), begin and end time, data rate and which view to use. The viewer draws each frame itself and joins them into an MP4 file. For this case the run was made into a film of <b>101 frames</b> at 10 frames per second and 2× speed (about 10 seconds long, 960 × 540 pixels). It is saved as <code>gui_viewer/example_1.mp4</code>. <b>Save 360 Movie</b> does the same for a 360° picture that can be looked around in a VR or 360° player.</p>
+<div class="figrow">
+<figure><img alt="Screenshot dialog" src="%%gui_viewer/v17_screenshot_dialog.png%%"><figcaption>Save Screenshot dialog.</figcaption></figure>
+<figure><img alt="Movie dialog" src="%%gui_viewer/v18_movie_dialog.png%%"><figcaption>Save Movie dialog. The line at the bottom shows which video encoder was found.</figcaption></figure>
+</div>
+<p>Three frames from the film (the temperature slice on the plane y = 2.4 m together with the flame, the burner label and the room dimension):</p>
+<div class="shots">
+<figure><img alt="Frame at 5 seconds" src="%%gui_viewer/shots/t05.png%%"><figcaption>5 s</figcaption></figure>
+<figure><img alt="Frame at 10 seconds" src="%%gui_viewer/shots/t10.png%%"><figcaption>10 s</figcaption></figure>
+<figure><img alt="Frame at 20 seconds" src="%%gui_viewer/shots/t20.png%%"><figcaption>20 s</figcaption></figure>
+</div>
+<p>The same can be done without opening the window, for example for a batch of cases: <code>python -m pyfds.gui.results -movie -mvname film.mp4 example_1.smv</code> (add <code>-mv360</code> for a 360° film, or <code>-screenshot</code> for pictures).</p>
+
+<h3>10k · Save the visualization</h3>
+<div class="where"><span class="tag">Menu</span>File &gt; Save As… → <code>example_1.pyfdsv</code></div>
+<p>Everything set up in the viewer (which items are on, the colour bars, views, dimensions, labels, section planes, loaded CSV files, preferences) can be saved in one small text file with the extension <b>.pyfdsv</b>. Opening it later with File &gt; Open Results Visualization brings back the same picture. The file refers to the run's folder; it does not copy the data.</p>
+<figure><img alt="Viewer title showing the saved file name" src="%%gui_viewer/v19_saved_visualization.png%%"><figcaption>Saved. The window title shows the file name; an asterisk appears there when there are unsaved changes.</figcaption></figure>
+</div>
+
+<div class="wrap">
+<h2 id="files">Files, repeating, limits</h2>
+<h3>What you receive</h3>
+<div class="scroll"><table class="files">
+  <tr><th>File</th><th>What it is</th></tr>
+  <tr><td>example_1.pyfds</td><td>The project saved from the application. Open it to change anything and run again.</td></tr>
+  <tr><td>gui_run/</td><td>All FDS output: log, heat release file, device file, slice files, smoke data, and the FDS input that was run (<code>example_1.fds</code>, plain text).</td></tr>
+  <tr><td>gui/</td><td>The screenshots in this manual, one per step.</td></tr>
+  <tr><td>gui_results/</td><td>Chart, Smokeview screenshots and a summary of the key numbers.</td></tr>
+  <tr><td>gui_viewer/</td><td>Screenshots of the 3D Results Viewer (section 10), three film frames, and <code>example_1.mp4</code>, the animation.</td></tr>
+  <tr><td>example_1.pyfdsv</td><td>The saved 3D visualization (section 10k).</td></tr>
+  <tr><td>gui_viewer_walkthrough.py</td><td>The script that operated the 3D viewer to make section 10; run it after <code>gui_walkthrough.py</code>.</td></tr>
+  <tr><td>gui_panels_walkthrough.py</td><td>The script that took the screenshots of the work panels (section 11) with the finished case loaded; nothing in the project is changed.</td></tr>
+  <tr><td>gui_walkthrough.py</td><td>The script that operated the application window to produce this manual, so the whole case can be repeated.</td></tr>
+</table></div>
+<h3>Repeating the case</h3>
+<p>Open <code>example_1.pyfds</code> with File &gt; Open, change a value (a larger fire, a wider door, a longer end time) and run again. To redo the whole walkthrough, including the screenshots, run <code>python examples/example-1/gui_walkthrough.py</code> (about four minutes, the window opens and operates itself).</p>
+<h3>Limits of this demonstration</h3>
+<ul class="plain">
+  <li><b>It is a demonstration, not an engineering study.</b> Twenty seconds of a small fire in coarse cells shows the workflow. The fire is only borderline resolved (warning 1) and the room has not reached a steady state.</li>
+  <li><b>The 3D viewer is checked on this machine only.</b> Its screenshots were taken from the real window. Clicking an object in the 3D scene does not select it yet (use the tree), the animation is made frame by frame and not recorded live, and virtual-reality display is not included.</li>
+  <li><b>Library values are typical, not certified.</b> Material and detector entries are starting points to be replaced with product data.</li>
+  <li><b>Some dialogs show plain parameter names</b> (for example “Ijk”, “Xb”, “Tau q”) with a short explanation under the field. The meaning of each is given in the text above.</li>
+  <li><b>Movies need an encoder.</b> The MP4 in this manual was made with the ffmpeg encoder bundled with PyFDS. If no encoder is found, the viewer keeps the numbered picture files instead and says so.</li>
+  <li><b>Tested with:</b> FDS 6.10.1 and Smokeview 6 on Windows.</li>
+</ul>
+<footer>PyFDS Example 1 (“example_1”). Screenshots taken from the running application on 18 October 2026; numbers from the FDS output of that run.</footer>
+</div>

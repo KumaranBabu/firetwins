@@ -6,7 +6,7 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from PySide6.QtWidgets import (
-    QCheckBox, QComboBox, QDoubleSpinBox, QFormLayout, QLabel, QListWidget, QVBoxLayout, QWidget,
+    QCheckBox, QComboBox, QDoubleSpinBox, QFormLayout, QLabel, QListWidget, QSizePolicy, QVBoxLayout, QWidget,
 )
 
 
@@ -21,18 +21,24 @@ class ToolPropertiesPanel(QWidget):
         self.tool_label.setStyleSheet("font-weight: 600;")
         v.addWidget(self.tool_label)
         form = QFormLayout()
+        form.setRowWrapPolicy(QFormLayout.WrapLongRows)       # a narrow dock puts the label above its box
         v.addLayout(form)
         self.height_box = self._spin(form, "Height", 0.01, 1e5)
         self.auto_base = QCheckBox("Start on the clicked surface", self)
+        self.auto_base.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)   # long text is cut, not forced wide
         form.addRow(self.auto_base)
         self.base_box = self._spin(form, "Base Z", -1e5, 1e5)
         self.surface_combo = QComboBox(self)
         self.surface_combo.setEditable(True)
+        self.surface_combo.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)
+        self.surface_combo.setMinimumContentsLength(8)
         form.addRow("Surface", self.surface_combo)
         self.cell_box = self._spin(form, "Mesh cell size", 0.001, 1e3)
         self.thickness_box = self._spin(form, "Wall thickness", 0.001, 1e3)
         self.paint_combo = QComboBox(self)
         self.paint_combo.setEditable(True)
+        self.paint_combo.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)
+        self.paint_combo.setMinimumContentsLength(8)
         form.addRow("Paint surface", self.paint_combo)
         v.addWidget(QLabel("Recent surfaces", self))
         self.recent = QListWidget(self)

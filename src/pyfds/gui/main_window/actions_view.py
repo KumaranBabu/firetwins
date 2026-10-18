@@ -89,4 +89,5 @@ class ActionsViewMixin:
     def _on_reset_window_layout(self) -> None:
         """Restore docks/toolbars to their state at application startup."""
         self.restoreState(self._default_window_state)
+        self._layout_was_reset()
         self.statusBar().showMessage("Window layout reset to default.")

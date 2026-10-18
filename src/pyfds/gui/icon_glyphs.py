@@ -87,6 +87,13 @@ GLYPHS: Dict[str, Tuple[str, str]] = {
     "viewtop": ("view", '<rect x="3.5" y="3.5" width="17" height="17" rx="1.5" fill="@c"/><path d="M7 7h10v10H7z" fill="@l"/>'),
     "viewfront": ("view", '<rect x="3.5" y="5" width="17" height="14" rx="1.5" fill="@c"/><path d="M3.5 5 7 2.5h14L20.5 5" fill="@l"/>'),
     "viewside": ("view", '<path d="M3 6 14 3v14L3 20z" fill="@d"/><path d="M14 3l7 2.5v14L14 17z" fill="@c"/>'),
+    "select": ("edit", '<path d="M6 3l12 9.500-5.200 1.100 3 5.700-2.600 1.300-3-5.800L6 18z" fill="@c"/>'),
+    "measure": ("annotate", '<path d="M3 15.500 15.500 3l5.500 5.500L8.500 21z" fill="@l" stroke="@c" stroke-width="2" stroke-linejoin="round"/><path d="M8 10.500l2.500 2.500M11 7.500l1.800 1.800M5.500 13l1.800 1.800M14 4.500" stroke="@d" stroke-width="1.600" stroke-linecap="round"/>'),
+    "paint": ("physics", '<rect x="3" y="3" width="15" height="7" rx="2" fill="@c"/><path d="M18 6.500h2.500V12H12v3" fill="none" stroke="@d" stroke-width="2"/><rect x="10" y="14" width="4" height="7.500" rx="1.500" fill="@d"/>'),
+    "panels": ("view", '<rect x="3" y="4" width="18" height="16" rx="2" fill="none" stroke="@c" stroke-width="2"/><path d="M9 4v16" stroke="@c" stroke-width="2"/><rect x="4" y="5" width="4" height="14" fill="@l"/>'),
+    "focus": ("view", '<path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="@c" stroke-width="2.600" stroke-linecap="round" stroke-linejoin="round"/><rect x="9" y="9" width="6" height="6" rx="1" fill="@l"/>'),
+    "toolbars": ("view", '<rect x="3" y="4" width="18" height="6" rx="1.500" fill="@c"/><rect x="3" y="14" width="18" height="6" rx="1.500" fill="@l" stroke="@c" stroke-width="1.600"/><circle cx="7" cy="7" r="1.300" fill="#fff"/><circle cx="11" cy="7" r="1.300" fill="#fff"/><circle cx="15" cy="7" r="1.300" fill="#fff"/>'),
+    "menu": ("view", '<path d="M4 7h16M4 12h16M4 17h16" stroke="@c" stroke-width="2.800" stroke-linecap="round"/>'),
     # -- geometry ----------------------------------------------------------------------------------
     "box": ("geometry", '<path d="M12 2.5 21 7l-9 4.5L3 7z" fill="@l"/><path d="M3 7l9 4.5v10L3 17z" fill="@d"/><path d="M21 7l-9 4.5v10l9-4.5z" fill="@c"/>'),
     "mesh": ("geometry", '<rect x="3" y="3" width="18" height="18" rx="2" fill="@l"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke="@c" stroke-width="1.7"/><rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="@c" stroke-width="2.2"/>'),

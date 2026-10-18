@@ -105,6 +105,8 @@ TEXT_RULES = [
     (r"preferences|project settings|snap settings|^general|^rendering|^3d smoke$|^floors", "settings"),
     (r"import views|^import", "import"), (r"export animation", "movie"), (r"export", "export"),
     (r"^exit|^quit", "exit"), (r"^close", "close"),
+    (r"^select$", "select"), (r"^measure", "measure"), (r"^paint", "paint"), (r"^iso$", "viewcube"), (r"^ortho$", "ortho"),
+    (r"^focus|^3d only", "focus"), (r"^panels", "panels"), (r"^toolbar", "toolbars"),
     (r"^undo", "undo"), (r"^redo", "redo"), (r"^cut", "cut"), (r"^copy", "copy"), (r"^paste", "paste"),
     (r"delete|remove section", "delete"), (r"duplicate", "duplicate"), (r"edit properties|^properties", "properties"),
     (r"^find|^replace", "find"), (r"select all|clear selection", "selectall"), (r"^filter", "filter"),

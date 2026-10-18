@@ -51,6 +51,7 @@ from .menus_run_results import MenusRunResultsMixin
 from .menus_tools_help import MenusToolsHelpMixin
 from .panels import PanelsMixin
 from .workspaces import WorkspacesMixin
+from .layout_tools import LayoutToolsMixin
 from .central_tabs import CentralTabsMixin
 from .placeholders import PlaceholderMixin
 
@@ -87,6 +88,7 @@ class MainWindow(
     ActionsRunDialogMixin,
     PanelsMixin,
     WorkspacesMixin,
+    LayoutToolsMixin,
     CentralTabsMixin,
     QMainWindow,
 ):
@@ -141,6 +143,7 @@ class MainWindow(
         self._build_viewport_bars()
         from pyfds.gui.icons import install_icons
         install_icons(self, "pyfds")      # task-coloured icons on every menu entry and toolbar button
+        self._build_layout_tools()      # slim toolbars, tabbed side docks, the icon strip over the 3D view
         self._default_window_state = self.saveState()
         self._status_sub_ids = [self.api.subscribe(t, self._on_status_event) for t in _REFRESH_EVENTS]
         self._refresh_status()

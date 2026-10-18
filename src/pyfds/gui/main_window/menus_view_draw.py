@@ -18,10 +18,16 @@ class MenusViewDrawMixin:
         # ════════════════════════════════════════════════════════════════════════
         view_menu = self.menuBar().addMenu("&View")
 
+        self._make_layout_actions()
+
         # Which view is in front (PyroSim: Show 3D / 2D / Record View)
         view_menu.addAction("Show &3D View", self.show_model_tab)
         view_menu.addAction("Show &2D View", self.show_plan_tab)
         view_menu.addAction("Show Re&cord View", self.show_record_tab)
+        view_menu.addSeparator()
+        # Room for the 3D view (also under Window): focus mode and one-key hide of all panels
+        view_menu.addAction(self.focus_action)
+        view_menu.addAction(self.panels_action)
         view_menu.addSeparator()
 
         # View navigation

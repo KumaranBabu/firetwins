@@ -43,12 +43,13 @@ class MenusToolsHelpMixin:
         # ════════════════════════════════════════════════════════════════════════
         window_menu = self.menuBar().addMenu("&Window")
 
-        panels_menu = window_menu.addMenu("Show &Panels")
-        panels_menu.addAction(self.explorer_dock.toggleViewAction())
-        panels_menu.addAction(self.layers_dock.toggleViewAction())
-        panels_menu.addAction(self.properties_dock.toggleViewAction())
-        panels_menu.addAction(self.messages_dock.toggleViewAction())
-        panels_menu.addAction(self.agent_dock.toggleViewAction())
+        window_menu.addAction(self.focus_action)
+        window_menu.addAction(self.panels_action)
+        panels_menu = window_menu.addMenu("Show &Panels")             # filled when opened, so panels added later appear too
+        panels_menu.aboutToShow.connect(lambda m=panels_menu: self._fill_panels_menu(m))
+        toolbars_menu = window_menu.addMenu("Show &Toolbars")
+        toolbars_menu.aboutToShow.connect(lambda m=toolbars_menu: self._fill_toolbars_menu(m))
+        window_menu.addSeparator()
         workspaces = window_menu.addMenu("&Workspaces")
         for label, key in (("&Model", "model"), ("&Run", "run"), ("&Results", "results")):
             workspaces.addAction(label, lambda k=key: self._apply_workspace(k))

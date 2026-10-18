@@ -10,6 +10,8 @@ from pyfds.gui.panels.layers_panel import LayersPanel
 from pyfds.gui.panels.output_panel import OutputPanel
 from pyfds.gui.panels.results_panel import ResultsPanel
 
+from .layout_tools import _LAYOUT_VERSION
+
 _SETTINGS = ("PyFDS", "PyFDS")
 
 
@@ -61,6 +63,8 @@ class WorkspacesMixin:
     # -- workspaces -------------------------------------------------------------------------------
     def _apply_workspace(self, name: str) -> None:
         """Show the panels that suit a task: ``model``, ``run`` or ``results``."""
+        self.toggle_focus_mode(False)
+        self._layout_was_reset()
         shown = {
             "model": {self.explorer_dock, self.properties_dock, self.agent_dock},
             "run": {self.explorer_dock, self.messages_dock},
@@ -84,9 +88,9 @@ class WorkspacesMixin:
         if geometry is not None:
             self.restoreGeometry(geometry)
         if state is not None:
-            self.restoreState(state)
+            self.restoreState(state, _LAYOUT_VERSION)
 
     def save_layout(self) -> None:
         settings = QSettings(*_SETTINGS)
-        settings.setValue("main_window/state", self.saveState())
+        settings.setValue("main_window/state", self.saveState(_LAYOUT_VERSION))
         settings.setValue("main_window/geometry", self.saveGeometry())

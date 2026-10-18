@@ -178,8 +178,10 @@ class FdsRun:
             idx = np.clip(np.arange(lo, hi + 1), 0, len(nodes) - 1)
             c = nodes[idx]
             if s.cell_centered and hi > lo:
-                c = 0.5 * (nodes[np.clip(np.arange(lo, hi), 0, len(nodes) - 1)] +
-                           nodes[np.clip(np.arange(lo + 1, hi + 1), 0, len(nodes) - 1)])
+                # FDS writes a cell-centred slice with one value per index lo..hi, index p being cell p (1-based) and index 0
+                # a ghost value: the points are the cell centres, and the ghost one sits on the first node
+                prev = nodes[np.clip(idx - 1, 0, len(nodes) - 1)]
+                c = np.where(idx >= 1, 0.5 * (prev + nodes[idx]), nodes[idx])
             out.append(c)
         return out[0], out[1], out[2]
 

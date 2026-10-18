@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from .base import _CollectionManager
 from .mesh_ops import MeshOperations
@@ -15,6 +15,16 @@ class MeshManager(MeshOperations, _CollectionManager):
     def __init__(self, api):
         from pyfds.domain.model import Mesh
         super().__init__(api, Mesh)
+
+    def copies_of(self, mesh) -> List[Any]:
+        """The meshes FDS makes of *mesh*: itself, or one shifted copy per index of its MULT_ID (read-only stand-ins)."""
+        from pyfds.domain.mesh_copies import mesh_copies
+        return mesh_copies(self._api.project, mesh)
+
+    def run_count(self) -> int:
+        """How many meshes FDS will run: every copy a multiplier makes counts (an MPI run needs one process for each)."""
+        from pyfds.domain.mesh_copies import mesh_count
+        return mesh_count(self._api.project)
 
     def add_mesh(self, ijk, xb, **kwargs) -> Any:
         from pyfds.domain.model import Mesh

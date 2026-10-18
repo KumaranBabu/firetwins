@@ -172,7 +172,7 @@ class RunDialog(QDialog):
         i = self.provider.findText(s.provider)
         self.provider.setCurrentIndex(max(0, i))
         self.spool.setText(str(s.provider_config.get("root", "")))
-        self.vcpus.setValue(int(s.options.get("vcpus", max(len(self.api.project.meshes), 1))))
+        self.vcpus.setValue(int(s.options.get("vcpus", max(self.api.meshes.run_count(), 1))))
         self.memory.setValue(int(s.options.get("memory_gb_per_vcpu", 2)))
         self.fds_version.setText(str(s.options.get("fds_version", "")))
 

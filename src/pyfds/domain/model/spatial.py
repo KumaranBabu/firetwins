@@ -21,6 +21,7 @@ class Mesh(FdsEntity):
     mpi_processor: Optional[int] = None
     color: Optional[str] = None
     cylindrical: bool = False   # CYLINDRICAL=.TRUE. for axisymmetric meshes
+    mult_id: Optional[str] = None   # MULT_ID: the &MULT that repeats this mesh (see ``pyfds.domain.mesh_copies``)
     #: Position in the written file (ascending). FDS gives an earlier mesh priority where
     #: meshes overlap, so this is PyroSim's mesh *order*. ``None`` = keep project order.
     priority: Optional[int] = None

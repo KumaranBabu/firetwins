@@ -183,6 +183,7 @@ class FdsParser(ParamBuilders, SpatialBuilders, PhysicsBuilders, DeviceBuilders,
                 project.raw_records.append(rec.raw)
 
         self._finish_hvac(project)
+        self._apply_default_surface(project)
 
         # Flush accumulated RAMP objects
         for ramp_id, (times, values, devc_id, ctrl_id, interpolation) in ramp_accum.items():

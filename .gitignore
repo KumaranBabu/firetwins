@@ -64,3 +64,6 @@ examples/**/*.pyfstats
 *.~bak.pyfds
 ~*.pyfds
 user_data/
+
+# example 2: the 25 s couch run is ~190 MB; make_example2.py recreates it
+examples/example-2/gui_run/

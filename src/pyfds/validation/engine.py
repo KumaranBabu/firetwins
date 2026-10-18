@@ -130,6 +130,24 @@ class ValidationRule(Protocol):
 # Validation Engine
 # ---------------------------------------------------------------------------
 
+class _MeshCopiesView:
+    """The project with ``meshes`` replaced by the expanded set; everything else is read from the project itself."""
+
+    def __init__(self, project: Any, meshes: List[Any]) -> None:
+        self.__dict__["_project"] = project
+        self.__dict__["meshes"] = meshes
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self.__dict__["_project"], name)
+
+
+def _with_mesh_copies(project: Any) -> Any:
+    if not any(getattr(m, "mult_id", None) for m in getattr(project, "meshes", [])):
+        return project
+    from pyfds.domain.mesh_copies import expanded_meshes
+    return _MeshCopiesView(project, expanded_meshes(project))
+
+
 class ValidationEngine:
     """
     Runs a configurable set of ``ValidationRule`` objects against an
@@ -211,11 +229,12 @@ class ValidationEngine:
         all_results: List[ValidationResult] = []
 
         disabled = set(getattr(project, "disabled_checks", None) or ())
+        seen = _with_mesh_copies(project)            # the rules see every mesh a multiplier makes, not only the one typed in
         for rule in self._rules:
             if rule.name in disabled:
                 continue
             try:
-                results = rule.check(project)
+                results = rule.check(seen)
                 all_results.extend(results)
             except Exception as exc:
                 logger.error("Rule %s raised unexpectedly: %s", rule.name, exc,

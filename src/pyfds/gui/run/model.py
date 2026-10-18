@@ -30,7 +30,7 @@ class RunSetup:
 def default_setup(api: Any, mode: str = "local") -> RunSetup:
     if mode not in MODES:
         raise ValueError(f"unknown run mode {mode!r}")
-    meshes = len(api.project.meshes)
+    meshes = api.meshes.run_count()
     setup = RunSetup(mode=mode)
     if mode == "parallel":
         setup.processes = max(meshes, 1)
@@ -43,7 +43,7 @@ def default_setup(api: Any, mode: str = "local") -> RunSetup:
 
 def assignment(api: Any, setup: RunSetup) -> List[Dict[str, Any]]:
     """Which meshes each process / host runs: ``[{"host", "ranks", "meshes"}, ...]``."""
-    n = len(api.project.meshes)
+    n = api.meshes.run_count()
     if setup.mode == "cluster":
         return api.solvers.cluster_plan(setup.hosts, setup.output_dir or None)["assignment"]
     if setup.mode == "parallel":                   # one row per process: process i runs mesh i
@@ -55,7 +55,7 @@ def assignment(api: Any, setup: RunSetup) -> List[Dict[str, Any]]:
 def problems(api: Any, setup: RunSetup) -> List[str]:
     """Reasons the run cannot start; an empty list means it can."""
     out: List[str] = []
-    n = len(api.project.meshes)
+    n = api.meshes.run_count()
     if setup.mode not in MODES:
         return [f"unknown run mode {setup.mode!r}"]
     if not setup.output_dir.strip():

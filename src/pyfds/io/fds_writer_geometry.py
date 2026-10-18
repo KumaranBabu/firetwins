@@ -15,6 +15,7 @@ class FdsWriterGeometryMixin:
         if obj.mpi_processor is not None: d["MPI_PROCESS"] = obj.mpi_processor
         if obj.color:                     d["COLOR"]       = obj.color
         if obj.cylindrical:               d["CYLINDRICAL"] = obj.cylindrical
+        if obj.mult_id:                   d["MULT_ID"]     = obj.mult_id
         return _nl("MESH", d)
 
     def _write_obst(self, obj: Obstruction) -> str:
@@ -97,10 +98,11 @@ class FdsWriterGeometryMixin:
         return _nl("INIT", d)
 
     def _write_particle(self, obj: Particle) -> str:
-        d: Dict[str, Any] = {"ID": obj.name, "COLOR": obj.color,
-                             "DIAMETER": obj.diameter,
-                             "DRAG_LAW": obj.drag_law,
-                             "SAMPLING_FACTOR": obj.sampling_factor}
+        d: Dict[str, Any] = {"ID": obj.name, "COLOR": obj.color}
+        if not obj.surf_id:                                   # FDS: a PART with a SURF_ID takes its size from the surface (ERROR 213)
+            d["DIAMETER"] = obj.diameter
+        d["DRAG_LAW"] = obj.drag_law
+        d["SAMPLING_FACTOR"] = obj.sampling_factor
         if not self._requires(self._project, "6.9"):          # FDS 6.10 rejects DENSITY on &PART
             d["DENSITY"] = obj.density
         if obj.prop_id: d["PROP_ID"] = obj.prop_id

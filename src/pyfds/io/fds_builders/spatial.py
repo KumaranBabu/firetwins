@@ -23,13 +23,34 @@ class SpatialBuilders:
         p.add_entity(Mesh(name=name, x_min=xb[0], x_max=xb[1],
                           y_min=xb[2], y_max=xb[3], z_min=xb[4], z_max=xb[5],
                           cell_count=ijk, mpi_processor=mpi,
-                          cylindrical=cylindrical,
+                          cylindrical=cylindrical, mult_id=self._str(d, "MULT_ID") or None,
                           color=self._str(d, "COLOR") or None))
+
+    def _apply_default_surface(self, project) -> None:
+        """An &OBST with no SURF_ID is made of the &SURF that says DEFAULT=.TRUE. (INERT when there is none): say so explicitly,
+        so the model shows (and writes back) what FDS will use."""
+        names = self.__dict__.pop("_obst_without_surface", [])
+        no_color = set(self.__dict__.pop("_obst_without_color", []))
+        default = next((s for s in project.surfaces
+                        if str((s.fds_extra or {}).get("DEFAULT", "")).strip().upper() in (".TRUE.", "T", ".T.", "TRUE")), None)
+        for o in project.obstructions:
+            if default is not None and o.name in names:
+                o.surface_id = default.name
+            if o.name in no_color:                         # FDS draws such an object in its surface's colour
+                surf = next((s for s in project.surfaces if s.name == o.surface_id), None)
+                if surf is not None and getattr(surf, "rgb", None):
+                    o.rgb = tuple(surf.rgb)
+                elif surf is not None and surf.color:
+                    o.color = surf.color
 
     def _parse_obst(self, p: FdsProject, d: Dict) -> None:
         name = self._str(d, "ID", f"OBST_{len(p.obstructions)}")
         xb = self._parse_xb(d.get("XB", "0,1,0,1,0,1"))
         surf_id = self._str(d, "SURF_ID", "INERT")
+        if "SURF_ID" not in d and "SURF_IDS" not in d and "SURF_ID6" not in d:
+            self.__dict__.setdefault("_obst_without_surface", []).append(name)      # takes the DEFAULT surface once all SURFs are read
+        if "COLOR" not in d and "RGB" not in d:
+            self.__dict__.setdefault("_obst_without_color", []).append(name)        # shows its surface's colour (as in FDS)
         # SURF_IDS = (top, sides, bottom); SURF_ID6 = one per face. Stored in file order.
         surf_ids = self._str_list(d, "SURF_ID6") or self._str_list(d, "SURF_IDS")
         if surf_ids is not None and len(surf_ids) not in (3, 6):

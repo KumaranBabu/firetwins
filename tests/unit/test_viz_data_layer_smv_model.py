@@ -276,3 +276,16 @@ def test_unit_conversion():
     assert same[0].tolist() == [5.0] and same[1] == "m/s"
     assert un.label("C", vm.Units()) == "C" and un.convert_value(10.0, "C", prefs) == (50.0, "F")
     assert vm.Units(temperature="K").problems()
+
+
+def test_a_cell_centred_slice_has_one_point_per_index_with_a_ghost_first(run):
+    """FDS writes SLCC data as one value per index lo..hi (index p = cell p, index 0 a ghost): the grid must match that count
+    (found when the couch example's SLCF ... CELL_CENTERED=.TRUE. slices would not draw)."""
+    import dataclasses
+    t_y = next(s for s in run.slices if s.name == "T_Y" and s.mesh == 1)
+    cc = dataclasses.replace(t_y, cell_centered=True)
+    xs, ys, zs = run.slice_coords(cc)
+    nodes_x = run.mesh(1).node_coords(0)
+    lo, hi = cc.ijk[0], cc.ijk[1]
+    assert len(xs) == hi - lo + 1 and ys.tolist() == [1.5]
+    assert xs[0] == nodes_x[0] and xs[1] == pytest.approx(0.5 * (nodes_x[0] + nodes_x[1]))

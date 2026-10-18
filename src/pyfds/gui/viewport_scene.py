@@ -205,8 +205,9 @@ def build_scene(api: Any) -> List[ActorSpec]:
 
     display = getattr(state, "mesh_display", "outline")
     if state.is_visible(VisibilityFlags.MESHES) and display != "hidden":
-        for mesh in enabled(api.meshes.all()):
-            box = _box_from_bbox(mesh)
+        shown = [(mesh, copy) for mesh in enabled(api.meshes.all()) for copy in api.meshes.copies_of(mesh)]   # a multiplier shows every copy
+        for mesh, copy in shown:
+            box = _box_from_bbox(copy)
             if box is not None:
                 # Mesh boundaries are always wireframe, never solid-filled —
                 # a solid box would hide everything inside the domain.
@@ -217,7 +218,7 @@ def build_scene(api: Any) -> List[ActorSpec]:
                     specs.append(ActorSpec(box.copy(), _MESH_COLOR, opacity=0.08, label=mesh.name,
                                            entity_kind="mesh-shell", helper=True))
                 elif display == "lines":
-                    specs.append(ActorSpec(mesh_grid_lines(mesh), _MESH_COLOR, style="wireframe", opacity=0.55,
+                    specs.append(ActorSpec(mesh_grid_lines(copy), _MESH_COLOR, style="wireframe", opacity=0.55,
                                            label=mesh.name, entity_kind="mesh-lines", helper=True))
 
     if state.is_visible(VisibilityFlags.OBSTRUCTIONS):

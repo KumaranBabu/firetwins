@@ -12,6 +12,7 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
+from pyfds.domain.mesh_copies import mesh_count
 from pyfds.execution import adapters as _ad
 from pyfds.execution import cluster as _cl
 from pyfds.execution import installs as _in
@@ -156,7 +157,7 @@ class SolverManager:
                   validate_first: bool = True, timeout: Optional[float] = None, on_line=None):
         """Write the input to *output_dir* and run FDS on this machine, with *num_processes* MPI processes
         (more than one needs a mesh for each). Returns a run handle for ``status`` / ``stop`` / ``cancel``."""
-        n_meshes = len(self._api.project.meshes)
+        n_meshes = mesh_count(self._api.project)
         if num_processes < 1:
             raise ValueError("at least one process is needed")
         if num_processes > 1 and num_processes != n_meshes:
@@ -208,7 +209,7 @@ class SolverManager:
     def cluster_plan(self, hosts: Sequence[Any], input_file: Optional[str] = None) -> Dict[str, Any]:
         """The 'Assigned Meshes' preview plus the problems that would stop a run."""
         hs = _cl.coerce_hosts(hosts)
-        n = len(self._api.project.meshes)
+        n = mesh_count(self._api.project)
         return {"assignment": _cl.assign_meshes(hs, n),
                 "problems": _cl.validate(hs, input_file or str(Path.cwd()), n)}
 
@@ -217,7 +218,7 @@ class SolverManager:
         """Write the input to *output_dir* (it must be visible to every node) and start it with MPI over the
         host table. ``dry_run`` returns the command and plan without launching."""
         input_file = self._write_input(output_dir, validate_first)
-        adapter = _ad.ClusterAdapter(hosts, len(self._api.project.meshes))
+        adapter = _ad.ClusterAdapter(hosts, mesh_count(self._api.project))
         handle = adapter.submit(self._request(input_file, 1, dry_run, timeout))
         handle.extra["chid"] = self._api.project.chid
         return self._keep(adapter, handle)

@@ -64,10 +64,19 @@ def _patch_export_animation(monkeypatch, window, *, smv="case.smv", out="a.mp4",
     return calls, shown
 
 
+def _finish_render(window):
+    """Wait for the background render thread and deliver its result signal."""
+    from PySide6.QtWidgets import QApplication
+    worker = getattr(window, "_render_worker", None)
+    if worker is not None:
+        worker.wait(10000)
+        QApplication.processEvents()
+
 def test_export_animation_nonzero_return_warns(monkeypatch):
     window = _make_window()
     _, shown = _patch_export_animation(monkeypatch, window, render=lambda *a, **k: 3)
     window._on_export_animation()
+    _finish_render(window)
     assert "warning" in shown and "information" not in shown
     window.close()
 
@@ -79,6 +88,7 @@ def test_export_animation_exception_shows_critical(monkeypatch):
 
     _, shown = _patch_export_animation(monkeypatch, window, render=_boom)
     window._on_export_animation()
+    _finish_render(window)
     assert "critical" in shown
     window.close()
 

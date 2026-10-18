@@ -28,10 +28,14 @@ import logging
 import os
 import subprocess
 import tempfile
+import threading
 from pathlib import Path
 from typing import List, Optional
 
 logger = logging.getLogger(__name__)
+
+#: Return code of :meth:`SmokeviewRunner.render` when the caller cancelled it.
+CANCELLED = -2
 
 
 class SmokeviewRunner:
@@ -46,7 +50,16 @@ class SmokeviewRunner:
     """
 
     def __init__(self, smv_binary: Optional[str] = None) -> None:
-        self._smv_binary = smv_binary or os.getenv("SMV_BIN", "smokeview")
+        self._smv_binary = self._resolve_binary(smv_binary or os.getenv("SMV_BIN", "smokeview"))
+
+    @staticmethod
+    def _resolve_binary(name: str) -> str:
+        """The plain default ``smokeview`` falls back to the repo's bundled build when not on PATH."""
+        import shutil
+        if name != "smokeview" or shutil.which(name):
+            return name
+        bundled = Path(__file__).resolve().parents[3] / "fds_smv" / "SMV6" / "smokeview.exe"
+        return str(bundled) if bundled.exists() else name
 
     # ── Public API ────────────────────────────────────────────────────────────
 
@@ -105,6 +118,7 @@ class SmokeviewRunner:
         output_dir: Optional[str] = None,
         extra_args: Optional[List[str]] = None,
         timeout: Optional[float] = 900.0,
+        cancel: Optional[threading.Event] = None,
     ) -> int:
         """
         Run Smokeview with a script (it opens briefly and exits; images land in *output_dir*).
@@ -124,11 +138,14 @@ class SmokeviewRunner:
             Working directory for rendered images. Defaults to the smv dir.
         extra_args : list, optional
             Extra arguments before the ``-ini`` flag.
+        cancel : threading.Event, optional
+            Set it from another thread to stop the render; Smokeview is killed and
+            :data:`CANCELLED` is returned.
 
         Returns
         -------
         int
-            Smokeview process return code (0 = success).
+            Smokeview process return code (0 = success, :data:`CANCELLED` = stopped by *cancel*).
         """
         path = Path(smv_filepath)
         if not path.exists():
@@ -164,8 +181,7 @@ class SmokeviewRunner:
         try:
             case_dir = path.resolve().parent
             before = {f: f.stat().st_mtime for f in case_dir.glob("*.[pj][np]g")}
-            result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=timeout)
-            rc = result.returncode
+            rc, stderr = self._run_cancellable(cmd, cwd, timeout, cancel)
             # Smokeview writes its images next to the .smv file whatever the working directory is,
             # so move what this run made into the requested folder.
             if case_dir != cwd_path.resolve():
@@ -173,7 +189,7 @@ class SmokeviewRunner:
                     if f not in before or f.stat().st_mtime > before[f]:
                         os.replace(f, cwd_path / f.name)
             if rc != 0:
-                logger.error("SmokeviewRunner: render failed rc=%d\n%s", rc, result.stderr)
+                logger.error("SmokeviewRunner: render failed rc=%d\n%s", rc, stderr)
             else:
                 logger.info("SmokeviewRunner: render complete rc=0")
             self._emit_exited(smv_filepath, rc)
@@ -187,6 +203,27 @@ class SmokeviewRunner:
                     os.unlink(tmp_file.name)
                 except OSError:
                     pass
+
+    @staticmethod
+    def _run_cancellable(cmd, cwd, timeout, cancel):
+        """Run *cmd* to completion, killing it when *cancel* is set or *timeout* passes."""
+        import time
+        proc = subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+        start = time.monotonic()
+        while True:
+            try:
+                _, err = proc.communicate(timeout=0.2)
+                return proc.returncode, err or ""
+            except subprocess.TimeoutExpired:
+                pass
+            if cancel is not None and cancel.is_set():
+                proc.kill()
+                proc.communicate()
+                return CANCELLED, ""
+            if timeout is not None and time.monotonic() - start > timeout:
+                proc.kill()
+                proc.communicate()
+                raise subprocess.TimeoutExpired(cmd, timeout)
 
     @staticmethod
     def encode_frames(frame_glob_dir: str, base: str, output_file: str, fps: int = 10) -> int:

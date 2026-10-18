@@ -71,9 +71,12 @@ class SmokeviewManager:
         start_time: Optional[float] = None,
         end_time: Optional[float] = None,
         output_dir: Optional[str] = None,
+        cancel: Any = None,
     ) -> int:
         """
         Render every frame of *quantity* with Smokeview and join them into *output_file* with ffmpeg.
+
+        Setting the *cancel* ``threading.Event`` stops the render (returns ``runner.CANCELLED``).
 
         Returns 0 on success; 127 when ffmpeg is not installed (the numbered PNG frames are left next to
         *output_file*); otherwise Smokeview's or ffmpeg's return code. *end_time* is not supported by
@@ -92,7 +95,8 @@ class SmokeviewManager:
             builder.set_time(start_time)
         builder.render_movie(out.stem)
         runner = SmokeviewRunner(smv_binary=getattr(cfg, "smv_binary", None))
-        rc = runner.render(smv_filepath, script_content=builder.build(), output_dir=str(frames_dir))
+        rc = runner.render(smv_filepath, script_content=builder.build(),
+                           output_dir=str(frames_dir), cancel=cancel)
         if rc != 0:
             return rc
         return runner.encode_frames(str(frames_dir), out.stem, str(out), fps)

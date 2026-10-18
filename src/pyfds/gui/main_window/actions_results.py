@@ -5,9 +5,10 @@ import shutil
 from pathlib import Path
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QApplication, QDialog, QFileDialog, QInputDialog, QMessageBox
+from PySide6.QtWidgets import QDialog, QFileDialog, QInputDialog, QMessageBox, QProgressDialog
 
 from pyfds.gui.entity_dialogs import SchemaFormDialog
+from pyfds.gui.render_worker import RenderWorker
 from pyfds.gui.report_dialog import TextReportDialog
 
 from .shared import (
@@ -194,21 +195,39 @@ class ActionsResultsMixin:
             return
         start = values.get("start_time") or None
         end = values.get("end_time") or None
-        QApplication.setOverrideCursor(Qt.WaitCursor)
-        try:
-            rc = self.api.smokeview.render_movie(
-                smv_path, out_path, values.get("quantity") or "TEMPERATURE",
-                fps=int(values.get("fps") or 10), start_time=start, end_time=end,
-            )
-        except Exception as exc:
-            QApplication.restoreOverrideCursor()
+        quantity = values.get("quantity") or "TEMPERATURE"
+        fps = int(values.get("fps") or 10)
+        worker = RenderWorker(
+            lambda cancel: self.api.smokeview.render_movie(
+                smv_path, out_path, quantity, fps=fps, start_time=start, end_time=end,
+                cancel=cancel,
+            ),
+            self,
+        )
+        progress = QProgressDialog("Rendering animation with Smokeview...", "Cancel", 0, 0, self)
+        progress.setWindowTitle("Export Animation")
+        progress.setWindowModality(Qt.NonModal)
+        progress.setAutoClose(False)
+        progress.setAutoReset(False)
+        progress.canceled.connect(worker.cancel)
+        worker.finished_rc.connect(
+            lambda rc, err: self._on_render_finished(progress, out_path, rc, err, worker.cancelled)
+        )
+        self._render_worker = worker
+        worker.start()
+        progress.show()
+
+    def _on_render_finished(self, progress, out_path: str, rc: int, err: str, cancelled: bool) -> None:
+        progress.close()
+        progress.deleteLater()
+        if cancelled:
+            QMessageBox.information(self, "Export Animation", "Export cancelled.")
+        elif err:
             QMessageBox.critical(
                 self, "Could not export animation",
-                f"{exc}\n\nCheck the 'smv_binary' setting in Preferences.",
+                f"{err}\n\nCheck the 'smv_binary' setting in Preferences.",
             )
-            return
-        QApplication.restoreOverrideCursor()
-        if rc == 0:
+        elif rc == 0:
             QMessageBox.information(self, "Exported", f"Animation saved to:\n{out_path}")
         else:
             QMessageBox.warning(

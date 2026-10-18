@@ -53,6 +53,7 @@ ROWS = {
     "V-127": ("dialog", "TourEditor"), "V-128": ("dialog", "SectionBoxDialog"), "V-129": ("menu", "Preferences", "Floors", None),
     "V-130": ("dialog", "SkyboxDialog"), "V-131": ("dialog", "ScreenshotDialog"), "V-132": ("dialog", "MovieDialog"),
     "V-12": ("plot", "save_image"), "V-11": ("menu", "File", "Save 360 Movie", None),
+    "V-68": ("menu", "File", "Record Movie", "F9"),
     "V-133": ("api", "load_csv"), "V-134": ("menu", "Tools", "Time History Plot", None), "V-135": ("menu", "File", "Export Data", None),
     "V-136": ("menu", "Tools", "Add Dimension", None),
     "V-140": ("api", "save"), "V-141": ("api", "open_results"), "V-144": ("api", "import_views"),
@@ -62,7 +63,6 @@ ROWS = {
 
 GAPS = {
     "V-63": "rendering mode is a toolbar drop-down (the five modes exist); no per-mode icons",
-    "V-68": "real-time Record / Pause / Resume / Stop movie: only the offline Movie dialog exists",
     "V-102": "Plot3D quantities are listed per quantity, not as one file entry with five quantities",
     "V-137": "PyroSim-side archive feature, already in the model application",
     "V-142": "the cache is `.pyfcache` (record index) plus in-memory frames, not `.tcframes` files",

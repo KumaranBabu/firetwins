@@ -30,6 +30,9 @@ class ResultsWindowMenusMixin:
         self._act(f, "Save &Screenshot...", self.screenshot, "Ctrl+P")
         self._act(f, "Save &Movie...", self.movie)
         self._act(f, "Save &360 Movie...", self.movie360)
+        self._act(f, "&Record Movie (real time)...", self.record_start, "F9")
+        self._act(f, "Pause / Resume Recording", self.record_pause_resume, "F10")
+        self._act(f, "Stop Recording", self.record_stop, "Shift+F9")
         f.addSeparator()
         self._act(f, "&Close", self.close)
 

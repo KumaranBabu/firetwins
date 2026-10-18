@@ -99,7 +99,7 @@ TEXT_RULES = [
     (r"reset to viewpoint", "resetview"), (r"cache results", "database"),
     (r"^new from template", "new"), (r"^new results", "new"), (r"^new view", "viewsaved"), (r"^new tour", "tour"), (r"^new\b", "new"),
     (r"open results \(\.smv\)|^load results", "load"), (r"open results|^open\b", "open"), (r"^recent", "recent"),
-    (r"^save as", "saveas"), (r"save screenshot", "camera"), (r"save 360", "movie360"), (r"save movie", "movie"),
+    (r"^save as", "saveas"), (r"save screenshot", "camera"), (r"save 360", "movie360"), (r"save movie|record movie", "movie"),
     (r"save bookmark|load bookmark", "bookmark"), (r"^save", "save"),
     (r"^print", "print"),
     (r"preferences|project settings|snap settings|^general|^rendering|^3d smoke$|^floors", "settings"),

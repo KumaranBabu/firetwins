@@ -25,6 +25,7 @@ from .window_files import (  # noqa: F401  (re-exported)
 from .window_menus import (  # noqa: F401  (re-exported)
     ResultsWindowMenusMixin,
 )
+from .window_record import ResultsWindowRecordMixin  # noqa: F401
 from .window_timebar import (  # noqa: F401  (re-exported)
     ResultsWindowTimebarMixin,
 )
@@ -42,7 +43,7 @@ from .window_common import (  # noqa: F401  (re-exported)
 )
 
 
-class ResultsWindow(ResultsWindowTimebarMixin, ResultsWindowMenusMixin, ResultsWindowFilesMixin, ResultsWindowToolsMixin, QMainWindow):
+class ResultsWindow(ResultsWindowRecordMixin, ResultsWindowTimebarMixin, ResultsWindowMenusMixin, ResultsWindowFilesMixin, ResultsWindowToolsMixin, QMainWindow):
     def __init__(self, api, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self.api = api
@@ -64,6 +65,7 @@ class ResultsWindow(ResultsWindowTimebarMixin, ResultsWindowMenusMixin, ResultsW
         self._timer.setInterval(40)
         self._timer.timeout.connect(self._tick)
         self._build_time_bar()
+        self._build_record_controls()
         self._build_menus()
         from .parity import install_parity
         install_parity(self)
@@ -71,6 +73,7 @@ class ResultsWindow(ResultsWindowTimebarMixin, ResultsWindowMenusMixin, ResultsW
         install_icons(self, "results")
         self.statusBar().showMessage("No results loaded")
         self.sync()
+        self._record_ui()                            # icon installation re-enables the buttons
 
     # -- helpers ------------------------------------------------------------------------------------------------
     def _try(self, fn: Callable[[], Any], title: str = "Results") -> Any:
@@ -186,6 +189,7 @@ class ResultsWindow(ResultsWindowTimebarMixin, ResultsWindowMenusMixin, ResultsW
 
     def closeEvent(self, event) -> None:                  # noqa: N802
         self._timer.stop()
+        self._abort_recording()
         if self.viewer.dirty and self.viewer.path:
             r = QMessageBox.question(self, "Save changes?", "Save the results visualization before closing?",
                                      QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel)

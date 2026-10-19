@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QApplication, QMenu, QMessageBox, QToolButton
+from PySide6.QtWidgets import QComboBox, QApplication, QMenu, QMessageBox, QToolButton
 
 from pyfds.api.facade import FdsApi
 from pyfds.gui.results import dialogs
@@ -54,6 +54,7 @@ ROWS = {
     "V-130": ("dialog", "SkyboxDialog"), "V-131": ("dialog", "ScreenshotDialog"), "V-132": ("dialog", "MovieDialog"),
     "V-12": ("plot", "save_image"), "V-11": ("menu", "File", "Save 360 Movie", None),
     "V-68": ("menu", "File", "Record Movie", "F9"),
+    "V-63": ("modeicons",),
     "V-133": ("api", "load_csv"), "V-134": ("menu", "Tools", "Time History Plot", None), "V-135": ("menu", "File", "Export Data", None),
     "V-136": ("menu", "Tools", "Add Dimension", None),
     "V-140": ("api", "save"), "V-141": ("api", "open_results"), "V-144": ("api", "import_views"),
@@ -62,7 +63,6 @@ ROWS = {
 }
 
 GAPS = {
-    "V-63": "rendering mode is a toolbar drop-down (the five modes exist); no per-mode icons",
     "V-102": "Plot3D quantities are listed per quantity, not as one file entry with five quantities",
     "V-137": "PyroSim-side archive feature, already in the model application",
     "V-142": "the cache is `.pyfcache` (record index) plus in-memory frames, not `.tcframes` files",
@@ -148,3 +148,6 @@ def test_row_exists(win, row):
         assert hasattr(TimePlotDialog, args[0])
     elif kind == "status":
         assert hasattr(win, args[0])
+    elif kind == "modeicons":
+        combo = next(c for c in win.findChildren(QComboBox) if c.itemData(0) == "solid")
+        assert combo.count() == 5 and all(not combo.itemIcon(i).isNull() for i in range(combo.count())), f"{row}: a rendering mode has no icon"

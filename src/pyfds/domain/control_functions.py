@@ -26,6 +26,7 @@ _FUNCTIONS = [
     ControlFunction("ANY", "On when any input is on", "any", (), "Detector-based"),
     ControlFunction("ALL", "On when all inputs are on", "any", (), "Detector-based"),
     ControlFunction("ONLY", "On when exactly N inputs are on", "any", ("n",), "Detector-based"),
+    ControlFunction("AT_LEAST", "On when at least N inputs are on", "any", ("n",), "Detector-based"),
     ControlFunction("TIME_DELAY", "Output follows the input after a delay", "one", ("delay",), "Time-based"),
     ControlFunction("DEADBAND", "Thermostat: switch between two set points", "one", ("deadband",), "Deadband-based"),
     ControlFunction("KILL", "Stops the run when the input turns on", "one", (), "Custom"),
@@ -36,7 +37,18 @@ _FUNCTIONS = [
     ControlFunction("MULTIPLY", "Product of inputs", "any", (), "Mathematical"),
     ControlFunction("DIVIDE", "First input divided by the others", "any", (), "Mathematical"),
     ControlFunction("POWER", "First input raised to the second", "any", (), "Mathematical"),
-    ControlFunction("PID", "PID controller on one input", "one", ("setpoint",), "Mathematical"),
+    ControlFunction("EXP", "Exponential of the input", "one", (), "Mathematical"),
+    ControlFunction("LOG", "Natural logarithm of the input", "one", (), "Mathematical"),
+    ControlFunction("COS", "Cosine of the input", "one", (), "Mathematical"),
+    ControlFunction("SIN", "Sine of the input", "one", (), "Mathematical"),
+    ControlFunction("ACOS", "Arccosine of the input", "one", (), "Mathematical"),
+    ControlFunction("ASIN", "Arcsine of the input", "one", (), "Mathematical"),
+    ControlFunction("ATAN", "Arctangent of the input", "one", (), "Mathematical"),
+    ControlFunction("MAX", "Largest of the inputs", "any", (), "Mathematical"),
+    ControlFunction("MIN", "Smallest of the inputs", "any", (), "Mathematical"),
+    ControlFunction("PERCENTILE", "Value of a profile below which a given fraction of the total lies (flame height from a vertical profile)",
+                    "one", ("percentile_rank",), "Mathematical"),
+    ControlFunction("PID", "PID controller on one input (target value and three gains)", "one", (), "Mathematical"),
 ]
 
 CONTROL_FUNCTIONS: Dict[str, ControlFunction] = {f.name: f for f in _FUNCTIONS}

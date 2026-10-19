@@ -75,6 +75,8 @@ class FdsWriterHeadMixin:
         if p.misc.vn_max is not None:             d["VN_MAX"]             = p.misc.vn_max
         if p.misc.visibility_factor is not None:  d["VISIBILITY_FACTOR"]  = p.misc.visibility_factor
         if p.misc.maximum_visibility is not None: d["MAXIMUM_VISIBILITY"] = p.misc.maximum_visibility
+        if p.misc.no_pressure_zones:              d["NO_PRESSURE_ZONES"]  = True
+        if p.misc.minimum_zone_volume is not None: d["MINIMUM_ZONE_VOLUME"] = p.misc.minimum_zone_volume
         if p.misc.particle_cfl:                   d["PARTICLE_CFL"]       = True
         if p.misc.particle_cfl_max is not None:   d["PARTICLE_CFL_MAX"]   = p.misc.particle_cfl_max
         return _nl("MISC", d)

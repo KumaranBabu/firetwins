@@ -51,6 +51,10 @@ class DeviceManager(DeviceSystems, _CollectionManager):
         return d
 
 
+#: FDS: INPUT_ID='CONSTANT' makes a math control use the control's own CONSTANT value as one of its inputs
+CONSTANT_INPUT = "CONSTANT"
+
+
 class ControlManager(_CollectionManager):
     def __init__(self, api):
         from pyfds.domain.model import Control
@@ -136,7 +140,7 @@ class ControlManager(_CollectionManager):
         """Set the inputs of a control (one undo step); refuses unknown names and loops."""
         c = self._ctrl(name_or_entity)
         names = list(dict.fromkeys(names))
-        allowed = set(self.input_candidates(c))
+        allowed = set(self.input_candidates(c)) | {CONSTANT_INPUT}
         bad = [n for n in names if n not in allowed]
         if bad:
             raise ValueError(f"cannot use as input: {', '.join(bad)} (unknown, or it would make a loop)")

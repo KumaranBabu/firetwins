@@ -29,6 +29,9 @@ class DeviceBuilders:
             setpoint=self._flt(d, "SETPOINT"),
             latch=self._bool(d, "LATCH", True),
             statistics=self._str(d, "STATISTICS") or None,
+            temporal_statistic=self._str(d, "TEMPORAL_STATISTIC") or None,
+            no_update_ctrl_id=self._str(d, "NO_UPDATE_CTRL_ID") or None,
+            no_update_devc_id=self._str(d, "NO_UPDATE_DEVC_ID") or None,
             # Phase 1 additions
             quantity2=self._str(d, "QUANTITY2") or None,
             duct_id=self._str(d, "DUCT_ID") or None,
@@ -120,8 +123,13 @@ class DeviceBuilders:
             n=self._int(d, "N"),
             # Phase 1 additions
             deadband=deadband,
-            percentile_rank=self._flt(d, "PERCENTILE_RANK"),
+            percentile_rank=self._flt(d, "PERCENTILE") if "PERCENTILE" in d else self._flt(d, "PERCENTILE_RANK"),
             ramp_id=self._str(d, "RAMP_ID") or None,
+            constant=self._flt(d, "CONSTANT"),
+            target_value=self._flt(d, "TARGET_VALUE"),
+            proportional_gain=self._flt(d, "PROPORTIONAL_GAIN"),
+            integral_gain=self._flt(d, "INTEGRAL_GAIN"),
+            differential_gain=self._flt(d, "DIFFERENTIAL_GAIN"),
         ))
 
     def _parse_prop(self, p: FdsProject, d: Dict) -> None:

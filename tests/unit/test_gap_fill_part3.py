@@ -117,12 +117,12 @@ class TestWriterDeviceP0Fixes:
         text = writer.generate_content(p)
         assert "POINTS=10" in text
 
-    def test_vd_to_vd_written(self, writer):
+    def test_vd_to_vd_is_not_written(self, writer):                 # not an FDS keyword: real FDS stops with ERROR 101
         p = FdsProject()
         p.devices.append(Device(name="d", x=1, y=1, z=1, quantity="VOLTAGE",
                                  vd_to_vd=True))
         text = writer.generate_content(p)
-        assert "VD_TO_VD=.TRUE." in text
+        assert "VD_TO_VD" not in text
 
     def test_absent_device_fields_omitted(self, writer):
         p = FdsProject()

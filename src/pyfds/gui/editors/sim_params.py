@@ -33,6 +33,9 @@ _INFO = {
     "w0": ("Wind W0", "m/s", "W0"), "turbulence_model": ("Turbulence model", "", "TURBULENCE_MODEL"),
     "dns": ("Direct numerical simulation", "", "DNS: resolve turbulence instead of modelling it"),
     "openmp_threads": ("OpenMP threads", "", "OPENMP_THREADS"),
+    "no_pressure_zones": ("Disable pressure zones", "", "NO_PRESSURE_ZONES: ignore the void spaces and use one background pressure "
+                                                          "(not recommended; for debugging)"),
+    "minimum_zone_volume": ("Minimum zone volume", "m3", "MINIMUM_ZONE_VOLUME: voids smaller than this are filled with solid cells"),
     "solver": ("Pressure solver", "", "SOLVER"),
     "velocity_tolerance": ("Velocity tolerance", "", "VELOCITY_TOLERANCE"),
     "number_radiation_angles": ("Radiation angles", "", "NUMBER_RADIATION_ANGLES"),

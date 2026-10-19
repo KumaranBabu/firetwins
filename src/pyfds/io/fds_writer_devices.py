@@ -53,13 +53,16 @@ class FdsWriterDevicesMixin:
         if getattr(obj, "trip_direction", None) is not None:     d["TRIP_DIRECTION"]     = obj.trip_direction
         if getattr(obj, "spatial_statistic", None):              d["SPATIAL_STATISTIC"]  = obj.spatial_statistic
         if getattr(obj, "points", None) is not None:             d["POINTS"]             = obj.points
-        if getattr(obj, "vd_to_vd", None):                       d["VD_TO_VD"]           = obj.vd_to_vd
+        # VD_TO_VD and SMOOTHED_DATA are not FDS keywords (FDS stops with ERROR 101); smoothing is TEMPORAL_STATISTIC='SMOOTHED'
+        temporal = getattr(obj, "temporal_statistic", None) or ("SMOOTHED" if getattr(obj, "smoothed_data", False) else None)
+        if temporal:                                             d["TEMPORAL_STATISTIC"] = temporal
+        if getattr(obj, "no_update_ctrl_id", None):              d["NO_UPDATE_CTRL_ID"]  = obj.no_update_ctrl_id
+        if getattr(obj, "no_update_devc_id", None):              d["NO_UPDATE_DEVC_ID"]  = obj.no_update_devc_id
         # Extended DEVC fields
         if getattr(obj, "xb", None) is not None:                 d["XB"]                 = list(obj.xb)
         if getattr(obj, "ior", None) is not None:                d["IOR"]                = obj.ior
         if getattr(obj, "surf_id", None):                        d["SURF_ID"]            = obj.surf_id
         if getattr(obj, "conversion_factor", None) is not None:  d["CONVERSION_FACTOR"]  = obj.conversion_factor
-        if getattr(obj, "smoothed_data", False):                  d["SMOOTHED_DATA"]      = True
         if getattr(obj, "hide_coordinates", False):               d["HIDE_COORDINATES"]   = True
         if getattr(obj, "pipe_index", None) is not None:          d["PIPE_INDEX"]         = obj.pipe_index
         if getattr(obj, "spec_id", None):                         d["SPEC_ID"]            = obj.spec_id

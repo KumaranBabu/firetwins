@@ -208,13 +208,11 @@ class ActionsEditMixin:
         self.statusBar().showMessage(f"Find: {len(rows)} object(s) selected for {text!r}", 6000)
 
     def _on_rename_entity(self, entity: Any) -> None:
-        new_name, ok = QInputDialog.getText(self, "Rename", "New name:", text=entity.name)
-        if not ok or not new_name or new_name == entity.name:
-            return
-        try:
-            self.api.set_property(entity, "name", new_name)
-        except Exception as exc:
-            QMessageBox.critical(self, "Could not rename", str(exc))
+        """Rename (with a name template when asked) the selected objects, or just *entity* when it is not part of the selection."""
+        from pyfds.gui.rename_dialog import RenameDialog
+        selected = [e for _a, e in self.explorer.selected_entities()]
+        entities = selected if any(e is entity for e in selected) else [entity]
+        RenameDialog(self.api, entities, self).exec()
 
     def _on_toggle_enabled(self, entity: Any) -> None:
         try:
@@ -258,6 +256,8 @@ class ActionsEditMixin:
         if attr in EDITABLE:
             menu.addAction("Open in &Editor...", lambda: self._on_open_in_editor(attr, entity))
         menu.addAction("Re&name...", lambda: self._on_rename_entity(entity))
+        if attr == "reactions":
+            menu.addAction("Set as &Active Reaction", lambda: self.api.reactions.set_active(entity))
         toggle_label = "&Disable Object" if entity.enabled else "&Enable Object"
         menu.addAction(toggle_label, lambda: self._on_toggle_enabled(entity))
         menu.addSeparator()

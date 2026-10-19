@@ -49,6 +49,32 @@ QUANTITIES: Dict[str, Quantity] = {
 }
 
 
+#: Units a value may be typed in, with the factor to the SI unit of its kind (``cfm`` = cubic feet per minute, accepted for
+#: volumetric flow as in PyroSim 2025.1). Lower-case keys; a leading ``^`` as in ``m^3/s`` is ignored.
+UNIT_ALIASES: Dict[str, Dict[str, float]] = {
+    "volume_flow": {"m3/s": 1.0, "l/s": 1e-3, "m3/h": 1 / 3600.0, "m3/min": 1 / 60.0, "ft3/s": _FT ** 3, "cfs": _FT ** 3,
+                    "ft3/min": _FT ** 3 / 60.0, "cfm": _FT ** 3 / 60.0, "ft3/h": _FT ** 3 / 3600.0},
+    "length": {"m": 1.0, "mm": 1e-3, "cm": 1e-2, "ft": _FT, "in": 0.0254},
+    "velocity": {"m/s": 1.0, "ft/s": _FT, "ft/min": _FT / 60.0, "fpm": _FT / 60.0},
+}
+
+
+def parse_with_unit(text: str, kind: str, system: str = SI) -> float:
+    """A typed value such as ``"500 cfm"`` or ``"3 ft"`` as SI. A bare number is read in *system* (like ``from_display``)."""
+    import re
+    m = re.fullmatch(r"\s*([-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?)\s*([A-Za-z0-9/^]*)\s*", str(text))
+    if not m:
+        raise ValueError(f"cannot read {text!r} as a number with an optional unit")
+    value, unit = float(m.group(1)), m.group(2).lower().replace("^", "")
+    if not unit:
+        return from_display(value, kind, system)
+    table = UNIT_ALIASES.get(kind, {})
+    if unit not in table:
+        raise ValueError(f"unknown unit {m.group(2)!r} for {kind}; use one of: " + ", ".join(table) if table else
+                         f"no typed units are defined for {kind}")
+    return value * table[unit]
+
+
 def kinds() -> List[str]:
     return sorted(QUANTITIES)
 

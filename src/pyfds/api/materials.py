@@ -78,6 +78,19 @@ class ReactionManager(_CollectionManager):
         from pyfds.domain.model import Reaction
         super().__init__(api, Reaction)
 
+    def set_active(self, reaction) -> Any:
+        """Make *reaction* the only active one: it is enabled and every other reaction is disabled (one undo step).
+        PyroSim's "Set as Active Reaction"; the others stay in the project and can be enabled again."""
+        target = self.get(reaction) if isinstance(reaction, str) else reaction
+        if target is None or not any(r is target for r in self.all()):
+            raise KeyError(f"reaction {reaction!r} not found")
+        with self._api.history.transaction(f"set {target.name} as the active reaction"):
+            for r in self.all():
+                want = r is target
+                if bool(r.enabled) != want:
+                    self._api.set_property(r, "enabled", want)
+        return target
+
     def add_simple_reaction(self, fuel: str, heat_of_combustion: float, **kwargs) -> Any:
         from pyfds.domain.model import Reaction
         r = Reaction(fuel=fuel, heat_of_combustion=heat_of_combustion, **kwargs)

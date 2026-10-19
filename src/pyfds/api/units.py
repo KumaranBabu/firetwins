@@ -40,6 +40,11 @@ class UnitsManager:
         """Value typed in the project's unit system -> SI for the model."""
         return _u.from_display(value, kind, self.system)
 
+    def parse(self, text: str, kind: str) -> float:
+        """A typed value with an optional unit ("500 cfm", "3 ft") as SI; a bare number is in the current unit system."""
+        from pyfds.domain import units as _u
+        return _u.parse_with_unit(text, kind, self.system)
+
     def convert(self, value: float, kind: str, from_system: str, to_system: str) -> float:
         return _u.convert(value, kind, from_system, to_system)
 

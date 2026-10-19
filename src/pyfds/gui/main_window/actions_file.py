@@ -54,6 +54,8 @@ class ActionsFileMixin:
         except OSError as exc:
             QMessageBox.warning(self, "Preferences", "The settings apply now but could not be saved:" + chr(10) + str(exc))
 
+    _RECENT_MAX = 10
+
     def _recent_paths(self) -> list:
         settings = QSettings("PyFDS", "PyFDS")
         paths = settings.value("recent_projects", [])
@@ -65,19 +67,31 @@ class ActionsFileMixin:
         resolved = str(Path(path).resolve())
         paths = [p for p in self._recent_paths() if p != resolved]
         paths.insert(0, resolved)
-        QSettings("PyFDS", "PyFDS").setValue("recent_projects", paths[:5])
+        QSettings("PyFDS", "PyFDS").setValue("recent_projects", paths[:self._RECENT_MAX])
+        self._rebuild_recent_menu()
+
+    def _on_clear_recent(self) -> None:
+        QSettings("PyFDS", "PyFDS").setValue("recent_projects", [])
         self._rebuild_recent_menu()
 
     def _rebuild_recent_menu(self) -> None:
+        """Numbered entries with the full path as the tooltip; files that were deleted or moved drop out of the list."""
         self._recent_submenu.clear()
         paths = self._recent_paths()
-        if not paths:
+        kept = [p for p in paths if Path(p).exists()]
+        if kept != paths:
+            QSettings("PyFDS", "PyFDS").setValue("recent_projects", kept)
+        if not kept:
             action = self._recent_submenu.addAction("(No Recent Projects)")
             action.setEnabled(False)
             return
-        for path in paths:
-            label = Path(path).name or path
-            self._recent_submenu.addAction(label, lambda checked=False, p=path: self._on_open_recent(p))
+        for n, path in enumerate(kept, start=1):
+            label = f"&{n} {Path(path).name or path}" if n < 10 else f"{n} {Path(path).name or path}"
+            action = self._recent_submenu.addAction(label, lambda checked=False, p=path: self._on_open_recent(p))
+            action.setToolTip(path)
+            action.setStatusTip(path)
+        self._recent_submenu.addSeparator()
+        self._recent_submenu.addAction("&Clear Recent Projects", self._on_clear_recent)
 
     def _on_open_recent(self, path: str) -> None:
         if not Path(path).exists():

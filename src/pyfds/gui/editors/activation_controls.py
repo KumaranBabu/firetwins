@@ -18,8 +18,16 @@ from PySide6.QtWidgets import (
 from .activation_controls_ops import ControlOperationsMixin  # noqa: E402
 
 #: parameters each function uses besides inputs (everything else is hidden for it)
-_PARAMS = {"TIME_DELAY": ("delay",), "DEADBAND": ("deadband", "initial_state"), "ONLY": ("n",), "CUSTOM": ("ramp_id",),
-           "PID": ("setpoint", "constant")}
+_MATH = ("setpoint", "constant")                     # a math function can trip at a set point and take a constant as one input
+_PARAMS = {"TIME_DELAY": ("delay",), "DEADBAND": ("deadband", "initial_state"), "ONLY": ("n",), "AT_LEAST": ("n",),
+           "CUSTOM": ("ramp_id",), "PERCENTILE": ("percentile_rank", "setpoint"),
+           "PID": ("setpoint", "constant", "target_value", "proportional_gain", "integral_gain", "differential_gain"),
+           **{f: _MATH for f in ("SUM", "SUBTRACT", "MULTIPLY", "DIVIDE", "POWER", "MAX", "MIN", "EXP", "LOG", "COS", "SIN",
+                                 "ACOS", "ASIN", "ATAN")}}
+#: numeric control fields shown as plain boxes: field -> (label, low, high)
+_NUMBERS = {"target_value": ("Target value", -1e9, 1e9), "proportional_gain": ("Proportional gain", -1e9, 1e9),
+            "integral_gain": ("Integral gain", -1e9, 1e9), "differential_gain": ("Differential gain", -1e9, 1e9),
+            "percentile_rank": ("Percentile (0 to 1)", 0.0, 1.0)}
 _COMMON = ("latch", "initial_state")
 _KINDS = ["Detector-based", "Time-based", "Deadband-based", "Mathematical", "Custom"]
 
@@ -81,6 +89,7 @@ class ActivationControlsDialog(ControlOperationsMixin, QDialog):
         self.deadband_high = self._dspin("deadband high", -1e9, 1e9)
         self.ramp_combo = QComboBox(right)
         self.ramp_combo.currentTextChanged.connect(lambda _t: self._changed())
+        self.number_boxes = {k: self._dspin(label, lo, hi) for k, (label, lo, hi) in _NUMBERS.items()}
         self.latch_check = QCheckBox("Stay on once switched on (latch)", right)
         self.initial_check = QCheckBox("Starts on", right)
         for c in (self.latch_check, self.initial_check):
@@ -89,6 +98,7 @@ class ActivationControlsDialog(ControlOperationsMixin, QDialog):
                       "constant": ("Constant", self.constant_box), "n": ("Number of inputs on", self.n_box),
                       "deadband": ("Deadband low / high", self._pair(self.deadband_low, self.deadband_high)),
                       "ramp_id": ("Ramp", self.ramp_combo), "latch": ("", self.latch_check),
+                      **{k: (_NUMBERS[k][0], box) for k, box in self.number_boxes.items()},
                       "initial_state": ("", self.initial_check)}
         for key, (label, widget) in self._rows.items():
             self.params_form.addRow(label, widget)
@@ -199,7 +209,7 @@ class ActivationControlsDialog(ControlOperationsMixin, QDialog):
         self.kind_combo.setCurrentText(kind)
         self._fill_functions(kind, c.function_type)
         chosen = set(self.api.controls.inputs_of(c))
-        for name in self.api.controls.input_candidates(c):
+        for name in self.api.controls.input_candidates(c) + ["CONSTANT"]:
             it = QListWidgetItem(name)
             it.setFlags(it.flags() | Qt.ItemIsUserCheckable)
             it.setCheckState(Qt.Checked if name in chosen else Qt.Unchecked)
@@ -222,6 +232,8 @@ class ActivationControlsDialog(ControlOperationsMixin, QDialog):
         self.ramp_combo.setCurrentText(c.ramp_id or "")
         self.latch_check.setChecked(bool(c.latch))
         self.initial_check.setChecked(bool(c.initial_state))
+        for k, box in self.number_boxes.items():
+            box.setValue(getattr(c, k) or 0.0)
         self._load_objects(c)
         self._loading = False
         self._show_params()
@@ -277,6 +289,8 @@ class ActivationControlsDialog(ControlOperationsMixin, QDialog):
         out["deadband"] = ((self.deadband_low.value(), self.deadband_high.value()) if "deadband" in wanted
                            else (self._current.deadband if self._current else None))
         out["ramp_id"] = (self.ramp_combo.currentText() or None) if "ramp_id" in wanted else (self._current.ramp_id if self._current else None)
+        for k, box in self.number_boxes.items():
+            out[k] = box.value() if k in wanted else (getattr(self._current, k) if self._current else None)
         return out
 
     def _probe(self) -> Any:

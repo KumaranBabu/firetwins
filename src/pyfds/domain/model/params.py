@@ -73,6 +73,8 @@ class MiscParams(BaseModel):
     w0: float = 0.0
     restart: bool = False
     suppression: bool = True
+    no_pressure_zones: bool = False             # NO_PRESSURE_ZONES - "Disable Pressure Zones": one background pressure everywhere
+    minimum_zone_volume: Optional[float] = None  # MINIMUM_ZONE_VOLUME (m3) - voids smaller than this are filled with solid cells
     particle_cfl: bool = False                  # PARTICLE_CFL - limit the time step by the particle CFL number
     particle_cfl_max: Optional[float] = None    # PARTICLE_CFL_MAX (FDS default 1.0)
     # OpenMP threading (sets OPENMP_THREADS in &MISC and OMP_NUM_THREADS env var)

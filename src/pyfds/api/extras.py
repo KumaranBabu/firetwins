@@ -20,6 +20,7 @@ def install_extra_managers(api: Any) -> None:
     from .sim_params import SimParamsManager
     from .updates import UpdatesManager
     from .dependencies import DependencyManager
+    from .renaming import RenameManager
 
     api.units = UnitsManager(api)
     api.sim = SimParamsManager(api)
@@ -28,6 +29,7 @@ def install_extra_managers(api: Any) -> None:
     api.ui_history = UiHistory(api)
     api.find = FindManager(api)
     api.dependencies = DependencyManager(api)
+    api.rename = RenameManager(api)
     api.measure = MeasureManager(api)
     api.hygiene = HygieneManager(api)
     api.preferences = PreferencesManager(api)

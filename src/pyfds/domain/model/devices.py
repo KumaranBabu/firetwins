@@ -35,6 +35,9 @@ class Device(FdsEntity):
     points: Optional[int] = None          # for line sensors
     time_averaged: bool = False
     spatial_statistic: Optional[str] = None
+    temporal_statistic: Optional[str] = None   # TEMPORAL_STATISTIC ("Time Statistic": TIME AVERAGE, RUNNING AVERAGE, MAX, MIN, TIME INTEGRAL, SMOOTHED ...)
+    no_update_ctrl_id: Optional[str] = None    # NO_UPDATE_CTRL_ID - "Freeze Output": the output stays at its value once this control activates
+    no_update_devc_id: Optional[str] = None    # NO_UPDATE_DEVC_ID - the same, with a device as the trigger
     vd_to_vd: bool = False
     # Phase 1 additions
     quantity2: Optional[str] = None       # second output quantity
@@ -101,8 +104,12 @@ class Control(FdsEntity):
     constant: Optional[float] = None
     # Phase 1 additions
     deadband: Optional[Tuple[float, float]] = None  # DEADBAND(1:2) for thermostat logic
-    percentile_rank: Optional[float] = None          # PERCENTILE_RANK
+    percentile_rank: Optional[float] = None          # PERCENTILE (0..1) of the PERCENTILE function; older files say PERCENTILE_RANK
     ramp_id: Optional[str] = None                    # RAMP_ID reference
+    target_value: Optional[float] = None             # TARGET_VALUE (PID)
+    proportional_gain: Optional[float] = None        # PROPORTIONAL_GAIN (PID)
+    integral_gain: Optional[float] = None            # INTEGRAL_GAIN (PID)
+    differential_gain: Optional[float] = None        # DIFFERENTIAL_GAIN (PID)
 
 
 class Slice(FdsEntity):

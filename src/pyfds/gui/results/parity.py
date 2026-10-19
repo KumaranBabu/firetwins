@@ -16,6 +16,10 @@ from PySide6.QtWidgets import (QComboBox, QInputDialog, QLabel, QMenu, QMessageB
 from pyfds.api.viz import model as vm
 from pyfds.api.viz import timelines as tml
 
+#: icon glyph of each rendering mode (V-63)
+_MODE_ICONS = {"solid": "shaded", "solid_outlines": "shaded_outline", "realistic": "realistic", "realistic_outlines": "realistic_outline",
+               "wireframe": "wireframe"}
+
 from . import dialogs as dlg
 from .forms import SettingsDialog
 
@@ -142,8 +146,9 @@ def install_parity(win) -> None:
     tb.addAction(proj)
     tb.addSeparator()
     mode = QComboBox()
-    for m in vm.RENDER_MODES:
-        mode.addItem(m.replace("_", " ").capitalize(), m)
+    from pyfds.gui.icons import icon
+    for m in vm.RENDER_MODES:                         # V-63: an icon for each rendering mode
+        mode.addItem(icon(_MODE_ICONS.get(m, "shaded")), m.replace("_", " ").capitalize(), m)
     mode.setCurrentIndex(vm.RENDER_MODES.index(v.viz.rendering_mode))
     mode.currentIndexChanged.connect(lambda i: win._try(lambda: (v.set_rendering_mode(mode.itemData(i)), win.sync())))
     tb.addWidget(mode)

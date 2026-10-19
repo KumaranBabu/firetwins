@@ -95,6 +95,8 @@ class ParamBuilders:
         if vn_max is not None: p.misc.vn_max = vn_max
         p.misc.visibility_factor = self._flt(d, "VISIBILITY_FACTOR")
         p.misc.maximum_visibility = self._flt(d, "MAXIMUM_VISIBILITY")
+        p.misc.no_pressure_zones = bool(self._bool(d, "NO_PRESSURE_ZONES", False))
+        p.misc.minimum_zone_volume = self._flt(d, "MINIMUM_ZONE_VOLUME")
         p.misc.particle_cfl = bool(self._bool(d, "PARTICLE_CFL", False))
         p.misc.particle_cfl_max = self._flt(d, "PARTICLE_CFL_MAX")
 

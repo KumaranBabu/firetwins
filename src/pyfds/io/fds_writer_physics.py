@@ -198,6 +198,11 @@ class FdsWriterPhysicsMixin:
         if obj.n is not None:        d["N"]         = obj.n
         # Phase 1 additions
         if obj.deadband is not None:         d["DEADBAND"]       = list(obj.deadband)
-        if obj.percentile_rank is not None:  d["PERCENTILE_RANK"] = obj.percentile_rank
+        if obj.percentile_rank is not None:  d["PERCENTILE"]     = obj.percentile_rank      # FDS keyword is PERCENTILE
         if obj.ramp_id:                      d["RAMP_ID"]        = obj.ramp_id
+        if obj.constant is not None:         d["CONSTANT"]       = obj.constant
+        for key, attr in (("TARGET_VALUE", "target_value"), ("PROPORTIONAL_GAIN", "proportional_gain"),
+                          ("INTEGRAL_GAIN", "integral_gain"), ("DIFFERENTIAL_GAIN", "differential_gain")):
+            if getattr(obj, attr) is not None:
+                d[key] = getattr(obj, attr)
         return _nl("CTRL", d)

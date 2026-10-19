@@ -87,13 +87,32 @@ def test_recent_projects_round_trip(monkeypatch, tmp_path):
 
     window._add_recent_path(str(project_file))
     labels = [a.text() for a in window._recent_submenu.actions()]
-    assert "myproject.fds" in labels
+    assert "&1 myproject.fds" in labels
+    assert window._recent_submenu.actions()[0].toolTip() == str(project_file.resolve())
 
     recorded = {}
     monkeypatch.setattr(window.api, "load", lambda p: recorded.setdefault("path", p))
     window._on_open_recent(str(project_file))
     assert recorded["path"] == str(project_file)
     assert window._current_project_path == str(project_file)
+    window.close()
+
+def test_recent_menu_keeps_ten_hides_deleted_files_and_can_be_cleared(tmp_path):
+    window = _make_window()
+    files = []
+    for i in range(12):
+        f = tmp_path / f"p{i}.fds"
+        f.write_text("x")
+        files.append(f)
+        window._add_recent_path(str(f))
+    assert len(window._recent_paths()) == 10 and window._recent_paths()[0] == str(files[-1].resolve())
+    labels = [a.text() for a in window._recent_submenu.actions() if a.text()]
+    assert labels[0] == "&1 p11.fds" and labels[-1] == "&Clear Recent Projects" and len(labels) == 11
+    files[-1].unlink()                                       # a deleted file drops out of the menu and the list
+    window._rebuild_recent_menu()
+    assert str(files[-1].resolve()) not in window._recent_paths()
+    window._on_clear_recent()
+    assert window._recent_paths() == [] and [a.text() for a in window._recent_submenu.actions()] == ["(No Recent Projects)"]
     window.close()
 
 def test_recent_projects_stale_path_is_pruned(monkeypatch, tmp_path):

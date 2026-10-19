@@ -68,6 +68,8 @@ GLYPHS: Dict[str, Tuple[str, str]] = {
     "viewcube": ("view", '<path d="M12 2.5 21 7v10l-9 4.5L3 17V7z" fill="@c"/><path d="M12 2.5 21 7l-9 4.5L3 7z" fill="@l"/><path d="M3 7l9 4.5v10L3 17z" fill="@d"/><path d="M12 11.5 21 7" stroke="#fff" stroke-width=".8"/>'),
     "wireframe": ("view", '<path d="M12 2.5 21 7v10l-9 4.5L3 17V7zM3 7l9 4.5L21 7M12 11.5v10" fill="none" stroke="@c" stroke-width="2" stroke-linejoin="round"/>'),
     "shaded": ("view", '<path d="M12 2.5 21 7v10l-9 4.5L3 17V7z" fill="@c"/><path d="M12 2.5 21 7l-9 4.5L3 7z" fill="@l"/><path d="M3 7l9 4.5v10L3 17z" fill="@d"/>'),
+    "shaded_outline": ("view", '<path d="M12 2.5 21 7v10l-9 4.5L3 17V7z" fill="@c"/><path d="M12 2.5 21 7l-9 4.5L3 7z" fill="@l"/><path d="M3 7l9 4.5v10L3 17z" fill="@d"/><path d="M12 2.5 21 7v10l-9 4.5L3 17V7zM3 7l9 4.5L21 7M12 11.5v10" fill="none" stroke="#1d1d1d" stroke-width="1.4" stroke-linejoin="round"/>'),
+    "realistic_outline": ("view", '<circle cx="12" cy="12" r="9.5" fill="@c" stroke="#1d1d1d" stroke-width="1.6"/><ellipse cx="9" cy="8.5" rx="4" ry="3" fill="#fff" opacity=".55"/><path d="M5 17a9.5 9.5 0 0 0 14-5 9 9 0 0 1-14 5z" fill="@d"/>'),
     "realistic": ("view", '<circle cx="12" cy="12" r="9.5" fill="@c"/><ellipse cx="9" cy="8.5" rx="4" ry="3" fill="#fff" opacity=".55"/><path d="M5 17a9.5 9.5 0 0 0 14-5 9 9 0 0 1-14 5z" fill="@d"/>'),
     "eye": ("view", '<path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z" fill="#fff" stroke="@c" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="@c"/><circle cx="13.2" cy="10.8" r="1.2" fill="#fff"/>'),
     "grid": ("view", '<path d="M3 20 8 5h13l-5 15z" fill="@l"/><path d="M5.5 12.5h13M4.3 16.2h13M10.5 5l-4.3 15M15.8 5l-2.6 15" stroke="@c" stroke-width="1.6"/>'),

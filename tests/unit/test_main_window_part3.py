@@ -264,10 +264,15 @@ def test_context_menu_toggle_label_reflects_disabled_state():
     window.close()
 
 def test_rename_entity_via_dialog_is_undoable(monkeypatch):
+    from pyfds.gui.rename_dialog import RenameDialog
     window = _make_window()
     obst = window.api.obstructions.add_obstruction(xb=[0, 1, 0, 1, 0, 1], name="box1")
 
-    monkeypatch.setattr("pyfds.gui.main_window.QInputDialog.getText", lambda *a, **k: ("renamed", True))
+    def _type_and_ok(self):
+        self.edit.setText("renamed")
+        self.buttons.accepted.emit()
+        return 1
+    monkeypatch.setattr(RenameDialog, "exec", _type_and_ok)
 
     window._on_rename_entity(obst)
 
@@ -277,10 +282,15 @@ def test_rename_entity_via_dialog_is_undoable(monkeypatch):
     window.close()
 
 def test_rename_entity_cancelled_does_nothing(monkeypatch):
+    from pyfds.gui.rename_dialog import RenameDialog
     window = _make_window()
     obst = window.api.obstructions.add_obstruction(xb=[0, 1, 0, 1, 0, 1], name="box1")
 
-    monkeypatch.setattr("pyfds.gui.main_window.QInputDialog.getText", lambda *a, **k: ("ignored", False))
+    def _type_and_cancel(self):
+        self.edit.setText("ignored")
+        self.buttons.rejected.emit()
+        return 0
+    monkeypatch.setattr(RenameDialog, "exec", _type_and_cancel)
 
     window._on_rename_entity(obst)
 

@@ -74,6 +74,7 @@ class ActionsToolsHelpMixin:
         "HRR / Power": {"kW": 1.0, "MW": 1000.0, "BTU/s": 1.055056, "BTU/hr": 0.00029307107},
         "Velocity": {"m/s": 1.0, "ft/s": 0.3048, "ft/min": 0.00508, "mph": 0.44704},
         "Pressure": {"Pa": 1.0, "kPa": 1000.0, "bar": 1.0e5, "atm": 101325.0, "psi": 6894.757},
+        "Volume flow": {"m3/s": 1.0, "L/s": 1.0e-3, "m3/h": 1 / 3600.0, "ft3/s": 0.028316846592, "cfm": 4.71947443e-4},
     }
 
     @staticmethod

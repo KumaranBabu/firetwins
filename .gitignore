@@ -67,3 +67,10 @@ user_data/
 
 # example 2: the 25 s couch run is ~190 MB; make_example2.py recreates it
 examples/example-2/gui_run/
+
+# example 1: stray trial-run output in the example folder
+examples/example-1/example_1.fds
+examples/example-1/example_1*.gbnd
+examples/example-1/example_1*.s3dd
+examples/example-1/example_1_git.txt
+examples/example-1/recording.mp4

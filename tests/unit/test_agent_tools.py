@@ -166,14 +166,14 @@ def test_init_particle_prof_tools_via_dispatcher():
     dispatcher.call("add_init", {
         "xb": [0, 1, 0, 1, 0, 1], "part_id": "water_droplet", "n_particles": 1000, "name": "cloud1",
     })
-    dispatcher.call("add_profile", {"quantity": "TEMPERATURE", "xyz": [1.0, 2.0, 0.0], "name": "prof1"})
+    dispatcher.call("add_profile", {"quantity": "INSIDE WALL TEMPERATURE", "xyz": [1.0, 2.0, 0.0], "name": "prof1"})
 
     assert api.particles.get("water_droplet").diameter == 200.0
     assert api.inits.get("init1").temperature == 25.0
     cloud = api.inits.get("cloud1")
     assert cloud.part_id == "water_droplet"
     assert cloud.n_particles == 1000
-    assert api.profs.get("prof1").quantity == "TEMPERATURE"
+    assert api.profs.get("prof1").quantity == "INSIDE WALL TEMPERATURE"
 
     assert [n["name"] for n in dispatcher.call("list_inits", {})] == ["init1", "cloud1"]
     assert [n["name"] for n in dispatcher.call("list_particle_classes", {})] == ["water_droplet"]

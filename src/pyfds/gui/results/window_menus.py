@@ -98,3 +98,7 @@ class ResultsWindowMenusMixin:
         self._act(pf, "&Rendering...", self.rendering_prefs)
         self._act(pf, "Fl&oors...", self.floors)
         self._act(pf, "&Time Display...", self.time_display)
+        pf.addSeparator()
+        self._act(pf, "Save as &My Defaults", self.save_my_defaults)
+        self._act(pf, "&Apply My Defaults", self.apply_my_defaults)
+        self._act(pf, "Forget My Defaul&ts", self.forget_my_defaults)

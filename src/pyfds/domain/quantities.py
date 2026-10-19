@@ -32,10 +32,10 @@ CONTEXT_PL3D = "PL3D"
 CONTEXT_PROF = "PROF"
 CONTEXT_PART = "PART"
 
-_ALL_GAS   = frozenset({CONTEXT_DEVC, CONTEXT_SLCF, CONTEXT_PL3D, CONTEXT_PROF})
+_ALL_GAS   = frozenset({CONTEXT_DEVC, CONTEXT_SLCF, CONTEXT_PL3D})       # PROF takes solid-phase quantities only (FDS guide 22.2.2, type 'Pr')
 _ALL       = frozenset({CONTEXT_DEVC, CONTEXT_SLCF, CONTEXT_BNDF, CONTEXT_ISOF,
-                        CONTEXT_PL3D, CONTEXT_PROF})
-_GAS_DEVC  = frozenset({CONTEXT_DEVC, CONTEXT_SLCF, CONTEXT_PROF})
+                        CONTEXT_PL3D})
+_GAS_DEVC  = frozenset({CONTEXT_DEVC, CONTEXT_SLCF})
 _WALL      = frozenset({CONTEXT_DEVC, CONTEXT_BNDF})
 _DEVC_ONLY = frozenset({CONTEXT_DEVC})
 _SLCF_ONLY = frozenset({CONTEXT_SLCF, CONTEXT_ISOF})

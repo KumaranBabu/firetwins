@@ -43,7 +43,7 @@ class RecordFile:
         if not self.use_cache or not os.path.exists(self.cache_path):
             return
         try:
-            c = json.loads(Path(self.cache_path).read_text())
+            c = json.loads(Path(self.cache_path).read_text(encoding="utf-8"))
             size = os.path.getsize(self.path)
             if c.get("v") != CACHE_VERSION or c.get("sig") != self._signature() or c.get("end", 0) > size:
                 return
@@ -58,7 +58,7 @@ class RecordFile:
             return
         flat = [x for r in self._rec for x in r]
         try:
-            Path(self.cache_path).write_text(json.dumps({"v": CACHE_VERSION, "sig": self._signature(), "end": self._end,
+            Path(self.cache_path).write_text(encoding="utf-8", data=json.dumps({"v": CACHE_VERSION, "sig": self._signature(), "end": self._end,
                                                          "records": flat}))
         except OSError:
             pass                                       # read-only folder: the cache is only a speed-up

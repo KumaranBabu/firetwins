@@ -310,8 +310,8 @@ class TestInitParticleProfManagers:
         assert cloud.n_particles == 1000
 
     def test_add_profile(self, api):
-        prof = api.profs.add_profile(quantity="TEMPERATURE", xyz=[1.0, 2.0, 0.0], name="prof1")
-        assert prof.quantity == "TEMPERATURE"
+        prof = api.profs.add_profile(quantity="INSIDE WALL TEMPERATURE", xyz=[1.0, 2.0, 0.0], name="prof1")
+        assert prof.quantity == "INSIDE WALL TEMPERATURE"
         assert (prof.x, prof.y, prof.z) == (1.0, 2.0, 0.0)
 
     def test_add_profile_rejects_invalid_quantity(self, api):
@@ -321,7 +321,7 @@ class TestInitParticleProfManagers:
     def test_counts_and_removal(self, api):
         init = api.inits.add_init(xb=[0, 1, 0, 1, 0, 1], name="i1")
         particle = api.particles.add_particle_class(name="p1")
-        prof = api.profs.add_profile(quantity="TEMPERATURE", xyz=[0, 0, 0], name="pr1")
+        prof = api.profs.add_profile(quantity="INSIDE WALL TEMPERATURE", xyz=[0, 0, 0], name="pr1")
         assert (api.inits.count(), api.particles.count(), api.profs.count()) == (1, 1, 1)
         api.inits.remove(init)
         api.particles.remove(particle)

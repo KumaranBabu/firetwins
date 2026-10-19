@@ -154,7 +154,7 @@ def test_build_scene_init_region_renders_as_translucent_box():
 def test_build_scene_profile_renders_as_sphere_at_xyz():
     from pyfds.gui.viewport_scene import build_scene
     api = _make_api()
-    api.profs.add_profile(quantity="TEMPERATURE", xyz=[1.0, 2.0, 0.0], name="prof1")
+    api.profs.add_profile(quantity="INSIDE WALL TEMPERATURE", xyz=[1.0, 2.0, 0.0], name="prof1")
 
     specs = build_scene(api)
     prof_specs = [s for s in specs if s.entity_kind == "profile"]
@@ -177,7 +177,7 @@ def test_build_scene_visibility_flags_hide_init_and_profiles():
     from pyfds.gui.viewport_scene import build_scene
     api = _make_api()
     api.inits.add_init(xb=[0, 1, 0, 1, 0, 1], name="init1")
-    api.profs.add_profile(quantity="TEMPERATURE", xyz=[0, 0, 0], name="prof1")
+    api.profs.add_profile(quantity="INSIDE WALL TEMPERATURE", xyz=[0, 0, 0], name="prof1")
 
     api.viewport.set_visibility(VisibilityFlags.INIT_REGIONS, False)
     api.viewport.set_visibility(VisibilityFlags.PROFILES, False)
@@ -256,7 +256,7 @@ def test_actor_spec_carries_manager_attr_and_entity_for_picking():
     hole = api.holes.add_hole(xb=[0, 1, 0, 1, 0, 1], name="h1")
     device = api.devices.add_thermocouple(xyz=[1, 1, 1], devc_id="tc1")
     init = api.inits.add_init(xb=[0, 1, 0, 1, 0, 1], name="i1")
-    prof = api.profs.add_profile(quantity="TEMPERATURE", xyz=[0, 0, 0], name="p1")
+    prof = api.profs.add_profile(quantity="INSIDE WALL TEMPERATURE", xyz=[0, 0, 0], name="p1")
 
     by_kind = {s.entity_kind: s for s in build_scene(api)}
 

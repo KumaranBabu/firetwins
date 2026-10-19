@@ -13,6 +13,7 @@ class FdsWriterHeadMixin:
         d: Dict[str, Any] = {"T_END": p.params.t_end, "T_BEGIN": p.params.t_begin}
         if p.params.dt:
             d["DT"] = p.params.dt
+        if not p.params.restrict_time_step:      d["RESTRICT_TIME_STEP"] = False      # FDS default is .TRUE.
         return _nl("TIME", d)
 
     def _write_dump(self, p: FdsProject) -> str:
@@ -34,6 +35,8 @@ class FdsWriterHeadMixin:
         if p.dump.sig_figs is not None:          d["SIG_FIGS"]          = p.dump.sig_figs
         if p.dump.sig_figs_exp is not None:      d["SIG_FIGS_EXP"]      = p.dump.sig_figs_exp
         if p.dump.maximum_particles is not None: d["MAXIMUM_PARTICLES"] = p.dump.maximum_particles
+        if p.dump.write_xyz:                     d["WRITE_XYZ"]         = True
+        if p.dump.render_file:                   d["RENDER_FILE"]       = p.dump.render_file
         if p.dump.velocity_error_file:           d["VELOCITY_ERROR_FILE"] = True
         if not p.dump.flush_file_buffers:        d["FLUSH_FILE_BUFFERS"]  = False
         # Write PLOT3D_QUANTITY array if custom quantities are set
@@ -59,10 +62,10 @@ class FdsWriterHeadMixin:
             d["SIMULATION_MODE"] = "DNS"
         for axis in ("gx", "gy", "gz"):
             if getattr(p.misc, f"ramp_{axis}"): d[f"RAMP_{axis.upper()}"] = getattr(p.misc, f"ramp_{axis}")
-        if p.misc.u0 != 0.0: d["U0"] = p.misc.u0
-        if p.misc.v0 != 0.0: d["V0"] = p.misc.v0
-        if p.misc.w0 != 0.0: d["W0"] = p.misc.w0
-        if p.misc.openmp_threads is not None: d["OPENMP_THREADS"] = p.misc.openmp_threads
+        initial_wind = {k.upper(): getattr(p.misc, k) for k in ("u0", "v0", "w0") if getattr(p.misc, k) != 0.0}
+        if initial_wind and not self._requires(p, "6.9"):
+            d.update(initial_wind)                                  # older FDS keeps the initial wind in &MISC
+        # OPENMP_THREADS is not an FDS keyword (real FDS stops with ERROR 101): threads come from the OMP_NUM_THREADS environment variable
         # Extended MISC fields
         if not p.misc.noise:                      d["NOISE"]              = False   # FDS default is .TRUE.
         if p.misc.p_inf != 101325.0:              d["P_INF"]              = p.misc.p_inf
@@ -79,7 +82,10 @@ class FdsWriterHeadMixin:
         if p.misc.minimum_zone_volume is not None: d["MINIMUM_ZONE_VOLUME"] = p.misc.minimum_zone_volume
         if p.misc.particle_cfl:                   d["PARTICLE_CFL"]       = True
         if p.misc.particle_cfl_max is not None:   d["PARTICLE_CFL_MAX"]   = p.misc.particle_cfl_max
-        return _nl("MISC", d)
+        text = _nl("MISC", d)
+        if initial_wind and self._requires(p, "6.9"):               # FDS 6.10 takes it from &WIND (real FDS rejects U0 in &MISC)
+            text += "\n" + _nl("WIND", initial_wind)
+        return text
 
     def _write_pres(self, p: FdsProject) -> str:
         return _nl("PRES", {
@@ -91,4 +97,5 @@ class FdsWriterHeadMixin:
         return _nl("RADI", {
             "NUMBER_RADIATION_ANGLES": p.radi.number_radiation_angles,
             "RADIATION_ITERATIONS":    p.radi.radiation_iterations,
+            **({"TIME_STEP_INCREMENT": p.radi.time_step_increment} if p.radi.time_step_increment != 3 else {}),     # FDS default is 3
         })

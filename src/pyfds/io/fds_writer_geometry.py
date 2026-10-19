@@ -80,7 +80,8 @@ class FdsWriterGeometryMixin:
         if obj.xyz_center is None:                # XYZ (point/shape centre) replaces XB
             d["XB"] = self._xb(obj)
         if obj.temperature is not None:   d["TEMPERATURE"]   = obj.temperature
-        if obj.density is not None:       d["DENSITY"]       = obj.density
+        if obj.density is not None and not self._requires(self._project, "6.9"):    # FDS 6.10 rejects DENSITY on &INIT
+            d["DENSITY"] = obj.density
         # Multi-species takes priority over single spec_id/mass_fraction
         if getattr(obj, "spec_ids", None):
             d["SPEC_ID"]       = obj.spec_ids
@@ -114,7 +115,6 @@ class FdsWriterGeometryMixin:
         if getattr(obj, "heat_of_vaporization", None) is not None:    d["HEAT_OF_VAPORIZATION"]     = obj.heat_of_vaporization
         if getattr(obj, "n_strata", None) is not None:                 d["N_STRATA"]                 = obj.n_strata
         if getattr(obj, "gamma", None) is not None:                    d["GAMMA"]                    = obj.gamma
-        if getattr(obj, "sigma", None) is not None:                    d["SIGMA"]                    = obj.sigma
         # New fields added in gap-fill
         if getattr(obj, "quantities", None):                           d["QUANTITIES"]               = obj.quantities
         if getattr(obj, "orientation", None):                          d["ORIENTATION"]              = list(obj.orientation)
@@ -137,9 +137,7 @@ class FdsWriterGeometryMixin:
         else:                               d["SURF_ID"]     = obj.surf_id
         if obj.is_terrain:                  d["IS_TERRAIN"]  = obj.is_terrain
         if obj.binary_file:                 d["BINARY_FILE"] = obj.binary_file
-        if obj.read_binary:                 d["READ_BINARY"] = obj.read_binary
         if obj.move_id:                     d["MOVE_ID"]     = obj.move_id
-        if obj.component_only:              d["COMPONENT_ONLY"] = obj.component_only
         # Inline vertex and face arrays
         if obj.verts:
             # Flatten: VERTS=x1,y1,z1,x2,y2,z2,...
@@ -169,9 +167,6 @@ class FdsWriterGeometryMixin:
             d["X0"] = obj.x0; d["Y0"] = obj.y0; d["Z0"] = obj.z0
         ax = list(obj.axis)
         if ax != [0.0, 0.0, 1.0]: d["AXIS"] = ax
-        if obj.omega != 0.0:  d["OMEGA"]    = obj.omega
-        vel = list(obj.velocity)
-        if vel != [0.0, 0.0, 0.0]: d["VELOCITY"] = vel
         if obj.rotation_angle is not None: d["ROTATION_ANGLE"] = obj.rotation_angle
         if obj.dx != 0.0: d["DX"] = obj.dx
         if obj.dy != 0.0: d["DY"] = obj.dy

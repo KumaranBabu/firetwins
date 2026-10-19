@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import logging
 from typing import Dict
+from pyfds.domain.prof_orient import prof_direction
 from pyfds.domain.model import FdsProject, Device, Control, Prop, Slice, BoundaryFile, IsoSurface, Smoke3D, Prof, Plot3D
 
 logger = logging.getLogger(__name__)
@@ -163,9 +164,9 @@ class DeviceBuilders:
     def _parse_prof(self, p: FdsProject, d: Dict) -> None:
         name = self._str(d, "ID", f"PROF_{len(p.profs)}")
         xyz = self._parse_xyz(d.get("XYZ", "0,0,0"))
-        p.add_entity(Prof(name=name, quantity=self._str(d, "QUANTITY", "TEMPERATURE"),
+        p.add_entity(Prof(name=name, quantity=self._str(d, "QUANTITY", "INSIDE WALL TEMPERATURE"),
                           x=xyz[0], y=xyz[1], z=xyz[2],
-                          direction=self._str(d, "DIRECTION", "Z")))
+                          direction=prof_direction(d)))
 
     def _parse_pl3d(self, p: FdsProject, d: Dict) -> None:
         name = self._str(d, "ID", f"PL3D_{len(p.plot3ds)}")

@@ -70,13 +70,15 @@ class FdsWriterPhysicsMixin:
         d["CO_YIELD"]           = obj.co_yield
         d["RADIATIVE_FRACTION"] = obj.radiative_fraction
         d["EPUMO2"]             = obj.epumo2
+        if obj.lower_oxygen_limit != 0.15:          d["LOWER_OXYGEN_LIMIT"]          = obj.lower_oxygen_limit            # FDS defaults
+        if obj.critical_flame_temperature != 1427.0: d["CRITICAL_FLAME_TEMPERATURE"] = obj.critical_flame_temperature
+        if obj.auto_ignition_temperature is not None: d["AUTO_IGNITION_TEMPERATURE"] = obj.auto_ignition_temperature
         for k in ("c", "h", "o", "n", "cl", "a", "e", "n_t"):
             v = getattr(obj, k, None)
             if v is not None:
                 d[k.upper()] = v
         # Phase 1 additions
         if obj.fuel_radcal_id:     d["FUEL_RADCAL_ID"]   = obj.fuel_radcal_id
-        if obj.soot_h_fraction is not None: d["SOOT_H_FRACTION"] = obj.soot_h_fraction
         if obj.spec_id_nu:   d["SPEC_ID_NU"] = obj.spec_id_nu
         if obj.nu:           d["NU"]         = obj.nu
         if obj.spec_id_n_s:  d["SPEC_ID_N_S"] = obj.spec_id_n_s
@@ -137,7 +139,7 @@ class FdsWriterPhysicsMixin:
         if getattr(obj, "adiabatic", False):                d["ADIABATIC"]              = True
         if getattr(obj, "external_flux", None) is not None: d["EXTERNAL_FLUX"]          = obj.external_flux
         if getattr(obj, "ignition_temperature", None) is not None:
-            d["AUTO_IGNITION_TEMPERATURE"] = obj.ignition_temperature
+            d["IGNITION_TEMPERATURE"] = obj.ignition_temperature
         if getattr(obj, "free_slip", False):                d["FREE_SLIP"]              = True
         if getattr(obj, "no_slip", False):                  d["NO_SLIP"]                = True
         if getattr(obj, "tau_t", None) is not None:         d["TAU_T"]                  = obj.tau_t

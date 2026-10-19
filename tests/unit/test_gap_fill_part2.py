@@ -203,7 +203,7 @@ class TestWriterMove:
         p = FdsProject()
         p.moves.append(Move(name="m", omega=3.14))
         text = writer.generate_content(p)
-        assert "OMEGA=3.14" in text
+        assert "OMEGA" not in text            # not an FDS &MOVE keyword (real FDS 6.10 stops with ERROR 101)
 
     def test_move_rotation_angle(self, writer):
         p = FdsProject()

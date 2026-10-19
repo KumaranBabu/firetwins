@@ -69,7 +69,7 @@ class PhysicsBuilders:
             # Extended SURF fields
             adiabatic=self._bool(d, "ADIABATIC"),
             external_flux=self._flt(d, "EXTERNAL_FLUX"),
-            ignition_temperature=self._flt(d, "AUTO_IGNITION_TEMPERATURE"),
+            ignition_temperature=self._flt(d, "IGNITION_TEMPERATURE", self._flt(d, "AUTO_IGNITION_TEMPERATURE")),
             free_slip=self._bool(d, "FREE_SLIP"),
             no_slip=self._bool(d, "NO_SLIP"),
             tau_t=self._flt(d, "TAU_T"),
@@ -137,6 +137,9 @@ class PhysicsBuilders:
             co_yield=self._flt(d, "CO_YIELD", 0.0),
             radiative_fraction=self._flt(d, "RADIATIVE_FRACTION", 0.35),
             epumo2=self._flt(d, "EPUMO2", 13100.0),
+            lower_oxygen_limit=self._flt(d, "LOWER_OXYGEN_LIMIT", 0.15),
+            critical_flame_temperature=self._flt(d, "CRITICAL_FLAME_TEMPERATURE", 1427.0),
+            auto_ignition_temperature=self._flt(d, "AUTO_IGNITION_TEMPERATURE"),
             # Phase 1 additions
             fuel_radcal_id=self._str(d, "FUEL_RADCAL_ID") or None,
             check_atom_balance=self._bool(d, "CHECK_ATOM_BALANCE"),
@@ -250,6 +253,11 @@ class PhysicsBuilders:
         ))
 
     def _parse_wind(self, p: FdsProject, d: Dict) -> None:
+        initial = {k: self._flt(d, k.upper()) for k in ("u0", "v0", "w0") if self._flt(d, k.upper()) is not None}
+        for k, v in initial.items():                                 # the initial wind field (FDS 6.10 keeps it in &WIND)
+            setattr(p.misc, k, v)
+        if initial and set(d) - {"_TAG"} <= {"U0", "V0", "W0"}:                  # a line holding only the initial wind adds no profile
+            return
         name = self._str(d, "ID", f"WIND_{len(p.wind_profiles)}")
         p.add_entity(WindProfile(
             name=name,

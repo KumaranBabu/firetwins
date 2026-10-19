@@ -5,6 +5,7 @@ import copy
 from typing import Any, Optional, Sequence
 
 from pyfds.results.viz import model as vm
+from pyfds.results.viz import user_prefs
 
 
 class ViewerManagerPrefsMixin:
@@ -20,6 +21,22 @@ class ViewerManagerPrefsMixin:
         self._playback = None
         self.dirty = True
         return f
+
+    # -- the user's own defaults (PyroSim's Results.props) -------------------------------------------------------
+    def save_user_defaults(self) -> str:
+        """Preferences ▸ Save as My Defaults: later new visualizations start from the current preferences."""
+        return user_prefs.save_user_defaults(self.viz)
+
+    def load_user_defaults(self) -> bool:
+        """Preferences ▸ Apply My Defaults: replace the current preferences with the saved ones (False when none are saved)."""
+        if not user_prefs.apply_user_defaults(self.viz):
+            return False
+        self._playback = None
+        self.dirty = True
+        return True
+
+    def clear_user_defaults(self) -> bool:
+        return user_prefs.clear_user_defaults()
 
     # -- per-kind properties --------------------------------------------------------------------------------
     def set_smoke3d(self, preset: Optional[str] = None, **fields: Any) -> vm.Smoke3DProps:

@@ -20,7 +20,7 @@ def main(argv=None) -> int:
     win = ResultsWindow(FdsApi())
     win.results_server = ResultsServer(win)       # the model editor and a second double-click reach this window through it
     app.aboutToQuit.connect(win.results_server.close)
-    win.show()
+    win.showMaximized()                           # the 3D view should start as large as the screen allows
     if argv:
         if argv[0].endswith(".pyfdsv"):
             win.viewer.open_visualization(argv[0])

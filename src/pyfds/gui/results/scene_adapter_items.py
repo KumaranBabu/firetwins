@@ -86,7 +86,6 @@ class SceneAdapterItemsMixin:
             cloud["vec"] = prim.vectors
             speed = np.linalg.norm(prim.vectors, axis=1)
             cloud["v"] = prim.values if prim.values is not None else speed
-            scale = float(np.nanmax(speed)) or 1.0
             arrows = cloud.glyph(orient="vec", scale=False, factor=0.15 * max(viz.slice_vectors.get(node.quantity + "|" + node.label,
                                  vm.SliceVectorProps()).factor, 1e-6))
             if arrows.n_points:

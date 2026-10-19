@@ -1,7 +1,7 @@
 """Results window: views, sections, annotations, plots, preferences."""
 from __future__ import annotations
 
-from PySide6.QtWidgets import QHBoxLayout, QInputDialog, QPushButton
+from PySide6.QtWidgets import QHBoxLayout, QInputDialog, QMessageBox, QPushButton
 
 from .forms import SettingsDialog
 
@@ -76,6 +76,19 @@ class ResultsWindowToolsMixin:
     def fds_prefs(self) -> None:
         self._edit("FDS Preferences", self.viewer.viz.fds, lambda **k: self.viewer.set_fds_preferences(**k),
                    hide=("colorbars", "obscure_types"))
+
+    def save_my_defaults(self) -> None:
+        path = self.viewer.save_user_defaults()
+        QMessageBox.information(self, "My Defaults", f"New results visualizations will start from these preferences.\n\n{path}")
+
+    def apply_my_defaults(self) -> None:
+        if self.viewer.load_user_defaults():
+            self.sync()
+        else:
+            QMessageBox.information(self, "My Defaults", "No defaults saved yet: use Preferences > Save as My Defaults first.")
+
+    def forget_my_defaults(self) -> None:
+        self.viewer.clear_user_defaults()
 
     def colorbar_prefs(self) -> None:
         qs = [q for q, _, _ in self.viewer.colorbars()] or list({l.quantity for l in self.viewer.tree.leaves() if l.quantity})

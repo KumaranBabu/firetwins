@@ -167,7 +167,7 @@ class TestWriterParticleP0Fixes:
         p = FdsProject()
         p.particles.append(Particle(name="drop", sigma=0.07))
         text = writer.generate_content(p)
-        assert "SIGMA=0.07" in text
+        assert "SIGMA" not in text            # not an FDS &PART keyword (real FDS 6.10 stops with ERROR 101)
 
     def test_quantities_written(self, writer):
         p = FdsProject()

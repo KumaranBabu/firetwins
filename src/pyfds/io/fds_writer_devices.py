@@ -15,6 +15,7 @@ from pyfds.domain.model import (
     Smoke3D,
 )
 
+from pyfds.domain.prof_orient import prof_ior
 from .fds_writer_common import _nl
 
 _HVAC_PREFIXES = ("DUCT ", "NODE ", "FAN ", "AIRCOIL ", "FILTER ")
@@ -105,7 +106,7 @@ class FdsWriterDevicesMixin:
     def _write_prof(self, obj: Prof) -> str:
         return _nl("PROF", {"ID": obj.name, "QUANTITY": obj.quantity,
                              "XYZ": [obj.x, obj.y, obj.z],
-                             "DIRECTION": obj.direction})
+                             "IOR": prof_ior(obj.direction)})
 
     def _write_plot3d(self, obj: Plot3D) -> str:
         """Write &PL3D namelist."""
@@ -125,8 +126,8 @@ class FdsWriterDevicesMixin:
             cy = (obj.y_min + obj.y_max) / 2.0
             cz = (obj.z_min + obj.z_max) / 2.0
             d["XYZ"] = [cx, cy, cz]
-        if obj.leak_areas:
-            d["LEAK_AREAS"] = obj.leak_areas
+        for other, area in enumerate(obj.leak_areas or []):          # LEAK_AREA(n): leakage to zone n (0 = outside)
+            d[f"LEAK_AREA({other})"] = area
         return _nl("ZONE", d)
 
     def _write_wind_profile(self, obj: WindProfile) -> str:

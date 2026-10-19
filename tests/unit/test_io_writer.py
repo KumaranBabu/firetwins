@@ -249,7 +249,7 @@ class TestPhase1Writer:
         p.zones.append(Zone(name="z1", x_min=0, x_max=4, y_min=0, y_max=4,
                             z_min=0, z_max=3, leak_areas=[0.001, 0.002]))
         text = writer.generate_content(p)
-        assert "LEAK_AREAS=0.001,0.002" in text
+        assert "LEAK_AREA(0)=0.001" in text and "LEAK_AREA(1)=0.002" in text
 
     def test_zone_no_leak_areas_omitted(self, writer, tmp_path):
         p = FdsProject(chid="zone_no_leak")

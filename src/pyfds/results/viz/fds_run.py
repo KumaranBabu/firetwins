@@ -21,7 +21,7 @@ _KEYWORDS = {
     "TRNX", "TRNY", "TRNZ", "OBST", "VENT", "CVENT", "VENTORIG", "OUTLINE", "ISOG", "ISOF", "TISOF", "SMOKF3D",
     "SMOKG3D", "SLCF", "SLCC", "SLCT", "BNDF", "BNDC", "PRT5", "PL3D", "DEVICE", "DEVICE_ACT", "SURFACE", "SURFDEF",
     "GVEC", "IBLANK", "HoC", "FUEL", "AMBIENT", "SMOKEDIFF", "TREE", "GEOM", "GEOMDIAG", "SHOW_OBST", "HIDE_OBST",
-    "OPEN_VENT", "CLOSE_VENT", "VIEW", "DEVICE_ACT",
+    "OPEN_VENT", "CLOSE_VENT", "VIEW",
 }
 _KW_RE = re.compile(r"^([A-Za-z][A-Za-z0-9_]*)\b")
 
@@ -238,7 +238,6 @@ def parse_smv(path: str) -> FdsRun:
     run = FdsRun(path=str(p))
     lines = p.read_text(encoding="utf-8", errors="replace").splitlines()
     mesh: Optional[Mesh] = None
-    trn_target: Optional[str] = None
     acts: Dict[str, List[Tuple[float, int]]] = {}
     for key, args, data in _blocks(lines):
         d = [x for x in data if x.strip()]

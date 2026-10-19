@@ -155,13 +155,15 @@ class Text(FdsEntity):
 
 
 class Prof(FdsEntity):
-    """&PROF namelist — vertical profile output."""
+    """&PROF namelist — temperature (or other solid-phase quantity) in depth at a point of a face.
+
+    ``direction`` is the face orientation as PyroSim's ORIENT: ``X+ X- Y+ Y- Z+ Z-`` (a bare axis means +); FDS gets it as IOR."""
     name: str = "DefaultProf"
-    quantity: str = "TEMPERATURE"
+    quantity: str = "INSIDE WALL TEMPERATURE"
     x: float = 0.0
     y: float = 0.0
     z: float = 0.0
-    direction: str = "Z"
+    direction: str = "Z+"
 
 
 class Plot3D(FdsEntity):

@@ -14,6 +14,7 @@ from typing import Any, Dict, List, Optional
 
 from pyfds.results.playback import Playback
 from pyfds.results.viz import model as vm
+from pyfds.results.viz import user_prefs
 from pyfds.results.viz.dataset import ResultsDataset
 from pyfds.results.viz.fds_run import FdsRun, parse_smv
 from pyfds.results.viz.primitives import GeometryBoxes
@@ -70,8 +71,9 @@ class ViewerManager(ViewerManagerPlaybackMixin, ViewerManagerColorbarsMixin, Vie
 
     # -- session --------------------------------------------------------------------------------------
     def new(self) -> vm.ResultsVisualization:
-        """File ▸ New Results Visualization: empty, nothing loaded."""
+        """File ▸ New Results Visualization: empty, nothing loaded; starts from the user's saved defaults when there are any."""
         self.viz = vm.ResultsVisualization()
+        user_prefs.apply_user_defaults(self.viz)
         self.path, self.dirty, self.run, self.dataset, self.time = None, False, None, None, 0.0
         self._playback = None
         self.csv_cache.clear()

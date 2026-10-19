@@ -79,18 +79,20 @@ TOOLS: List[ToolSpec] = [
     ),
     ToolSpec(
         name="add_profile",
-        description="Add an in-depth/vertical profile output request (&PROF) at a point.",
+        description="Add a solid profile (&PROF): a solid-phase quantity in depth at a point of a heat-conducting face.",
         input_schema={
             "type": "object",
             "properties": {
                 "quantity": {"type": "string", "enum": list_quantities("PROF")},
                 "xyz": {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
                 "name": {"type": "string"},
+                "direction": {"type": "string", "enum": ["X+", "X-", "Y+", "Y-", "Z+", "Z-"], "default": "Z+",
+                              "description": "Which way the face looks (PyroSim's ORIENT)."},
             },
             "required": ["quantity", "xyz"],
         },
-        handler=lambda api, quantity, xyz, name=None: api.profs.add_profile(
-            quantity=quantity, xyz=xyz, **({"name": name} if name else {})
+        handler=lambda api, quantity, xyz, name=None, direction="Z+": api.profs.add_profile(
+            quantity=quantity, xyz=xyz, direction=direction, **({"name": name} if name else {})
         ),
     ),
     ToolSpec(

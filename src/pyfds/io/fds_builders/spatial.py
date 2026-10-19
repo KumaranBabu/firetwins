@@ -129,7 +129,15 @@ class SpatialBuilders:
     def _parse_zone(self, p: FdsProject, d: Dict) -> None:
         name = self._str(d, "ID", f"ZONE_{len(p.zones)}")
         xb = self._parse_xb(d.get("XB", "0,1,0,1,0,1"))
-        leak_areas = self._floats(d, "LEAK_AREAS")
+        leak_areas = self._floats(d, "LEAK_AREAS")                        # older PyFDS files
+        if leak_areas is None:
+            found = {}
+            for k in range(0, 11):
+                v = self._flt(d, f"LEAK_AREA({k})")
+                if v is not None:
+                    found[k] = v
+            if found:
+                leak_areas = [found.get(k, 0.0) for k in range(max(found) + 1)]
         # Parse XYZ interior point (preferred FDS form)
         xyz_interior = None
         if "XYZ" in d:

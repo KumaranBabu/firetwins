@@ -33,6 +33,7 @@ from .window_timebar import (  # noqa: F401  (re-exported)
 from .window_tools import (  # noqa: F401  (re-exported)
     ResultsWindowToolsMixin,
 )
+from .window_layout import ResultsLayoutMixin
 from .window_common import (  # noqa: F401  (re-exported)
     _SMV_FILTER,
     _VIZ_FILTER,
@@ -44,7 +45,7 @@ from .window_common import (  # noqa: F401  (re-exported)
 )
 
 
-class ResultsWindow(ResultsAnalysisMixin, ResultsWindowRecordMixin, ResultsWindowTimebarMixin, ResultsWindowMenusMixin, ResultsWindowFilesMixin, ResultsWindowToolsMixin, QMainWindow):
+class ResultsWindow(ResultsLayoutMixin, ResultsAnalysisMixin, ResultsWindowRecordMixin, ResultsWindowTimebarMixin, ResultsWindowMenusMixin, ResultsWindowFilesMixin, ResultsWindowToolsMixin, QMainWindow):
     def __init__(self, api, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self.api = api
@@ -73,6 +74,7 @@ class ResultsWindow(ResultsAnalysisMixin, ResultsWindowRecordMixin, ResultsWindo
         from pyfds.gui.icons import install_icons
         install_icons(self, "results")
         self.statusBar().showMessage("No results loaded")
+        self._build_layout()
         self.sync()
         self._record_ui()                            # icon installation re-enables the buttons
 

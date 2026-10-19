@@ -222,12 +222,12 @@ def _write_smesh(path: Path, vertices: np.ndarray, triangles: np.ndarray) -> Non
     # Part 4 — region list (empty)
     lines.append("0")
 
-    path.write_text("\n".join(lines))
+    path.write_text("\n".join(lines), encoding="utf-8")
 
 
 def _read_node_file(path: Path) -> np.ndarray:
     """Parse a TetGen .node file → (N, 3) float64."""
-    raw = [l.strip() for l in path.read_text().splitlines()
+    raw = [l.strip() for l in path.read_text(encoding="utf-8").splitlines()
            if l.strip() and not l.strip().startswith("#")]
     n = int(raw[0].split()[0])
     verts = []
@@ -239,7 +239,7 @@ def _read_node_file(path: Path) -> np.ndarray:
 
 def _read_ele_file(path: Path) -> np.ndarray:
     """Parse a TetGen .ele file → (M, 4) int32, 0-based indices."""
-    raw = [l.strip() for l in path.read_text().splitlines()
+    raw = [l.strip() for l in path.read_text(encoding="utf-8").splitlines()
            if l.strip() and not l.strip().startswith("#")]
     n = int(raw[0].split()[0])
     tets = []

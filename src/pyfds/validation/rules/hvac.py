@@ -47,8 +47,6 @@ class HvacTopologyRule:
 
         node_ids = {n.name for n in p.hvac_nodes}
         duct_ids = {d.name for d in p.hvac_ducts}
-        fan_duct_ids = {f.duct_id for f in p.fans if f.duct_id}
-        damper_duct_ids = {d.duct_id for d in p.dampers if d.duct_id}
 
         # Every duct must reference two defined nodes
         for duct in p.hvac_ducts:

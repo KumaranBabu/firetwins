@@ -20,6 +20,7 @@ class ParamBuilders:
         if "T_END" in d:    p.params.t_end = float(d["T_END"])
         if "T_BEGIN" in d:  p.params.t_begin = float(d["T_BEGIN"])
         if "DT" in d:       p.params.dt = float(d["DT"])
+        p.params.restrict_time_step = self._bool(d, "RESTRICT_TIME_STEP", p.params.restrict_time_step)
 
     def _parse_dump(self, p: FdsProject, d: Dict) -> None:
         for attr, key in [
@@ -33,6 +34,8 @@ class ParamBuilders:
                 setattr(p.dump, attr, v)
         p.dump.plot3d  = self._bool(d, "PLOT3D",  p.dump.plot3d)
         p.dump.smoke3d = self._bool(d, "SMOKE3D", p.dump.smoke3d)
+        p.dump.write_xyz = self._bool(d, "WRITE_XYZ", p.dump.write_xyz)
+        if self._str(d, "RENDER_FILE"): p.dump.render_file = self._str(d, "RENDER_FILE")
         nframes = self._int(d, "NFRAMES")
         if nframes is not None: p.dump.nframes = nframes
         col_limit = self._int(d, "COLUMN_DUMP_LIMIT")
@@ -109,3 +112,4 @@ class ParamBuilders:
         if "NUMBER_RADIATION_ANGLES" in d: p.radi.number_radiation_angles = int(float(d["NUMBER_RADIATION_ANGLES"]))
         if "RADIATION_ITERATIONS"    in d: p.radi.radiation_iterations = int(float(d["RADIATION_ITERATIONS"]))
         if "C_RAD"                   in d: p.radi.c_rad = float(d["C_RAD"])
+        if "TIME_STEP_INCREMENT"     in d: p.radi.time_step_increment = int(float(d["TIME_STEP_INCREMENT"]))

@@ -38,7 +38,7 @@ def read_max_errors(out_file: str) -> Dict[str, List[ErrorSample]]:
     if not p.exists():
         return result
     t: Optional[float] = None
-    for line in p.read_text(errors="replace").splitlines():
+    for line in p.read_text(encoding="utf-8", errors="replace").splitlines():
         m = _TIME.search(line)
         if m:
             t = float(m.group(1))

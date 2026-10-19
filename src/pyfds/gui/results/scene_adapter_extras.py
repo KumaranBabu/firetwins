@@ -75,8 +75,9 @@ class SceneAdapterExtrasMixin:
                     g = an.dimension_geometry(d, viz.general.dimension_precision)
                 except ValueError:
                     continue
-                lines = [g.start, g.end] + [p for e in g.extension for p in e]
                 self.pl.add_lines(np.array([g.start, g.end]), color="yellow", width=2, name=f"dim_{i}")
+                for j, (e0, e1) in enumerate(g.extension):                       # the two extension lines from the measured points
+                    self.pl.add_lines(np.array([e0, e1]), color="yellow", width=1, name=f"dimx_{i}_{j}")
                 self.pl.add_point_labels([g.text_at], [g.text], font_size=12, text_color="yellow", shape=None,
                                          show_points=False, name=f"dimt_{i}")
                 n += 2

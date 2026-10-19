@@ -109,7 +109,7 @@ def test_init_particle_prof_menu_actions_appear_in_explorer(monkeypatch):
             return QDialog.Accepted
 
         def values(self):
-            return {"quantity": "TEMPERATURE", "xyz": [1.0, 2.0, 0.0], "name": "prof1"}
+            return {"quantity": "INSIDE WALL TEMPERATURE", "xyz": [1.0, 2.0, 0.0], "name": "prof1"}
 
     monkeypatch.setattr(main_window_mod, "SchemaFormDialog", _FakeProfDialog)
     window._on_add_entity("add_profile")

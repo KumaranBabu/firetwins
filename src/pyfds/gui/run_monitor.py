@@ -22,7 +22,7 @@ def read_progress(out_file: Path, t_end: float) -> Tuple[float, str]:
     """(simulated seconds so far, state) where state is ``waiting``, ``running``, ``done`` or ``failed``."""
     if not out_file.exists():
         return 0.0, "waiting"
-    text = out_file.read_text(errors="replace")
+    text = out_file.read_text(encoding="utf-8", errors="replace")
     times = _TOTAL_TIME.findall(text)
     t = float(times[-1]) if times else 0.0
     if "STOP: FDS completed successfully" in text:
@@ -36,7 +36,7 @@ def read_hrr(csv_file: Path) -> List[Tuple[float, float]]:
     if not csv_file.exists():
         return []
     rows = []
-    for line in csv_file.read_text(errors="replace").splitlines()[2:]:
+    for line in csv_file.read_text(encoding="utf-8", errors="replace").splitlines()[2:]:
         parts = line.split(",")
         try:
             rows.append((float(parts[0]), float(parts[1])))

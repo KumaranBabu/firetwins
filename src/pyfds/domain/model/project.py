@@ -10,10 +10,14 @@ from .physics import Material, Particle, Ramp, Reaction, Species, Surface
 from .spatial import Geom, Hole, Mesh, MeshTransform, Move, Mult, Obstruction, Vent, Zone
 
 import logging
+import re
 import uuid
-from typing import Any, Callable, Dict, List, Optional, Type
+from typing import Any, Callable, Dict, List, Optional, Set, Type
 
 logger = logging.getLogger(__name__)
+
+_RAW_TAG = re.compile(r"\s*&(\w+)")
+_RAW_ID = re.compile(r"(?<![\w(])ID\s*=\s*(['\"])(.*?)\1", re.IGNORECASE)     # ID=, not SURF_ID= or PROP_ID=
 
 
 class FdsProject(Observer):
@@ -183,6 +187,19 @@ class FdsProject(Observer):
             if getattr(obj, "name", None) == name:
                 return obj
         return None
+
+    def raw_ids(self, tag: str) -> Set[str]:
+        """IDs defined by records kept as text (``raw_records``) under ``&TAG``: a RAMP the editor cannot hold
+        is still defined in the file, so checks that look for a referenced ID must count it."""
+        want = tag.upper()
+        found: Set[str] = set()
+        for raw in self.raw_records:
+            m = _RAW_TAG.match(raw)
+            if m and m.group(1).upper() == want:
+                i = _RAW_ID.search(raw)
+                if i:
+                    found.add(i.group(2))
+        return found
 
     # ── Observer wiring ──────────────────────────────────────────────────────
 

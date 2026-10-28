@@ -16,7 +16,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parents[1] / "src"))
 
 from PySide6.QtCore import Qt, QTimer                                   # noqa: E402
-from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QFileDialog, QInputDialog,   # noqa: E402
+from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QFileDialog,   # noqa: E402
                                QLineEdit, QMessageBox)
 
 from pyfds.api import FdsApi                                            # noqa: E402
@@ -217,12 +217,11 @@ pump(0.5)
 shot(win, "11_saved_project")
 
 print("12 run")
-QFileDialog.getExistingDirectory = staticmethod(lambda *a, **k: str(RUN))
-QInputDialog.getInt = staticmethod(lambda *a, **k: (1, True))
 import shutil
+from pyfds.gui.run.model import RunSetup
 shutil.rmtree(RUN, ignore_errors=True)
 RUN.mkdir(exist_ok=True)
-win._run_action.trigger() if hasattr(win, "_run_action") else win._on_run_simulation()
+win._on_run_dialog(setup=RunSetup(mode="local", output_dir=str(RUN)))     # what Run Simulation's dialog returns
 pump(1.0)
 monitor = win.run_panel                       # docked Run Monitor tab (bottom panel)
 assert monitor is not None, "the run monitor did not open"

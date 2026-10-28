@@ -24,14 +24,20 @@ class ActionsRunDialogMixin:
         if self._run_is_active():
             QMessageBox.information(self, "Run FDS", "A simulation is already running. Stop or cancel it first.")
             return None
+        report = None
         if setup is None:
-            dialog = RunDialog(self.api, mode, self)
+            dialog = RunDialog(self.api, mode, self, show_checks=getattr(self, "_on_validate", None))
+            smokeview = getattr(self, "_open_smokeview_action", None)
+            if smokeview is not None:
+                dialog.smokeview_box.setChecked(smokeview.isChecked())
             self._run_dialog = dialog
             if dialog.exec() != QDialog.Accepted:
                 return None
-            setup = dialog.setup()
+            setup, report = dialog.setup(), dialog.report
+            if smokeview is not None:
+                smokeview.setChecked(setup.open_smokeview)
         try:
-            handle = run_model.start(self.api, setup)
+            handle = run_model.start(self.api, setup, report)
         except Exception as exc:
             QMessageBox.critical(self, "Could not start the run", str(exc))
             return None
@@ -56,7 +62,7 @@ class ActionsRunDialogMixin:
         return self._run_handle is not None and self.api.solvers.status(self._run_handle) not in _FINISHED
 
     def _set_run_actions(self, running: bool) -> None:
-        for name in ("_run_local_action", "_run_parallel_action", "_run_cluster_action", "_run_cloud_action"):
+        for name in ("_run_action", "_run_parallel_action", "_run_cluster_action", "_run_cloud_action"):
             if hasattr(self, name):
                 getattr(self, name).setEnabled(not running)
         for name in ("_stop_action", "_cancel_action"):

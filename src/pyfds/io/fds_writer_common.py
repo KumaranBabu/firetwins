@@ -75,14 +75,28 @@ def _fmt_float(v: float) -> str:
     abs_v = abs(v)
     if 0.0001 <= abs_v <= 999999.0:
         if abs_v >= 100:
-            return f"{v:.2f}"
-        if abs_v >= 1:
+            result = f"{v:.2f}"
+        elif abs_v >= 1:
             result = f"{v:.5f}".rstrip("0").rstrip(".")
-            return result if "." in result else result + ".0"
-        result = f"{v:.7f}".rstrip("0").rstrip(".")
-        return result if "." in result else result + ".0"
-    # Very large / small -> explicit scientific
-    return f"{v:.6E}".replace("E+0", "E+").replace("E-0", "E-")
+        else:
+            result = f"{v:.7f}".rstrip("0").rstrip(".")
+        result = result if "." in result else result + ".0"
+    else:                                         # very large / small -> explicit scientific
+        result = f"{v:.6E}".replace("E+0", "E+").replace("E-0", "E-")
+    return result if float(result) == v else _exact_float(v)      # never round away digits the value has
+
+
+def _exact_float(v: float) -> str:
+    """The shortest text that reads back as exactly *v* (decimal where practical, else E notation)."""
+    text = repr(v)
+    if "e" in text:
+        if 0.0001 <= abs(v) <= 999999.0:
+            from decimal import Decimal
+            text = format(Decimal(text), "f")
+        else:
+            mantissa, exp = text.split("e")
+            return f"{mantissa if '.' in mantissa else mantissa + '.0'}E{int(exp)}"
+    return text if "." in text else text + ".0"
 
 
 def _nl(tag: str, parts: Dict[str, Any]) -> str:
@@ -98,12 +112,13 @@ def _with_extra(line: str, extra) -> str:
     it (the value read from the source file is the truth), so a key never
     appears twice.
     """
-    if not extra or not line.endswith(" /"):
+    first, sep, rest = line.partition("\n")            # a writer may add a second record (e.g. &MISC then &WIND)
+    if not extra or not first.endswith(" /"):
         return line
-    rec = next(tokenize(line))
+    rec = next(tokenize(first))
     merged = dict(rec.fields)
     merged.update(extra)
-    return f"&{rec.tag} " + ", ".join(f"{k}={v}" for k, v in merged.items()) + " /"
+    return f"&{rec.tag} " + ", ".join(f"{k}={v}" for k, v in merged.items()) + " /" + sep + rest
 
 
 _VERSION_ORDER = {"6.7": 67, "6.8": 68, "6.9": 69, "latest": 999}

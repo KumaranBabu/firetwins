@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any, List
 
-from ._common import _e, _w
+from ._common import _e, _w, raw_ids
 from ..engine import ValidationResult
 
 
@@ -25,7 +25,7 @@ class LiquidFuelRule:
     def check(self, p: Any) -> List[ValidationResult]:
         from pyfds.domain.reaction_checks import BUILTIN_MW
         out = []
-        known = {s.name for s in p.species}
+        known = {s.name for s in p.species} | raw_ids(p, "SPEC")
         for m in p.materials:
             if m.boiling_temperature is None:
                 continue

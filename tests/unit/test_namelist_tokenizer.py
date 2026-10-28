@@ -113,8 +113,15 @@ def test_empty_record_and_tail():
 def test_indexed_keys_store_full_and_base_name():
     r = one("&REAC SPEC_ID_NU(1)='A' SPEC_ID_NU(2)='B' MASS_FRACTION(1)=0.5 /")
     assert r.params["SPEC_ID_NU(1)"] == "A" and r.params["SPEC_ID_NU(2)"] == "B"
-    assert r.params["SPEC_ID_NU"] == "A"              # first one wins as the base alias
-    assert r.params["MASS_FRACTION(1)"] == "0.5"
+    assert split_values(r.params["SPEC_ID_NU"]) == ["A", "B"]     # the base name holds the whole array
+    assert r.params["MASS_FRACTION(1)"] == "0.5" and r.params["MASS_FRACTION"] == "0.5"
+
+
+def test_a_partial_array_gets_no_base_alias():
+    r = one("&MISC GVEC(3)=0 /")                   # only the z component: read as GVEC it would mean (0, ?, ?)
+    assert r.params["GVEC(3)"] == "0" and "GVEC" not in r.params
+    r = one("&OBST XB=0,1,0,1,0,1 SURF_ID6(2)='A', SURF_ID6(4:5)='B','C' /")
+    assert "SURF_ID6" not in r.params
 
 
 def test_range_and_multi_dimensional_indices_are_not_split():

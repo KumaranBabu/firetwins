@@ -254,10 +254,10 @@ def test_number_format_applies_to_export_and_is_saved_and_undoable(api, tmp_path
     assert "XB=0.123" in FdsWriter().generate_content(api.project)
     assert _save_load(api, tmp_path).number_format == {"significant_digits": 3, "style": "auto"}
     api.history.undo()
-    assert api.project.number_format is None and "0.1234568" in api.fds_format.to_string()
+    assert api.project.number_format is None and "XB=0.123456789,1.5" in api.fds_format.to_string()   # default: every digit
     assert FdsWriter().generate_content(api.project, {"significant_digits": 2, "style": "auto"}).count("0.12") >= 1
     # the explicit argument does not leak into later writes
-    assert "0.1234568" in FdsWriter().generate_content(api.project)
+    assert "0.123456789" in FdsWriter().generate_content(api.project)
 
 
 @pytest.mark.parametrize("digits,style", [(0, "auto"), (16, "auto"), (3.5, "auto"), (True, "auto"), (3, "weird")])

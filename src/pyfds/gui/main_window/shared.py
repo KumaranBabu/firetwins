@@ -36,18 +36,13 @@ _VISIBILITY_TOGGLES = [
     ("&Geometry", VisibilityFlags.GEOMETRY),
 ]
 
-# Repo-bundled solvers (F:\firetwins\fds_smv\...) — checked as a fallback
+# Repo-bundled Smokeview (fds_smv\...; FDS itself is found by execution.installs.discover) — a fallback
 # before ever prompting the user, and only as a runtime config override
 # (never persisted to ~/.pyfds/config.json, which would leak into every
 # other FdsConfig() in this process, tests included).
 _REPO_ROOT = Path(__file__).resolve().parents[4]
 
-_BUNDLED_FDS_BINARY = _REPO_ROOT / "fds_smv" / "FDS6" / "bin" / "fds.exe"
-
 _BUNDLED_SMV_BINARY = _REPO_ROOT / "fds_smv" / "SMV6" / "smokeview.exe"
-
-def _default_fds_binary() -> Optional[str]:
-    return str(_BUNDLED_FDS_BINARY) if _BUNDLED_FDS_BINARY.exists() else None
 
 def _default_smv_binary() -> Optional[str]:
     return str(_BUNDLED_SMV_BINARY) if _BUNDLED_SMV_BINARY.exists() else None

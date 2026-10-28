@@ -25,10 +25,10 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from pyfds.core.exceptions import FdsParseError
 from pyfds.io.namelist import alias_of, tokenize
-from pyfds.domain.model import FdsProject, Ramp
+from pyfds.domain.model import FdsProject
 
 from pyfds.io.fds_builders import (
-    ParamBuilders, SpatialBuilders, PhysicsBuilders, DeviceBuilders, HvacBuilders,
+    ParamBuilders, SpatialBuilders, PhysicsBuilders, DeviceBuilders, HvacBuilders, RampBuilders,
 )
 
 logger = logging.getLogger(__name__)
@@ -71,7 +71,7 @@ _PARAM_TARGETS = {"TIME": "params", "DUMP": "dump", "MISC": "misc",
 _IGNORED_TAGS = frozenset({"TAIL"})
 
 
-class FdsParser(ParamBuilders, SpatialBuilders, PhysicsBuilders, DeviceBuilders, HvacBuilders):
+class FdsParser(ParamBuilders, SpatialBuilders, PhysicsBuilders, DeviceBuilders, HvacBuilders, RampBuilders):
     """
     Parse an FDS input file into an ``FdsProject``.
 
@@ -110,9 +110,8 @@ class FdsParser(ParamBuilders, SpatialBuilders, PhysicsBuilders, DeviceBuilders,
     def _parse_raw(self, raw: str) -> FdsProject:
         project = FdsProject()
 
-        # Accumulate RAMP lines keyed by ID before building objects
-        # Value: (times, values, devc_id, ctrl_id, interpolation)
-        ramp_accum: Dict[str, Tuple[List[float], List[float], Any, Any, Any]] = {}
+        # RAMP lines are collected per ID first (one line per point); see _accumulate_ramp
+        ramp_accum: Dict[str, Dict[str, Any]] = {}
 
         dispatch = {
             "HEAD":   self._parse_head,
@@ -170,12 +169,15 @@ class FdsParser(ParamBuilders, SpatialBuilders, PhysicsBuilders, DeviceBuilders,
             known_before = len(project._uid_index)
 
             if tag == "RAMP":
-                self._accumulate_ramp(kwargs, ramp_accum)
+                self._accumulate_ramp(kwargs, ramp_accum, rec)
             elif tag in dispatch:
                 try:
                     dispatch[tag](project, kwargs)
                 except Exception as exc:
-                    self.warnings.append(f"&{tag} (line {rec.line}): {exc}")
+                    # the record could not become an object: keep its text so the written file still has it
+                    self._drop_created(project, known_before)
+                    project.raw_records.append(rec.raw)
+                    self.warnings.append(f"&{tag} (line {rec.line}): kept unchanged as text ({exc})")
                 else:
                     self._attach_extras(project, rec, kwargs, known_before)
             elif tag not in _IGNORED_TAGS:
@@ -185,15 +187,7 @@ class FdsParser(ParamBuilders, SpatialBuilders, PhysicsBuilders, DeviceBuilders,
         self._finish_hvac(project)
         self._apply_default_surface(project)
 
-        # Flush accumulated RAMP objects
-        for ramp_id, (times, values, devc_id, ctrl_id, interpolation) in ramp_accum.items():
-            try:
-                project.add_entity(Ramp(
-                    name=ramp_id, times=times, values=values,
-                    devc_id=devc_id, ctrl_id=ctrl_id, interpolation=interpolation,
-                ))
-            except Exception as exc:
-                self.warnings.append(f"&RAMP ID={ramp_id!r}: {exc}")
+        self._finish_ramps(project, ramp_accum)
 
         if self.warnings:
             logger.warning("Parser finished with %d warning(s):", len(self.warnings))
@@ -209,16 +203,21 @@ class FdsParser(ParamBuilders, SpatialBuilders, PhysicsBuilders, DeviceBuilders,
     def _unused_fields(rec, used) -> Dict[str, str]:
         """``{KEY: text}`` for every parameter of *rec* no builder read."""
         out: Dict[str, str] = {}
-        aliased = set()                # the first KEY(n) of a family is also reachable as KEY
+        literal = {k for k, _ in rec.fields}
         for key, text in rec.fields:
-            consumed = key in used
             base = alias_of(key)
-            if base is not None and base not in aliased:
-                aliased.add(base)
-                consumed = consumed or base in used
-            if not consumed:
+            # KEY(1), KEY(2)... read together as KEY (only when they form the whole array; see namelist._build_params)
+            via_alias = base is not None and base not in literal and base in rec.params and base in used
+            if key not in used and not via_alias:
                 out[key] = text
         return out
+
+    @staticmethod
+    def _drop_created(project, known_before: int) -> None:
+        """Remove entities a failing builder added before it raised (the record is kept as text instead)."""
+        created = len(project._uid_index) - known_before
+        for uid in list(islice(reversed(project._uid_index.keys()), max(created, 0))):
+            project.remove_entity_by_uid(uid)
 
     def _attach_extras(self, project, rec, params, known_before: int) -> None:
         extra = self._unused_fields(rec, params.used)
@@ -255,14 +254,20 @@ class FdsParser(ParamBuilders, SpatialBuilders, PhysicsBuilders, DeviceBuilders,
 
     # ── XB / XYZ helpers ─────────────────────────────────────────────────────
 
-    def _parse_xb(self, xb_str: str) -> Tuple[float, ...]:
-        """Parse 'x1,x2,y1,y2,z1,z2' — exactly 6 floats required (BUG-02 fix)."""
+    def _parse_xb(self, xb_str: str, ordered: bool = False) -> Tuple[float, ...]:
+        """Parse 'x1,x2,y1,y2,z1,z2' — exactly 6 floats required (BUG-02 fix).
+
+        *ordered* puts each pair in increasing order (for a MESH, where ``XB=0.85,0.15,...`` is the same box as
+        ``XB=0.15,0.85,...``). Not for devices: a line device runs from the first point to the second."""
         try:
             vals = [float(v.strip()) for v in xb_str.split(",")]
         except ValueError as exc:
             raise FdsParseError(f"Non-numeric XB value: {xb_str!r}") from exc
         if len(vals) != 6:
             raise FdsParseError(f"XB must have exactly 6 values, got {len(vals)}: {xb_str!r}")
+        for i in (0, 2, 4) if ordered else ():
+            if vals[i] > vals[i + 1]:
+                vals[i], vals[i + 1] = vals[i + 1], vals[i]
         return tuple(vals)
 
     def _parse_xyz(self, xyz_str: str) -> Tuple[float, float, float]:
@@ -287,11 +292,19 @@ class FdsParser(ParamBuilders, SpatialBuilders, PhysicsBuilders, DeviceBuilders,
         vals = [int(float(v.strip())) for v in rgb_str.split(",")]
         return (vals[0], vals[1], vals[2])
 
+    @staticmethod
+    def _unread(d: Dict, key: str) -> None:
+        """A value the builder could not use stays a pass-through extra, so its source text is written back."""
+        used = getattr(d, "used", None)
+        if used is not None:
+            used.discard(key)
+
     def _flt(self, d: Dict, key: str, default=None) -> Optional[float]:
         if key in d:
             try:
                 return float(d[key])
             except (ValueError, TypeError):
+                self._unread(d, key)
                 return default
         return default
 
@@ -300,6 +313,7 @@ class FdsParser(ParamBuilders, SpatialBuilders, PhysicsBuilders, DeviceBuilders,
             try:
                 return int(float(d[key]))
             except (ValueError, TypeError):
+                self._unread(d, key)
                 return default
         return default
 
@@ -309,6 +323,8 @@ class FdsParser(ParamBuilders, SpatialBuilders, PhysicsBuilders, DeviceBuilders,
             return True
         if v in (".FALSE.", "F", "FALSE", "0", "NO"):
             return False
+        if v:
+            self._unread(d, key)
         return default
 
     def _opt_bool(self, d: Dict, key: str) -> Optional[bool]:
@@ -364,27 +380,11 @@ class FdsParser(ParamBuilders, SpatialBuilders, PhysicsBuilders, DeviceBuilders,
         try:
             return [float(v.strip()) for v in raw.split(",") if v.strip()]
         except (ValueError, TypeError):
+            self._unread(d, key)
             return None
 
     # ── Namelist builders ─────────────────────────────────────────────────────
 
-
-    def _accumulate_ramp(self, d: Dict, accum: Dict) -> None:
-        """Collect (T, F) pairs across multiple &RAMP lines (BUG-03 fix)."""
-        ramp_id = self._str(d, "ID", "__unnamed__")
-        t = self._flt(d, "T")
-        f = self._flt(d, "F")
-        if t is None or f is None:
-            self.warnings.append(f"&RAMP ID={ramp_id!r}: missing T or F, skipped.")
-            return
-        if ramp_id not in accum:
-            # First row: capture optional control fields
-            devc_id = self._str(d, "DEVC_ID") or None
-            ctrl_id = self._str(d, "CTRL_ID") or None
-            interpolation = self._str(d, "INTERPOLATION") or None
-            accum[ramp_id] = ([], [], devc_id, ctrl_id, interpolation)
-        accum[ramp_id][0].append(t)
-        accum[ramp_id][1].append(f)
 
 
     # ── Phase 1 new parsers ───────────────────────────────────────────────────

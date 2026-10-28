@@ -21,6 +21,12 @@ def _i(rule: str, msg: str, entity: str = None, hint: str = None) -> ValidationR
     return ValidationResult(Severity.INFO,    rule, msg, entity, hint)
 
 
+def raw_ids(p, tag: str) -> set:
+    """IDs that records kept as text define under ``&TAG`` (empty for objects without ``raw_ids``)."""
+    reader = getattr(p, "raw_ids", None)
+    return reader(tag) if callable(reader) else set()
+
+
 def _is_poisson(n: int) -> bool:
     if n <= 0:
         return False

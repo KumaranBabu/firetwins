@@ -5,7 +5,7 @@ from .base import FdsEntity
 
 
 from typing import List, Optional, Tuple
-from pydantic import model_validator
+from pydantic import field_validator, model_validator
 
 
 class Device(FdsEntity):
@@ -67,7 +67,14 @@ class Prop(FdsEntity):
     quantity: Optional[str] = None
     part_id: Optional[str] = None
     smokeview_id: Optional[str] = None
-    smokeview_parameters: Optional[List[float]] = None
+    smokeview_parameters: Optional[List[str]] = None   # FDS strings such as 'D=0.01' or 'R=255'
+
+    @field_validator("smokeview_parameters", mode="before")
+    @classmethod
+    def _parameters_as_text(cls, v):
+        """Projects saved before these were strings hold numbers; keep them as their text."""
+        return [str(x) for x in v] if isinstance(v, (list, tuple)) else v
+
     # Sprinkler-specific
     rti: float = 50.0
     c_factor: float = 0.7

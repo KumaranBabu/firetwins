@@ -51,10 +51,43 @@ All panels remain reachable (Validation, Run Monitor, Results, Output tabs); the
 - Dead-code removal was limited to the one provably unreferenced method above. Plugin registrations and runtime-loaded modules were not audited, so no further removals are recommended yet.
 - Not reviewed in this pass: `domain`, `io`, `meshing`, `engineering`, `tenability`, `agent`, `results` packages, signal-slot lifetime across the whole GUI, and the Results viewer window layout (`gui/results`).
 
-## 4. Tests
+## 4. Follow-up: FDS import/export fidelity (item 1)
+
+Measured by importing and re-exporting the 904 `.fds` files under `fds_smv/` and `examples/`, comparing every parameter as FDS
+reads it (arrays element by element, later assignments winning, numbers as numbers).
+
+| | Before | After |
+|---|---|---|
+| Records lost | 33,780 (33,778 RAMP lines, 2 MESH) | 0 |
+| Parameter groups with changed values | 42 (e.g. `GVEC` in 86 files, 1,747 RAMP values rounded) | 1 (`MESH XB` reordered: same box) |
+| Parameters left out | 22 kinds, incl. `WIND U0`, `SURF_IDS`, `SMOKEVIEW_PARAMETERS` | only FDS defaults (`LOSS=0`, `BURN_AWAY=.FALSE.`, ...) |
+
+Causes fixed: a partial array (`GVEC(3)=0`, `SURF_ID6(2)=...`) was read as the whole array; a value or record a builder could
+not use was dropped; RAMPs other than plain T/F pairs were dropped; `U0` was lost when `&MISC` had pass-through parameters and
+was written on a second `&WIND` line FDS ignores; `PLOT3D_QUANTITY(5)` moved to slot 1; numbers were rounded to 2-7 decimals.
+Records kept as text count as defined in the reference checks. Known limits: a fan shared by two ducts is imported as one
+copy per duct (renamed, same behaviour); a node's `DUCT_ID` order is rebuilt from the ducts, which matters only if the node
+has a non-zero `LOSS` list (none in the corpus). Tests: `tests/unit/test_fds_roundtrip_fidelity.py`.
+
+## 5. Follow-up: before a run (item 2)
+
+- Run > Run Simulation opens the Run dialog (MPI preselected for several meshes) instead of a folder picker and a
+  "processes" prompt that defaulted to 1; the duplicate "Run FDS (options)" entry is gone.
+- The dialog shows a "Before you run" summary: meshes and cells, cell size range, cells per MPI process (an uneven split is
+  flagged), and the model-check counts with "Show the problems". It validates once, not on every keystroke.
+- "Locate FDS..." and an "FDS was not found" problem replace the old prompt for a missing executable.
+- New check `TimeAndOutput`: T_END before T_BEGIN (error), T_END = T_BEGIN (note), output intervals longer than the run (warning).
+- The dialog no longer grows to ~1500 px wide (an unwrapped label on the cluster page).
+- No time or memory estimate is shown: it would need benchmarks of FDS on the user's machine.
+
+## 6. Tests
 
 - Baseline before edits: 44 GUI tests passed.
 - Full suite (`pytest tests`, offscreen Qt, conda env `agent`): **3735 passed, 0 failed** (10 min). The command exited non-zero (code 9) with a
   "Logging error: I/O on closed file" message at interpreter teardown; its cause was not investigated.
 - After the final edit (removal of `has_saved_geometry`), 625 GUI-related tests were re-run: all passed. The full suite was not re-run after that last edit.
 - Not tested: a real (non-offscreen) launch with a GPU, Windows display scaling, or an actual FDS run.
+- Items 1 and 2: full suite **3772 passed, 0 failed** (11 min). Seven tests of the retired Run prompts were replaced by
+  tests of the dialog path; three tests that asserted the old behaviour (first-element array alias, numeric
+  SMOKEVIEW_PARAMETERS, 7-decimal rounding) were updated. The run dialog's last three small fixes (combo width, label
+  wrap, cell-size units) were re-tested with the run and architecture tests only.

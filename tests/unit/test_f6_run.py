@@ -128,7 +128,7 @@ def test_start_dispatches_by_mode(api, tmp_path):
 
 # -- dialog ---------------------------------------------------------------------------------------------
 def test_dialog_shows_assignment_and_blocks_a_bad_setup(api, tmp_path):
-    d = RunDialog(api, "parallel", installs=[])
+    d = RunDialog(api, "parallel", installs=[], fds_found=True)
     assert d.mode_combo.currentData() == "parallel" and d.processes.value() == 2
     assert not d.buttons.button(QDialogButtonBox.Ok).isEnabled() and any("folder" in p for p in d.problems())
     d.folder.setText(str(tmp_path))
@@ -143,7 +143,7 @@ def test_dialog_shows_assignment_and_blocks_a_bad_setup(api, tmp_path):
 
 
 def test_dialog_cluster_page_edits_hosts_and_previews_meshes(api, tmp_path):
-    d = RunDialog(api, "cluster", installs=[])
+    d = RunDialog(api, "cluster", installs=[], fds_found=True)
     d.folder.setText(str(tmp_path))
     assert d.hosts_table.rowCount() == 1 and d.setup().hosts == ["localhost:2"]
     d.hosts_table.item(0, 1).setText("1")
@@ -156,7 +156,7 @@ def test_dialog_cluster_page_edits_hosts_and_previews_meshes(api, tmp_path):
 
 
 def test_dialog_cloud_page_and_mode_switching(api, tmp_path):
-    d = RunDialog(api, "cloud", installs=[])
+    d = RunDialog(api, "cloud", installs=[], fds_found=True)
     d.folder.setText(str(tmp_path))
     assert any("spool" in p for p in d.problems())
     d.spool.setText(str(tmp_path / "spool"))
@@ -172,7 +172,7 @@ def test_dialog_cloud_page_and_mode_switching(api, tmp_path):
 
 def test_dialog_lists_fds_installs(api):
     inst = SimpleNamespace(name="FDS 6.10.1", path=r"C:\fds\fds.exe")
-    d = RunDialog(api, "local", installs=[inst])
+    d = RunDialog(api, "local", installs=[inst], fds_found=True)
     assert d.fds_combo.count() == 2 and d.fds_combo.itemData(1) == "FDS 6.10.1" and d.setup().install is None
     d.fds_combo.setCurrentIndex(1)
     assert d.setup().install == "FDS 6.10.1"
@@ -302,3 +302,98 @@ def test_a_finished_run_is_reported_once(win, tmp_path):
     for _ in range(5):
         win._poll_run()
     assert [s[1] for s in win._shown].count("Simulation complete") == 1
+
+
+# -- before you run: summary, FDS location, checks (item 2) -------------------------------------------------
+def test_summary_counts_cells_sizes_and_checks(api):
+    report = api.validation.validate()
+    s = model.summary(api, RunSetup("parallel", "x", processes=2), report)
+    assert (s["meshes"], s["cells"], s["cells_per_mesh"]) == (2, 2000, [1000, 1000])
+    assert s["smallest_cell"] == pytest.approx(0.1) and s["cells_per_process"] == [1000, 1000]
+    assert s["imbalance"] == 1.0 and s["errors"] == len(report.errors)
+    lines = model.summary_lines(s)
+    assert lines[0] == "2 meshes, 2,000 cells (largest mesh 1,000)" and lines[1] == "Cell size 0.1 m"
+    assert not any(line.startswith("!") for line in lines[:3])
+    assert model.summary(api, RunSetup("local", "x"))["cells_per_process"] == []
+
+
+def test_summary_points_out_an_unbalanced_mpi_split(api):
+    api.meshes.add_mesh([40, 40, 40], [2, 3, 0, 1, 0, 1], name="Big")      # 64,000 cells next to two of 1,000
+    s = model.summary(api, RunSetup("parallel", "x", processes=3))
+    assert s["imbalance"] > 2.5
+    assert any(line.startswith("!") and "busiest process" in line for line in model.summary_lines(s))
+
+
+def test_fds_not_found_blocks_only_runs_on_this_computer(api, tmp_path):
+    assert any("FDS was not found" in p for p in model.problems(api, RunSetup("local", str(tmp_path)), fds_found=False))
+    cloud = RunSetup("cloud", str(tmp_path), provider_config={"root": str(tmp_path)})
+    assert model.problems(api, cloud, fds_found=False) == []
+    assert model.problems(api, RunSetup("local", str(tmp_path)), fds_found=None) == []      # not checked
+
+
+def test_problems_reuse_a_given_report(api, tmp_path, monkeypatch):
+    report = api.validation.validate()
+    monkeypatch.setattr(api.validation, "can_run", lambda: pytest.fail("validated again"))
+    assert model.problems(api, RunSetup("local", str(tmp_path)), report) == []
+
+
+def test_dialog_shows_the_summary_and_offers_the_problems(api, tmp_path):
+    api.meshes.add_mesh([10, 10, 10], [0.5, 1.5, 0, 1, 0, 1], name="Overlap")     # an error
+    opened = []
+    d = RunDialog(api, "local", installs=[], fds_found=True, show_checks=lambda: opened.append(True))
+    d.folder.setText(str(tmp_path))
+    text = d.summary_label.text()
+    assert "3 meshes, 3,000 cells" in text and "Model checks:" in text and "#b3261e" in text
+    assert not d.checks_button.isHidden() and any("errors" in p for p in d.problems())
+    d.checks_button.click()
+    assert opened == [True] and d.result() == QDialog.Rejected
+
+
+def test_dialog_without_fds_offers_locate(api, tmp_path, monkeypatch):
+    d = RunDialog(api, "local", installs=[], fds_found=False)
+    d.folder.setText(str(tmp_path))
+    assert any("FDS was not found" in p for p in d.problems())
+    inst = SimpleNamespace(name="FDS 6.10.1", path=str(tmp_path / "fds.exe"))
+    monkeypatch.setattr("pyfds.gui.run.dialog.QFileDialog.getOpenFileName", lambda *a, **k: (inst.path, ""))
+    monkeypatch.setattr(api.solvers, "add_install", lambda path: inst)
+    d._locate_fds()
+    assert d.problems() == [] and d.setup().install == "FDS 6.10.1"
+
+
+def test_run_simulation_opens_the_dialog_in_parallel_for_several_meshes(win, monkeypatch):
+    modes = []
+    monkeypatch.setattr(RunDialog, "exec", lambda self: modes.append(self.setup().mode) or QDialog.Rejected)
+    win._on_run_simulation()
+    win.api.meshes.remove(win.api.meshes.get("M2"))
+    win._on_run_simulation()
+    assert modes == ["parallel", "local"] and win.api.solvers.calls == []
+
+
+def test_run_simulation_starts_what_the_dialog_returns(win, monkeypatch, tmp_path):
+    win._open_smokeview_action.setChecked(False)
+    def accept(self):
+        assert self.smokeview_box.isChecked() is False                  # seeded from the Run menu toggle
+        self.smokeview_box.setChecked(True)
+        return QDialog.Accepted
+    monkeypatch.setattr(RunDialog, "exec", accept)
+    monkeypatch.setattr(RunDialog, "setup", lambda self: RunSetup("parallel", str(tmp_path), processes=2,
+                                                                  open_smokeview=True))
+    assert win._on_run_simulation() is win.api.solvers.handle
+    assert ("local", str(tmp_path), 2, True) in win.api.solvers.calls
+    assert win._open_smokeview_action.isChecked() and not win._run_action.isEnabled()
+
+
+# -- &TIME / &DUMP sanity -------------------------------------------------------------------------------------
+def test_time_and_output_rule():
+    from pyfds.validation.rules import TimeAndOutputRule
+    rule, p = TimeAndOutputRule(), FdsApi().project
+    assert rule.check(p) == []                                            # 60 s run, 1 s outputs
+    p.params.t_end, p.params.t_begin = 5.0, 10.0
+    assert rule.check(p)[0].severity.name == "ERROR"
+    p.params.t_end = 10.0
+    assert rule.check(p)[0].severity.name == "INFO"
+    p.params.t_begin, p.params.t_end, p.dump.dt_devc = 0.0, 0.5, 2.0
+    (w,) = rule.check(p)
+    assert w.severity.name == "WARNING" and "DT_SLCF=1 s" in w.message and "DT_DEVC=2 s" in w.message
+    p.dump.nframes = 10
+    assert rule.check(p) == []

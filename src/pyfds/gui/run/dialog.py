@@ -5,12 +5,15 @@ meshes go where, and lists what would stop the run before the Run button is pres
 """
 from __future__ import annotations
 
-from typing import Any, List, Optional
+from typing import Any, Callable, List, Optional
 
-from PySide6.QtCore import QSettings
+from html import escape
+
+from PySide6.QtCore import QSettings, Qt
 from PySide6.QtWidgets import (
-    QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QFormLayout, QHBoxLayout, QHeaderView, QLabel,
-    QLineEdit, QPushButton, QSpinBox, QStackedWidget, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
+    QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QFormLayout, QGroupBox, QHBoxLayout, QHeaderView,
+    QLabel, QLineEdit, QMessageBox, QPushButton, QSpinBox, QStackedWidget, QTableWidget, QTableWidgetItem,
+    QVBoxLayout, QWidget,
 )
 
 from . import model
@@ -23,11 +26,18 @@ _MODE_LABELS = {"local": "This computer", "parallel": "This computer, in paralle
 
 class RunDialog(QDialog):
     def __init__(self, api: Any, mode: str = "local", parent: Optional[QWidget] = None,
-                 setup: Optional[RunSetup] = None, installs: Optional[List[Any]] = None) -> None:
+                 setup: Optional[RunSetup] = None, installs: Optional[List[Any]] = None,
+                 fds_found: Optional[bool] = None, show_checks: Optional[Callable[[], None]] = None) -> None:
         super().__init__(parent)
         self.api = api
         self._setup = setup or model.default_setup(api, mode)
         self._installs = installs if installs is not None else self._find_installs()
+        self._fds_found = fds_found if fds_found is not None else (bool(self._installs) or model.fds_available(api))
+        self._show_checks = show_checks
+        try:                                   # once: the model cannot change while this dialog is open
+            self.report = api.validation.validate()
+        except Exception:
+            self.report = None
         self.setWindowTitle(TITLES[self._setup.mode])
         self.resize(560, 480)
         self._build()
@@ -61,11 +71,33 @@ class RunDialog(QDialog):
         self.fds_combo.addItem("(as configured)", None)
         for inst in self._installs:
             self.fds_combo.addItem(f"{inst.name}  -  {inst.path}", inst.name)
-        top.addRow("FDS version", self.fds_combo)
+        self.fds_combo.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)   # long install paths
+        self.fds_combo.setMinimumContentsLength(28)                                          # must not widen the dialog
+        fds_row = QHBoxLayout()
+        fds_row.addWidget(self.fds_combo, 1)
+        locate = QPushButton("Locate FDS...", self)
+        locate.clicked.connect(self._locate_fds)
+        fds_row.addWidget(locate)
+        top.addRow("FDS version", fds_row)
         root.addLayout(top)
 
+        box = QGroupBox("Before you run", self)          # what the run will compute, and the model checks
+        col = QVBoxLayout(box)
+        self.summary_label = QLabel("", box)
+        self.summary_label.setWordWrap(True)
+        self.summary_label.setTextFormat(Qt.RichText)
+        col.addWidget(self.summary_label)
+        self.checks_button = QPushButton("Show the problems", box)
+        self.checks_button.setToolTip("Close this dialog and list the model checks in the Validation panel")
+        self.checks_button.clicked.connect(self._on_show_checks)
+        self.checks_button.setVisible(False)
+        col.addWidget(self.checks_button, 0, Qt.AlignLeft)
+        root.addWidget(box)
+
         self.pages = QStackedWidget(self)
-        self.pages.addWidget(QLabel("Runs FDS on this computer with one process.", self))
+        local_note = QLabel("Runs FDS on this computer with one process.", self)
+        local_note.setWordWrap(True)
+        self.pages.addWidget(local_note)
         self.pages.addWidget(self._parallel_page())
         self.pages.addWidget(self._cluster_page())
         self.pages.addWidget(self._cloud_page())
@@ -108,8 +140,10 @@ class RunDialog(QDialog):
     def _cluster_page(self) -> QWidget:
         page = QWidget(self)
         v = QVBoxLayout(page)
-        v.addWidget(QLabel("Nodes, in mesh order. The folder must be visible to every node under the same path "
-                           "(a UNC path without spaces on Windows).", page))
+        note = QLabel("Nodes, in mesh order. The folder must be visible to every node under the same path "
+                      "(a UNC path without spaces on Windows).", page)
+        note.setWordWrap(True)                     # unwrapped, this one line made the whole dialog ~1500 px wide
+        v.addWidget(note)
         self.hosts_table = QTableWidget(0, 2, page)
         self.hosts_table.setHorizontalHeaderLabels(["Host", "Processes"])
         self.hosts_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
@@ -242,11 +276,47 @@ class RunDialog(QDialog):
                 self._fill(self.parallel_table, model.assignment(self.api, s))
             elif s.mode == "cluster":
                 self._fill(self.cluster_table, model.assignment(self.api, s))
-            found = model.problems(self.api, s)
+            found = model.problems(self.api, s, self.report, self._fds_found)
         except Exception as exc:                        # a half-typed host table must not break the dialog
             found = [str(exc)]
         self.problem_label.setText("\n".join(found))
         self.buttons.button(QDialogButtonBox.Ok).setEnabled(not found)
+        self._show_summary(s)
+
+    def _show_summary(self, s: RunSetup) -> None:
+        try:
+            lines = model.summary_lines(model.summary(self.api, s, self.report))
+        except Exception as exc:                        # the summary is information: it must never block the dialog
+            lines = [f"! Could not summarise the model: {exc}"]
+        html = []
+        for line in lines:
+            if line.startswith("!"):
+                html.append(f"<span style='color:#b3261e'>{escape(line[1:].strip())}</span>")
+            else:
+                html.append(escape(line))
+        self.summary_label.setText("<br>".join(html))
+        has_findings = self.report is not None and bool(self.report.errors or self.report.warnings)
+        self.checks_button.setVisible(has_findings and self._show_checks is not None)
+
+    def _on_show_checks(self) -> None:
+        self.reject()
+        if self._show_checks is not None:
+            self._show_checks()
+
+    def _locate_fds(self) -> None:
+        path, _ = QFileDialog.getOpenFileName(self, "Locate the FDS executable", "", "FDS (fds*.exe fds*);;All files (*)")
+        if not path:
+            return
+        try:
+            inst = self.api.solvers.add_install(path)
+        except Exception as exc:
+            QMessageBox.warning(self, "Locate FDS", str(exc))
+            return
+        self._installs.append(inst)
+        self.fds_combo.addItem(f"{inst.name}  -  {inst.path}", inst.name)
+        self.fds_combo.setCurrentIndex(self.fds_combo.count() - 1)
+        self._fds_found = True
+        self.refresh()
 
     def problems(self) -> List[str]:
         t = self.problem_label.text()

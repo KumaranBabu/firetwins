@@ -148,4 +148,9 @@ class FdsWriterDevicesMixin:
         if obj.lapse_rate is not None:    d["LAPSE_RATE"]    = obj.lapse_rate
         if obj.stratification is not None: d["STRATIFICATION"] = obj.stratification
         if obj.theta_star is not None:    d["THETA_STAR"]    = obj.theta_star
+        p = getattr(self, "_project", None)
+        if p is not None and self._requires(p, "6.9"):
+            first = next((w for w in p.wind_profiles if getattr(w, "enabled", True)), None)
+            if first is obj:                                   # the initial wind field shares FDS's only &WIND line
+                d.update({k.upper(): getattr(p.misc, k) for k in ("u0", "v0", "w0") if getattr(p.misc, k) != 0.0})
         return _nl("WIND", d)

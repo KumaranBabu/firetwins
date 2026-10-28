@@ -49,7 +49,7 @@ class MenusRunResultsMixin:
 
         # Simulation execution
         self._run_action = run_menu.addAction("&Run Simulation...", self._on_run_simulation)
-        self._run_local_action = run_menu.addAction("Run FDS (&options)...", lambda: self._on_run_dialog("local"))
+        self._run_action.setToolTip("Choose where and how to run, see what the run will compute, then start FDS")
         self._run_parallel_action = run_menu.addAction("Run FDS &Parallel...", lambda: self._on_run_dialog("parallel"))
         self._run_cluster_action = run_menu.addAction("Run FDS &Cluster...", lambda: self._on_run_dialog("cluster"))
         self._run_cloud_action = run_menu.addAction("Run FDS Clo&ud / Remote...", lambda: self._on_run_dialog("cloud"))

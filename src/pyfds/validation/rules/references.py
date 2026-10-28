@@ -1,7 +1,7 @@
 """Reference-integrity and naming rules (surfaces, ramps, controls, species, duplicates, layers)."""
 from __future__ import annotations
 
-from ._common import _e, _w
+from ._common import _e, _w, raw_ids
 
 
 from typing import Any, Dict, List, Set
@@ -15,7 +15,7 @@ class DanglingSurfaceRule:
 
     def check(self, p: Any) -> List[ValidationResult]:
         results = []
-        surf_ids = {s.name for s in p.surfaces} | self._BUILTINS
+        surf_ids = {s.name for s in p.surfaces} | self._BUILTINS | raw_ids(p, "SURF")
 
         # Collect all missing surface IDs in one pass
         missing: Dict[str, str] = {}  # surface_id → referencing entity name
@@ -96,11 +96,11 @@ class ReferenceIntegrityRule:
 
     def check(self, p: Any) -> List[ValidationResult]:
         results = []
-        prop_ids  = {pp.name for pp in p.props}
-        ctrl_ids  = {c.name  for c in p.controls}
-        ramp_ids  = {r.name  for r in p.ramps}
-        matl_ids  = {m.name  for m in p.materials}
-        part_ids  = {pt.name for pt in p.particles}
+        prop_ids  = {pp.name for pp in p.props}     | raw_ids(p, "PROP")
+        ctrl_ids  = {c.name  for c in p.controls}   | raw_ids(p, "CTRL")
+        ramp_ids  = {r.name  for r in p.ramps}      | raw_ids(p, "RAMP")
+        matl_ids  = {m.name  for m in p.materials}  | raw_ids(p, "MATL")
+        part_ids  = {pt.name for pt in p.particles} | raw_ids(p, "PART")
 
         for dev in p.devices:
             if dev.prop_id and dev.prop_id not in prop_ids:
@@ -168,7 +168,7 @@ class ReferenceIntegrityRule:
                 ))
 
         for ctrl in p.controls:
-            if ctrl.input_id and ctrl.input_id not in {d.name for d in p.devices} | ctrl_ids:
+            if ctrl.input_id and ctrl.input_id not in {d.name for d in p.devices} | raw_ids(p, "DEVC") | ctrl_ids:
                 results.append(_w(self.name,
                     f"CTRL '{ctrl.name}' INPUT_ID='{ctrl.input_id}' references no known DEVC or CTRL.",
                     entity=ctrl.name))
@@ -314,7 +314,7 @@ class FuelSpeciesRule:
         results = []
         if not p.reactions:
             return results
-        spec_names = {s.name for s in p.species}
+        spec_names = {s.name for s in p.species} | raw_ids(p, "SPEC")
         for reac in p.reactions:
             fuel = getattr(reac, "fuel", None)
             if fuel and fuel not in spec_names and not reac.formula:

@@ -5,7 +5,7 @@ Mixin for ``FdsParser``: each ``_parse_<tag>`` turns one tokenised record into e
 from __future__ import annotations
 
 import logging
-from typing import Dict, List
+from typing import Dict
 from pyfds.domain.model import FdsProject
 
 logger = logging.getLogger(__name__)
@@ -55,13 +55,10 @@ class ParamBuilders:
         flush = self._bool(d, "FLUSH_FILE_BUFFERS", None)
         if flush is not None: p.dump.flush_file_buffers = flush
         # Phase 1: parse PLOT3D_QUANTITY(n) entries (up to 5)
-        qtys: List[str] = []
-        for i in range(1, 6):
-            k = f"PLOT3D_QUANTITY({i})"
-            if k in d:
-                qtys.append(self._str(d, k))
-        if qtys:
-            p.dump.plot3d_quantities = qtys
+        # kept in their slots (an empty string for a gap): PLOT3D_SPEC_ID(5) must still point at quantity 5
+        slots = {i: self._str(d, f"PLOT3D_QUANTITY({i})") for i in range(1, 6) if f"PLOT3D_QUANTITY({i})" in d}
+        if slots:
+            p.dump.plot3d_quantities = [slots.get(i, "") for i in range(1, max(slots) + 1)]
 
     def _parse_misc(self, p: FdsProject, d: Dict) -> None:
         if "TMPA"     in d: p.misc.tmpa = float(d["TMPA"])

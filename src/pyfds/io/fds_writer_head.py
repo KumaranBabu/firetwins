@@ -83,7 +83,9 @@ class FdsWriterHeadMixin:
         if p.misc.particle_cfl:                   d["PARTICLE_CFL"]       = True
         if p.misc.particle_cfl_max is not None:   d["PARTICLE_CFL_MAX"]   = p.misc.particle_cfl_max
         text = _nl("MISC", d)
-        if initial_wind and self._requires(p, "6.9"):               # FDS 6.10 takes it from &WIND (real FDS rejects U0 in &MISC)
+        # FDS 6.10 takes it from &WIND (real FDS rejects U0 in &MISC). FDS reads a single &WIND line, so with a wind
+        # profile the values go on that line (_write_wind_profile); only without one is a line of their own written.
+        if initial_wind and self._requires(p, "6.9") and not any(getattr(w, "enabled", True) for w in p.wind_profiles):
             text += "\n" + _nl("WIND", initial_wind)
         return text
 

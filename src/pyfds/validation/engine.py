@@ -312,6 +312,7 @@ class ValidationEngine:
             SliceBoundsRule, CylindricalMeshRule,
             SurfaceTypeRule, LiquidFuelRule, ComplexReactionRule,
             DeviceSystemRule, HvacLayoutRule, ParticleKindRule, MaterialResidueRule,
+            TimeAndOutputRule,
         )
         engine = cls()
         for rule_cls in [
@@ -328,6 +329,7 @@ class ValidationEngine:
             SliceBoundsRule, CylindricalMeshRule,
             SurfaceTypeRule, LiquidFuelRule, ComplexReactionRule,
             DeviceSystemRule, HvacLayoutRule, ParticleKindRule, MaterialResidueRule,
+            TimeAndOutputRule,
         ]:
             engine.add_rule(rule_cls())
         return engine

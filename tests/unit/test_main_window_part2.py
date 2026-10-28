@@ -315,25 +315,3 @@ def test_new_from_template_cancelled_does_nothing(monkeypatch):
     assert not refreshed
     window.close()
 
-def test_run_simulation_success_shows_completion_dialog(monkeypatch, tmp_path):
-    import concurrent.futures
-    from tests.mw_proxy import main_window_mod
-    from pyfds.automation.orchestrator import OrchestratorResult
-
-    window = _make_window()
-    monkeypatch.setattr(main_window_mod.shutil, "which", lambda x: "/usr/bin/fds")
-    monkeypatch.setattr(main_window_mod.QFileDialog, "getExistingDirectory", lambda *a, **k: str(tmp_path))
-    monkeypatch.setattr(main_window_mod.QInputDialog, "getInt", lambda *a, **k: (1, True))
-
-    fut = concurrent.futures.Future()
-    fut.set_result(OrchestratorResult(success=True, wall_time_seconds=1.2, output_dir=str(tmp_path)))
-    monkeypatch.setattr(window.api.execution, "run_async", lambda **k: fut)
-    shown = {}
-    monkeypatch.setattr(main_window_mod.QMessageBox, "information", lambda *a, **k: shown.setdefault("info", True))
-
-    window._on_run_simulation()
-    window._poll_run_future()  # future is already done — bypass the QTimer wait
-
-    assert shown.get("info") is True
-    assert window._run_action.isEnabled()
-    window.close()

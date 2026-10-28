@@ -30,8 +30,9 @@ Each record exposes two views of its parameters:
 ``params``
     ``{KEY: value-string}`` in the shape the original regex parser produced
     (comma-joined items; a value that is one quoted string, or a list of quoted
-    strings, has its outermost quote characters removed; indexed keys are also
-    reachable under their base name) so existing entity builders work as-is.
+    strings, has its outermost quote characters removed; ``KEY(1)``, ``KEY(2)``...
+    that together make a whole array from index 1 are also reachable as ``KEY``)
+    so existing entity builders work as-is.
 
 ``fields``
     ``[(KEY, fds_text), ...]`` in source order, exactly as written (quotes and
@@ -159,6 +160,7 @@ def _unquote(tok: str) -> str:
 def _build_params(toks: List[Tuple[str, str]]) -> Tuple[Dict[str, str], List[Tuple[str, str]]]:
     params: Dict[str, str] = {}
     fields: List[Tuple[str, str]] = []
+    families: Dict[str, Dict[int, List[str]]] = {}
     n = len(toks)
     is_key = [
         toks[i][0] == "word" and i + 1 < n and toks[i + 1][0] == "eq"
@@ -194,12 +196,27 @@ def _build_params(toks: List[Tuple[str, str]]) -> Tuple[Dict[str, str], List[Tup
                     items.append(text)
                     source.append(text)
             i += 1
-        value = ",".join(items)
-        if len(value) >= 2 and value[0] == value[-1] and value[0] in "'\"":
-            value = value[1:-1]                  # legacy shape: strip outermost quotes
-        base = _SINGLE_INDEX_RE.sub("", raw_key)
-        params[raw_key] = value
-        if base != raw_key and base not in params:
-            params[base] = value
+        params[raw_key] = _joined(items)
+        m = _SINGLE_INDEX_RE.search(raw_key)
+        if m:
+            families.setdefault(raw_key[:m.start()], {})[int(m.group()[1:-1])] = items
         fields.append((raw_key, ",".join(source)))
+    # KEY(1)=a KEY(2)=b is also reachable as KEY='a,b', but only when the indices make the whole array from 1:
+    # a partial one (GVEC(3)=0, SURF_ID6(2)='X') read as KEY would be taken for the full array and lose its meaning.
+    for base, parts in families.items():
+        if base in params:
+            continue
+        values: Dict[int, str] = {}
+        for start, items in parts.items():
+            for off, item in enumerate(items):
+                values[start + off] = item
+        if sorted(values) == list(range(1, len(values) + 1)):
+            params[base] = _joined([values[i] for i in range(1, len(values) + 1)])
     return params, fields
+
+
+def _joined(items: List[str]) -> str:
+    value = ",".join(items)
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in "'\"":
+        value = value[1:-1]                      # legacy shape: strip outermost quotes
+    return value

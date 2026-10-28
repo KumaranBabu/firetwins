@@ -136,7 +136,7 @@ class DeviceBuilders:
     def _parse_prop(self, p: FdsProject, d: Dict) -> None:
         name = self._str(d, "ID", f"PROP_{len(p.props)}")
         spray = self._floats(d, "SPRAY_ANGLE")
-        sv_params = self._floats(d, "SMOKEVIEW_PARAMETERS")
+        sv_params = self._indexed(d, "SMOKEVIEW_PARAMETERS", str)
         p.add_entity(Prop(
             name=name,
             quantity=self._str(d, "QUANTITY") or None,

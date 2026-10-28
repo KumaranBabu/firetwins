@@ -224,9 +224,12 @@ class TestWriterPropP0Fixes:
 
     def test_smokeview_parameters_written(self, writer):
         p = FdsProject()
-        p.props.append(Prop(name="det", smokeview_parameters=[0.1, 0.2, 0.3]))
+        p.props.append(Prop(name="det", smokeview_parameters=["R=255", "G=0", "B=0"]))
         text = writer.generate_content(p)
-        assert "SMOKEVIEW_PARAMETERS=0.1,0.2,0.3" in text
+        assert "SMOKEVIEW_PARAMETERS='R=255','G=0','B=0'" in text      # FDS declares them as character strings
+
+    def test_numeric_smokeview_parameters_from_old_projects_load_as_text(self, writer):
+        assert Prop(name="det", smokeview_parameters=[0.1, 0.2]).smokeview_parameters == ["0.1", "0.2"]
 
     def test_absent_prop_fields_omitted(self, writer):
         p = FdsProject()

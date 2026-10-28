@@ -10,9 +10,11 @@ from .references import DanglingSurfaceRule, RampMonotonicityRule, ReferenceInte
 from .geometry import HoleContainmentRule, ObstBoundsRule, VentCoplanarRule, DeviceBoundsRule, InitBoundsRule, SliceBoundsRule
 from .physics import SurfaceTypeRule, LiquidFuelRule, ComplexReactionRule
 from .systems import DeviceSystemRule, HvacLayoutRule, MaterialResidueRule, ParticleKindRule
+from .timing import TimeAndOutputRule
 from ._common import _e, _w, _i, _is_poisson, _nearest_poisson  # noqa: F401
 
 __all__ = [
+    "TimeAndOutputRule",
     "MeshPresenceRule",
     "PoissonComplianceRule",
     "MpiRankGapRule",

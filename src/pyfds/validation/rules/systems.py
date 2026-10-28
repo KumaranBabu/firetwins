@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any, List
 
-from ._common import _e, _w
+from ._common import _e, _w, raw_ids
 from ..engine import ValidationResult
 
 _HVAC_PREFIXES = ("DUCT ", "NODE ", "FAN ", "AIRCOIL ", "FILTER ")
@@ -117,7 +117,7 @@ class MaterialResidueRule:
 
     def check(self, p: Any) -> List[ValidationResult]:
         out: List[ValidationResult] = []
-        names = {m.name for m in p.materials}
+        names = {m.name for m in p.materials} | raw_ids(p, "MATL")
         for m in p.materials:
             if m.residue_id and m.residue_id not in names:
                 out.append(_e(self.name, f"MATL '{m.name}': residue material '{m.residue_id}' is not defined", m.name))

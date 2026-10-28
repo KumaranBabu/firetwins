@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class SpatialBuilders:
     def _parse_mesh(self, p: FdsProject, d: Dict) -> None:
         name = self._str(d, "ID", f"MESH_{len(p.meshes)}")
-        xb = self._parse_xb(d.get("XB", "0,1,0,1,0,1"))
+        xb = self._parse_xb(d.get("XB", "0,1,0,1,0,1"), ordered=True)
         ijk = self._parse_ijk(d.get("IJK", "10,10,10"))
         mpi = self._int(d, "MPI_PROCESS")
         if mpi is None:                      # 0 is a valid rank, so no `or`
@@ -54,7 +54,10 @@ class SpatialBuilders:
         # SURF_IDS = (top, sides, bottom); SURF_ID6 = one per face. Stored in file order.
         surf_ids = self._str_list(d, "SURF_ID6") or self._str_list(d, "SURF_IDS")
         if surf_ids is not None and len(surf_ids) not in (3, 6):
-            self.warnings.append(f"&OBST ID={name!r}: SURF_IDS/SURF_ID6 need 3 or 6 entries; ignored")
+            # e.g. SURF_IDS='FIRE' (top only): FDS fills the other faces from SURF_ID, so the text is written back as is
+            self.warnings.append(f"&OBST ID={name!r}: SURF_IDS/SURF_ID6 with {len(surf_ids)} entries kept as written")
+            self._unread(d, "SURF_ID6")
+            self._unread(d, "SURF_IDS")
             surf_ids = None
         rgb = self._floats(d, "RGB")
         tex = self._floats(d, "TEXTURE_ORIGIN")

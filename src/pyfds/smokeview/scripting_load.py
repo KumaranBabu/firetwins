@@ -43,35 +43,36 @@ class SsfScriptBuilderLoadMixin:
 
     def load_boundary(self, quantity: Optional[str] = None, mesh: int = 1) -> "SsfScriptBuilder":
         """Activate a boundary quantity visualization."""
-        args = [str(mesh), "1"]
-        if quantity:
-            args.append(quantity)
+        # Smokeview's keywords take the quantity alone and load it on every mesh (checked against Smokeview 6.10.1:
+        # the keywords used before - LOADSMOKE3D, LOADISOSURFACE, LOADPARTICLE - stopped the script as unknown).
+        # *mesh* and *index* are kept for old callers.
         self._commands.append(_SsfCommand(
-            "LOADBOUNDARY", args,
-            comment=f"boundary {quantity!r} mesh {mesh}",
+            "LOADBOUNDARY", [quantity] if quantity else [],
+            comment=f"boundary {quantity!r}",
         ))
         return self
 
     def load_isosurface(self, quantity: str, mesh: int = 1) -> "SsfScriptBuilder":
         """Activate an isosurface visualization."""
         self._commands.append(_SsfCommand(
-            "LOADISOSURFACE", [str(mesh), "1", quantity],
-            comment=f"isosurface {quantity!r} mesh {mesh}",
+            "LOADISO", [quantity],
+            comment=f"isosurface {quantity!r}",
         ))
         return self
 
     def load_smoke3d(self, quantity: str, mesh: int = 1) -> "SsfScriptBuilder":
-        """Activate a 3-D smoke/fire visualization."""
+        """Activate a 3-D smoke/fire visualization (``SOOT DENSITY``, ``HRRPUV`` ...)."""
         self._commands.append(_SsfCommand(
-            "LOADSMOKE3D", [str(mesh), "1", quantity],
+            "LOAD3DSMOKE", [quantity],
+            comment=f"3D smoke {quantity!r}",
         ))
         return self
 
     def load_particle(self, mesh: int = 1, index: int = 1) -> "SsfScriptBuilder":
-        """Activate particle visualization for *mesh*."""
+        """Activate the particle files (all meshes)."""
         self._commands.append(_SsfCommand(
-            "LOADPARTICLE", [str(mesh), str(index)],
-            comment=f"particles mesh {mesh}",
+            "LOADPARTICLES", [],
+            comment="particles",
         ))
         return self
 

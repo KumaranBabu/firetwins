@@ -12,7 +12,7 @@ from html import escape
 from PySide6.QtCore import QSettings, Qt
 from PySide6.QtWidgets import (
     QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QFormLayout, QGroupBox, QHBoxLayout, QHeaderView,
-    QLabel, QLineEdit, QMessageBox, QPushButton, QSpinBox, QStackedWidget, QTableWidget, QTableWidgetItem,
+    QLabel, QLineEdit, QMessageBox, QPushButton, QSizePolicy, QSpinBox, QStackedWidget, QTableWidget, QTableWidgetItem,
     QVBoxLayout, QWidget,
 )
 
@@ -209,6 +209,17 @@ class RunDialog(QDialog):
         self.vcpus.setValue(int(s.options.get("vcpus", max(self.api.meshes.run_count(), 1))))
         self.memory.setValue(int(s.options.get("memory_gb_per_vcpu", 2)))
         self.fds_version.setText(str(s.options.get("fds_version", "")))
+        self._fit_to_page()
+
+    def _fit_to_page(self) -> None:
+        """Size the dialog to the page shown: a stacked widget otherwise keeps the height of its tallest page (the
+        cluster table), and the one-line 'This computer' page sat in ~500 px of empty space."""
+        cur = self.pages.currentIndex()
+        for i in range(self.pages.count()):
+            self.pages.widget(i).setSizePolicy(QSizePolicy.Preferred,
+                                               QSizePolicy.Preferred if i == cur else QSizePolicy.Ignored)
+        self.pages.adjustSize()
+        self.adjustSize()
 
     @staticmethod
     def _remembered_hosts() -> List[str]:
@@ -251,6 +262,7 @@ class RunDialog(QDialog):
         self.pages.setCurrentIndex(self.mode_combo.currentIndex())
         self.setWindowTitle(TITLES[self.mode_combo.currentData()])
         self.refresh()
+        self._fit_to_page()
 
     def _browse(self) -> None:
         path = QFileDialog.getExistingDirectory(self, "Input and results folder", self.folder.text())

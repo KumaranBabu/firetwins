@@ -314,7 +314,9 @@ class FuelSpeciesRule:
         results = []
         if not p.reactions:
             return results
-        spec_names = {s.name for s in p.species} | raw_ids(p, "SPEC")
+        from pyfds.domain.reaction_checks import BUILTIN_MW
+        # species FDS defines itself (PROPANE, METHANE ...) need no &SPEC line: FDS runs FUEL='PROPANE' as it is
+        spec_names = {s.name for s in p.species} | raw_ids(p, "SPEC") | set(BUILTIN_MW)
         for reac in p.reactions:
             fuel = getattr(reac, "fuel", None)
             if fuel and fuel not in spec_names and not reac.formula:

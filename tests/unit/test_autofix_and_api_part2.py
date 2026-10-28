@@ -44,11 +44,16 @@ class TestFuelSpeciesFix:
 
     def test_fix_idempotent(self):
         p = _project_with_mesh()
-        p.reactions.append(Reaction(name="F", fuel="PROPANE", heat_of_combustion=46e3))
+        p.reactions.append(Reaction(name="F", fuel="MY_FUEL", heat_of_combustion=46e3))
         rule = FuelSpeciesRule()
         fix = rule.check(p)[0].fix
         fix(p); fix(p)
-        assert sum(1 for s in p.species if s.name == "PROPANE") == 1
+        assert sum(1 for s in p.species if s.name == "MY_FUEL") == 1
+
+    def test_fds_predefined_fuel_needs_no_spec(self):
+        p = _project_with_mesh()
+        p.reactions.append(Reaction(name="F", fuel="PROPANE", heat_of_combustion=46e3))
+        assert FuelSpeciesRule().check(p) == []          # FDS knows PROPANE; the room-fire demo runs without &SPEC
 
 class TestBackingValueFix:
 

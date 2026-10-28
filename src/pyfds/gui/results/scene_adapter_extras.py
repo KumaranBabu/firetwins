@@ -61,6 +61,10 @@ class SceneAdapterExtrasMixin:
         """Reduce Banding: jitter the ray start so the layered look of volume rendering is broken up."""
         actor = self.pl.renderer.actors.get(name)
         mapper = getattr(actor, "mapper", None)
+        if mapper is not None and hasattr(mapper, "SetLockSampleDistanceToInputSpacing"):
+            # the software mapper samples every 1.0 world unit by default - ten 0.1 m cells per step, drawn as
+            # large triangles; tie the step to the cell size instead
+            mapper.SetLockSampleDistanceToInputSpacing(True)
         for obj in (mapper, getattr(mapper, "_mapper", None)):
             if obj is not None and hasattr(obj, "SetUseJittering"):
                 obj.SetUseJittering(bool(viz.rendering.reduce_banding))

@@ -109,7 +109,7 @@ class RadiParams(BaseModel):
     #: ``{FDS_KEY: fds_value_text}`` in source order. Re-emitted verbatim by the
     #: writer so an import/export round trip never silently drops them.
     fds_extra: Optional[Dict[str, str]] = None
-    number_radiation_angles: int = 100
+    number_radiation_angles: int = 104      # the FDS default (it is always written, so it must match FDS)
     radiation_iterations: int = 1
     kfst4_cutoff: float = 0.0
     c_rad: float = 1.0

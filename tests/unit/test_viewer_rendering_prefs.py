@@ -95,3 +95,17 @@ def test_max_compatibility_and_smoke_render_in_both_modes(v, tmp_path):
         assert ad.quality["antialiasing"] in ("msaa_16", "msaa_4", "unsupported", "disabled")
         pl.close()
     assert set(quality.APPLIED) == set(viz.model.RenderingPreferences.__dataclass_fields__)
+
+
+def test_software_smoke_renderer_samples_at_the_cell_size():
+    """The software volume mapper defaults to one sample per world unit (ten 0.1 m cells), which draws 3D smoke as
+    large triangles; it must step at the grid spacing."""
+    pl = pv.Plotter(off_screen=True)
+    try:
+        img = pv.ImageData(dimensions=(11, 11, 11), spacing=(0.1, 0.1, 0.1))
+        img["a"] = np.linspace(0, 1, img.n_points)
+        pl.add_volume(img, scalars="a", name="smoke", mapper="fixed_point", show_scalar_bar=False)
+        SceneAdapter(pl)._jitter("smoke", viz.model.ResultsVisualization())
+        assert pl.renderer.actors["smoke"].mapper.GetLockSampleDistanceToInputSpacing()
+    finally:
+        pl.close()

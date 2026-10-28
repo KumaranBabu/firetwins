@@ -56,7 +56,7 @@ def test_apply_saves_every_tab_as_one_undo_step(dlg, api):
             api.project.radi.number_radiation_angles) == (500.0, 0.25, 60.0, 200)
     api.history.undo()
     assert (api.project.params.t_end, api.project.dump.dt_slcf, api.project.misc.humidity) == (60.0, 1.0, 40.0)
-    assert api.project.radi.number_radiation_angles == 100
+    assert api.project.radi.number_radiation_angles == 104          # FDS's own default
 
 
 def test_invalid_input_changes_nothing_and_says_which_tab(dlg, api):

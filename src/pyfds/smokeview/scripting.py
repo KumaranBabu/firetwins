@@ -18,7 +18,7 @@ LOADISOSURFACE      — activate an isosurface
 LOADSMOKE3D         — activate a smoke-3D file
 RENDERONCE          — capture a single PNG/JPEG screenshot
 RENDERMOVIE         — render all frames as a movie
-SETRENDER           — configure render parameters (resolution, format)
+RENDERTYPE          — image format of the rendered pictures (size = the Smokeview window)
 LABEL               — add overlay text label
 UNLOADALL           — deactivate all currently-loaded visualization objects
 
@@ -92,10 +92,11 @@ class SsfScriptBuilder(SsfScriptBuilderLoadMixin, SsfScriptBuilderShowMixin, Ssf
         self._render_width  = width
         self._render_height = height
         self._image_format  = image_format.lower().replace("jpeg", "jpg")
+        # Smokeview 6.10 has no SETRENDER keyword (it stopped every script at line 1): the format is RENDERTYPE,
+        # and the picture size is the Smokeview window's (width/height are kept for callers that size the window)
         self._commands.append(_SsfCommand(
-            "SETRENDER",
-            [str(width), str(height), self._image_format.upper()],
-            comment="render options",
+            "RENDERTYPE", [self._image_format.upper()],
+            comment=f"render options ({width}x{height} requested; Smokeview renders at its window size)",
         ))
         return self
 

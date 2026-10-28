@@ -1,0 +1,524 @@
+[
+ {
+  "screenshot": "01_opened.png",
+  "caption": "File > Open with couch_original.fds: the couch (purple upholstery on a gypsum base) and the four meshes made by the MULT line are listed in the Project Explorer and drawn in the 3D view.",
+  "size": [
+   1360,
+   715
+  ]
+ },
+ {
+  "step": "A1 open original FDS input",
+  "outcome": "ok",
+  "detail": {
+   "meshes_in_file": 1,
+   "meshes_run": 4,
+   "obstructions": 5,
+   "surfaces": [
+    "UPHOLSTERY",
+    "WALL",
+    "ignitor"
+   ],
+   "materials": [
+    "FABRIC",
+    "FOAM",
+    "GYPSUM PLASTER"
+   ],
+   "t_end": 600.0
+  },
+  "time": "18:47:35"
+ },
+ {
+  "screenshot": "02_editor_meshes.png",
+  "caption": "Model > Edit Meshes: one 2.5 x 2.5 x 2.4 m mesh of 25 x 25 x 24 cells (0.1 m); its multiplier (MULT_ID) repeats it 2 x 2 to cover 5 x 5 m.",
+  "size": [
+   900,
+   775
+  ]
+ },
+ {
+  "screenshot": "03_editor_surfaces.png",
+  "caption": "Model > Edit Surfaces, UPHOLSTERY: fabric (0.5 mm) over foam (100 mm), burns away; the properties are the FDS example's (marked 'fabricated').",
+  "size": [
+   900,
+   1065
+  ]
+ },
+ {
+  "screenshot": "04_editor_materials.png",
+  "caption": "Model > Edit Materials, FOAM: density, conductivity, specific heat and the pyrolysis reaction that produces POLYURETHANE fuel gas.",
+  "size": [
+   900,
+   620
+  ]
+ },
+ {
+  "screenshot": "05_editor_particles.png",
+  "caption": "Model > Edit Particles: the static 'ignitor particle', a 1000 C cylinder placed on the seat cushion that starts the fire.",
+  "size": [
+   900,
+   1287
+  ]
+ },
+ {
+  "step": "B1 inspect model in the editors",
+  "outcome": "ok",
+  "detail": null,
+  "time": "18:47:40"
+ },
+ {
+  "screenshot": "06_simulation_parameters.png",
+  "caption": "Model > Simulation Parameters: T_END reduced from 600 s to 25 s so the demo runs in about half an hour; nothing else in the case is changed.",
+  "size": [
+   640,
+   640
+  ]
+ },
+ {
+  "step": "B2 shorten run",
+  "outcome": "ok",
+  "detail": {
+   "t_end": 25.0
+  },
+  "time": "18:47:42"
+ },
+ {
+  "screenshot": "07_front_view.png",
+  "caption": "Front view: the open vent in the south wall (green) is the only opening; the other boundaries are the default solid wall surface.",
+  "size": [
+   1360,
+   715
+  ]
+ },
+ {
+  "screenshot": "08_validation.png",
+  "caption": "Model > Validate on the imported case.",
+  "size": [
+   1360,
+   715
+  ]
+ },
+ {
+  "step": "C1 validation",
+  "outcome": "ok",
+  "detail": {
+   "errors": [],
+   "warnings": [],
+   "notes": []
+  },
+  "time": "18:47:46"
+ },
+ {
+  "step": "C2 save",
+  "outcome": "ok",
+  "detail": "E:\\firetwins\\client_demos\\example_2\\couch.pyfds",
+  "time": "18:47:47"
+ },
+ {
+  "screenshot": "09_run_dialog.png",
+  "caption": "Run > Run Simulation with four meshes: 'This computer, in parallel (MPI)' is preselected with one process per mesh; the table shows which mesh each process computes and the summary shows the cells per process.",
+  "size": [
+   542,
+   512
+  ]
+ },
+ {
+  "step": "D1 run started",
+  "outcome": "ok",
+  "detail": "E:\\firetwins\\client_demos\\example_2\\run",
+  "time": "18:47:49"
+ },
+ {
+  "screenshot": "10_run_monitor_20.png",
+  "caption": "Run Monitor at 20 %.",
+  "size": [
+   1360,
+   715
+  ]
+ },
+ {
+  "screenshot": "11_run_monitor_50.png",
+  "caption": "Run Monitor at 50 %.",
+  "size": [
+   1360,
+   715
+  ]
+ },
+ {
+  "screenshot": "12_run_monitor_80.png",
+  "caption": "Run Monitor at 80 %.",
+  "size": [
+   1360,
+   715
+  ]
+ },
+ {
+  "screenshot": "13_message.png",
+  "caption": "Message: Simulation complete",
+  "size": [
+   386,
+   103
+  ]
+ },
+ {
+  "step": "message box: Simulation complete",
+  "outcome": "info",
+  "detail": "Output: E:\\firetwins\\client_demos\\example_2\\run",
+  "time": "19:02:37"
+ },
+ {
+  "screenshot": "14_run_finished.png",
+  "caption": "Run finished on 4 MPI processes.",
+  "size": [
+   1360,
+   715
+  ]
+ },
+ {
+  "step": "D2 run finished",
+  "outcome": "ok",
+  "detail": {
+   "state": "done",
+   "wall_clock_s": "884.829",
+   "mpi_processes": "4",
+   "minutes_waited": 14.9
+  },
+  "time": "19:02:41"
+ },
+ {
+  "step": "E1 screen recording",
+  "outcome": "ok",
+  "detail": {
+   "video": "E:\\firetwins\\documentation\\videos\\example_2_open_and_run.mp4",
+   "frames": 192,
+   "seconds": 38.4
+  },
+  "time": "19:02:44"
+ },
+ {
+  "screenshot": "15_results_empty.png",
+  "caption": "PyFDS Results (Results > Open PyFDS Results in the editor, or the PyFDS Results shortcut) before a run is loaded.",
+  "size": [
+   1360,
+   715
+  ]
+ },
+ {
+  "screenshot": "16_results_file_menu.png",
+  "caption": "PyFDS Results, File menu: Load Results opens the .smv file of a run.",
+  "size": [
+   373,
+   577
+  ]
+ },
+ {
+  "screenshot": "17_results_loaded.png",
+  "caption": "File > Load Results with couch.smv: the geometry is shown and the Navigation View on the left lists every result of the run.",
+  "size": [
+   1360,
+   715
+  ]
+ },
+ {
+  "step": "R1 open results in PyFDS Results",
+  "outcome": "ok",
+  "detail": {
+   "seconds": 4.11,
+   "datasets": 73,
+   "time_range_s": [
+    0.0,
+    25.0
+   ]
+  },
+  "time": "20:01:22"
+ },
+ {
+  "screenshot": "18_results_view_1.png",
+  "caption": "Temperature slice through the couch (X = 2.5 m) at 10 s.",
+  "size": [
+   1360,
+   715
+  ]
+ },
+ {
+  "step": "R2.1 show TEMPERATURE at 10 s",
+  "outcome": "ok",
+  "detail": [
+   "root/FDS Results/2D Slices/TEMPERATURE/SLCF_0 (X = 2.5)/Mesh 1",
+   "root/FDS Results/2D Slices/TEMPERATURE/SLCF_0 (X = 2.5)/Mesh 3",
+   "root/FDS Results/2D Slices/TEMPERATURE/SLCF_0 (X = 2.6)/Mesh 2",
+   "root/FDS Results/2D Slices/TEMPERATURE/SLCF_0 (X = 2.6)/Mesh 4"
+  ],
+  "time": "20:01:26"
+ },
+ {
+  "screenshot": "19_results_view_2.png",
+  "caption": "The same slice at the end of the run (25 s): the flame plume over the seat cushion.",
+  "size": [
+   1360,
+   715
+  ]
+ },
+ {
+  "step": "R2.2 show TEMPERATURE at 25 s",
+  "outcome": "ok",
+  "detail": [
+   "root/FDS Results/2D Slices/TEMPERATURE/SLCF_0 (X = 2.5)/Mesh 1",
+   "root/FDS Results/2D Slices/TEMPERATURE/SLCF_0 (X = 2.5)/Mesh 3",
+   "root/FDS Results/2D Slices/TEMPERATURE/SLCF_0 (X = 2.6)/Mesh 2",
+   "root/FDS Results/2D Slices/TEMPERATURE/SLCF_0 (X = 2.6)/Mesh 4"
+  ],
+  "time": "20:01:30"
+ },
+ {
+  "screenshot": "20_results_view_3.png",
+  "caption": "Heat release rate per unit volume (the flame) on the same plane at 25 s.",
+  "size": [
+   1360,
+   715
+  ]
+ },
+ {
+  "step": "R2.3 show HRRPUV at 25 s",
+  "outcome": "ok",
+  "detail": [
+   "root/FDS Results/2D Slices/HRRPUV/SLCF_1 (X = 2.5)/Mesh 1",
+   "root/FDS Results/2D Slices/HRRPUV/SLCF_1 (X = 2.5)/Mesh 3",
+   "root/FDS Results/2D Slices/HRRPUV/SLCF_1 (X = 2.6)/Mesh 2",
+   "root/FDS Results/2D Slices/HRRPUV/SLCF_1 (X = 2.6)/Mesh 4"
+  ],
+  "time": "20:01:33"
+ },
+ {
+  "screenshot": "21_results_view_4.png",
+  "caption": "3D smoke (soot density) and flame at 15 s.",
+  "size": [
+   1360,
+   715
+  ]
+ },
+ {
+  "step": "R2.4 show SOOT DENSITY, HRRPUV at 15 s",
+  "outcome": "ok",
+  "detail": [
+   "root/FDS Results/3D Smoke/SOOT DENSITY/Mesh 1",
+   "root/FDS Results/3D Smoke/SOOT DENSITY/Mesh 2",
+   "root/FDS Results/3D Smoke/SOOT DENSITY/Mesh 3",
+   "root/FDS Results/3D Smoke/SOOT DENSITY/Mesh 4",
+   "root/FDS Results/3D Smoke/HRRPUV/Mesh 1",
+   "root/FDS Results/3D Smoke/HRRPUV/Mesh 2",
+   "root/FDS Results/3D Smoke/HRRPUV/Mesh 3",
+   "root/FDS Results/3D Smoke/HRRPUV/Mesh 4"
+  ],
+  "time": "20:01:48"
+ },
+ {
+  "screenshot": "22_results_view_5.png",
+  "caption": "3D smoke and flame at 25 s.",
+  "size": [
+   1360,
+   715
+  ]
+ },
+ {
+  "step": "R2.5 show SOOT DENSITY, HRRPUV at 25 s",
+  "outcome": "ok",
+  "detail": [
+   "root/FDS Results/3D Smoke/SOOT DENSITY/Mesh 1",
+   "root/FDS Results/3D Smoke/SOOT DENSITY/Mesh 2",
+   "root/FDS Results/3D Smoke/SOOT DENSITY/Mesh 3",
+   "root/FDS Results/3D Smoke/SOOT DENSITY/Mesh 4",
+   "root/FDS Results/3D Smoke/HRRPUV/Mesh 1",
+   "root/FDS Results/3D Smoke/HRRPUV/Mesh 2",
+   "root/FDS Results/3D Smoke/HRRPUV/Mesh 3",
+   "root/FDS Results/3D Smoke/HRRPUV/Mesh 4"
+  ],
+  "time": "20:01:56"
+ },
+ {
+  "screenshot": "23_results_view_6.png",
+  "caption": "Boundary file, burning rate on the couch surfaces at 25 s (kg/m2/s).",
+  "size": [
+   1360,
+   715
+  ]
+ },
+ {
+  "step": "R2.6 show BURNING RATE at 25 s",
+  "outcome": "ok",
+  "detail": [
+   "root/FDS Results/Boundaries/BURNING RATE/Mesh 1",
+   "root/FDS Results/Boundaries/BURNING RATE/Mesh 2",
+   "root/FDS Results/Boundaries/BURNING RATE/Mesh 3",
+   "root/FDS Results/Boundaries/BURNING RATE/Mesh 4"
+  ],
+  "time": "20:02:53"
+ },
+ {
+  "screenshot": "24_results_view_7.png",
+  "caption": "Boundary file, wall temperature at 25 s.",
+  "size": [
+   1360,
+   715
+  ]
+ },
+ {
+  "step": "R2.7 show WALL TEMPERATURE at 25 s",
+  "outcome": "ok",
+  "detail": [
+   "root/FDS Results/Boundaries/WALL TEMPERATURE/Mesh 1",
+   "root/FDS Results/Boundaries/WALL TEMPERATURE/Mesh 2",
+   "root/FDS Results/Boundaries/WALL TEMPERATURE/Mesh 3",
+   "root/FDS Results/Boundaries/WALL TEMPERATURE/Mesh 4"
+  ],
+  "time": "20:03:39"
+ },
+ {
+  "screenshot": "25_results_view_8.png",
+  "caption": "Static ignitor particle and the temperature slice at 5 s.",
+  "size": [
+   1360,
+   715
+  ]
+ },
+ {
+  "step": "R2.8 show particles, TEMPERATURE at 5 s",
+  "outcome": "ok",
+  "detail": [
+   "root/FDS Results/Particles/ignitor particle/Mesh 1",
+   "root/FDS Results/Particles/ignitor particle/Mesh 2",
+   "root/FDS Results/Particles/ignitor particle/Mesh 3",
+   "root/FDS Results/Particles/ignitor particle/Mesh 4",
+   "root/FDS Results/2D Slices/TEMPERATURE/SLCF_0 (X = 2.5)/Mesh 1",
+   "root/FDS Results/2D Slices/TEMPERATURE/SLCF_0 (X = 2.5)/Mesh 3",
+   "root/FDS Results/2D Slices/TEMPERATURE/SLCF_0 (X = 2.6)/Mesh 2",
+   "root/FDS Results/2D Slices/TEMPERATURE/SLCF_0 (X = 2.6)/Mesh 4"
+  ],
+  "time": "20:03:44"
+ },
+ {
+  "screenshot": "26_time_plot.png",
+  "caption": "Analysis > Time History Plot after File > Load CSV with the heat release (_hrr.csv) and device (_devc.csv) files: tick the series to plot.",
+  "size": [
+   900,
+   520
+  ]
+ },
+ {
+  "step": "R3 time history plot",
+  "outcome": "ok",
+  "detail": {
+   "csv": [
+    "couch_hrr.csv"
+   ],
+   "series": [
+    "couch_hrr.csv/HRR",
+    "couch_hrr.csv/HRR_OX",
+    "couch_hrr.csv/Q_RADI",
+    "couch_hrr.csv/Q_CONV",
+    "couch_hrr.csv/Q_COND",
+    "couch_hrr.csv/Q_DIFF",
+    "couch_hrr.csv/Q_PRES",
+    "couch_hrr.csv/Q_PART",
+    "couch_hrr.csv/Q_ENTH",
+    "couch_hrr.csv/Q_TOTAL",
+    "couch_hrr.csv/MLR_AIR",
+    "couch_hrr.csv/MLR_PRODUCTS",
+    "couch_hrr.csv/MLR_POLYURETHANE"
+   ]
+  },
+  "time": "20:03:47"
+ },
+ {
+  "screenshot": "27_results_colorbar_dialog.png",
+  "caption": "Preferences > Colorbar: range mode, limits, colour map and labels of a quantity's colour bar.",
+  "size": [
+   200,
+   107
+  ]
+ },
+ {
+  "screenshot": "28_results_screenshot_dialog.png",
+  "caption": "File > Save Screenshot: one picture, a series over time, or one per saved view, at a chosen size.",
+  "size": [
+   373,
+   512
+  ]
+ },
+ {
+  "screenshot": "29_results_movie_dialog.png",
+  "caption": "File > Save Movie: an MP4 of the time range at a chosen frame rate and speed.",
+  "size": [
+   300,
+   408
+  ]
+ },
+ {
+  "step": "R4 export stills and movie",
+  "outcome": "ok",
+  "detail": {
+   "stills": [
+    "couch_t10.png",
+    "couch_t25.png"
+   ],
+   "movie": "E:\\firetwins\\client_demos\\example_2\\results\\couch.mp4",
+   "encoded": true
+  },
+  "time": "20:05:27"
+ },
+ {
+  "step": "R5 save visualization",
+  "outcome": "ok",
+  "detail": "couch.pyfdsv",
+  "time": "20:05:28"
+ },
+ {
+  "screenshot": "30_smokeview_window.png",
+  "caption": "Smokeview 6.10.1 (Run > Open Smokeview, or double-click the .smv file) while the script runs: 3D smoke and the flame over the couch at t = 15 s. Right-click in the window for the menus.",
+  "size": "window"
+ },
+ {
+  "step": "R7 screen recording",
+  "outcome": "ok",
+  "detail": {
+   "video": "E:\\firetwins\\documentation\\videos\\example_2_post_processing.mp4",
+   "frames": 165,
+   "seconds": 33.0
+  },
+  "time": "20:05:38"
+ },
+ {
+  "screenshot": "31_smv_burning_rate_t15.png",
+  "caption": "Rendered by Smokeview from the script: smv_burning_rate_t15.png",
+  "size": "1280x720"
+ },
+ {
+  "screenshot": "32_smv_burning_rate_t25.png",
+  "caption": "Rendered by Smokeview from the script: smv_burning_rate_t25.png",
+  "size": "1280x720"
+ },
+ {
+  "screenshot": "33_smv_smoke_t15.png",
+  "caption": "Rendered by Smokeview from the script: smv_smoke_t15.png",
+  "size": "1280x720"
+ },
+ {
+  "screenshot": "34_smv_smoke_t25.png",
+  "caption": "Rendered by Smokeview from the script: smv_smoke_t25.png",
+  "size": "1280x720"
+ },
+ {
+  "step": "R6 Smokeview script renders",
+  "outcome": "ok",
+  "detail": {
+   "images": [
+    "smv_burning_rate_t15.png",
+    "smv_burning_rate_t25.png",
+    "smv_smoke_t15.png",
+    "smv_smoke_t25.png"
+   ],
+   "desktop_capture": true
+  },
+  "time": "20:05:38"
+ }
+]

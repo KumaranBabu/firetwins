@@ -22,9 +22,8 @@ class TestSsfScriptBuilder:
     def test_set_render_options(self, builder):
         builder.set_render_options(width=1920, height=1080, image_format="PNG")
         text = builder.build()
-        assert "SETRENDER" in text
-        assert "1920" in text
-        assert "1080" in text
+        assert "RENDERTYPE\n PNG" in text and "SETRENDER" not in text      # SETRENDER is not a Smokeview keyword
+        assert (builder._render_width, builder._render_height) == (1920, 1080)
 
     def test_set_time(self, builder):
         builder.set_time(30.0)

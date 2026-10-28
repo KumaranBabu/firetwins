@@ -90,10 +90,6 @@ from .main_project import (  # noqa: F401  (re-exported)
     cmd_validate,
 )
 
-from .main_common import (  # noqa: F401  (re-exported)
-    _print_ok,
-    _print_warn,
-)
 
 
 def build_parser() -> argparse.ArgumentParser:

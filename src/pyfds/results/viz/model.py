@@ -53,21 +53,6 @@ from .model_prefs import (  # noqa: F401  (re-exported)
     default_colorbar,
 )
 
-from .model_prefs import (  # noqa: F401  (re-exported)
-    COLOR_SOURCES,
-    ColorbarProps,
-    OPACITY_SOURCES,
-    RANGE_MODES,
-    SMOKE_PRESETS,
-    apply_smoke_preset,
-    default_colorbar,
-)
-from .model_scene import (  # noqa: F401  (re-exported)
-    Keyframe,
-    PLANES,
-    SectionBox,
-    Tour,
-)
 
 
 FORMAT = "pyfds-visualization"

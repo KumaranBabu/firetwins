@@ -36,9 +36,6 @@ from .geometry_tools_common import (  # noqa: F401  (re-exported)
     _geom_to_polydata,
 )
 
-from .geometry_tools_common import (  # noqa: F401  (re-exported)
-    _geom_to_polydata,
-)
 
 
 class GeometryTools(GeometryToolsPrimitivesMixin, GeometryToolsOpsMixin):

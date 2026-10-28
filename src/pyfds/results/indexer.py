@@ -54,14 +54,6 @@ from .indexer_slices import (  # noqa: F401  (re-exported)
     _SF_MESH_RE,
 )
 
-from .indexer_slices import (  # noqa: F401  (re-exported)
-    SliceIndexEntry,
-    _SF_MESH_RE,
-)
-from .indexer_boundary import (  # noqa: F401  (re-exported)
-    BoundaryIndexEntry,
-    _BF_MESH_RE,
-)
 
 
 logger = logging.getLogger(__name__)

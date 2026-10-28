@@ -29,9 +29,6 @@ from .dataset_stats import (  # noqa: F401  (re-exported)
     ResultsDatasetStatsMixin,
 )
 
-from .dataset_common import (  # noqa: F401  (re-exported)
-    STATS_VERSION,
-)
 
 
 class ResultsDataset(ResultsDatasetStatsMixin, ResultsDatasetPrimitivesMixin):

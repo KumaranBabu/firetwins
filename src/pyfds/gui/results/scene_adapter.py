@@ -25,9 +25,6 @@ from .scene_adapter_items import (  # noqa: F401  (re-exported)
     SceneAdapterItemsMixin,
 )
 
-from .scene_adapter_common import (  # noqa: F401  (re-exported)
-    _box_mesh,
-)
 
 
 class SceneAdapter(SceneAdapterItemsMixin, SceneAdapterExtrasMixin):
@@ -97,7 +94,8 @@ class SceneAdapter(SceneAdapterItemsMixin, SceneAdapterExtrasMixin):
         self._highlight()
         self.skybox_state = self._skybox(viz)
         if frame.overlay and decorations:
-            pl.add_text(frame.overlay, position="upper_left", font_size=11, color="white", name="time_overlay")
+            # lower right, under the colour bars (as in Smokeview): the icon strip over the 3D view covers the top left
+            pl.add_text(frame.overlay, position="lower_right", font_size=11, color="white", name="time_overlay")
         for q, units, bar in (frame.colorbars[:3] if decorations else []):
             self._scalar_bar(q, units, bar, frame.colorbars.index((q, units, bar)))
         if camera and frame.camera is not None:

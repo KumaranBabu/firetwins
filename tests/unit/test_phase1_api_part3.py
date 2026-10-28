@@ -27,12 +27,13 @@ class TestValidationAutoFix:
         assert report is not None
 
 class TestExecutionRunAsync:
-    def test_run_async_returns_future(self):
+    def test_run_async_returns_future(self, tmp_path):
         from pyfds.api.controller import FdsApi
         import concurrent.futures
         api = FdsApi()
-        future = api.execution.run_async(output_dir="tmp_async_test")
+        future = api.execution.run_async(output_dir=str(tmp_path / "run"))   # not the repository root
         assert isinstance(future, concurrent.futures.Future)
+        future.result(timeout=120)                    # an empty model stops at validation; no thread is left behind
 
 class TestCLIAutofix:
     def test_autofix_missing_file(self, tmp_path):

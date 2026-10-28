@@ -8,6 +8,7 @@ checked against real FDS 6.10.1 output (``tests/fixtures/results_room``).
 """
 from __future__ import annotations
 
+import struct
 from typing import List, Tuple
 
 import numpy as np
@@ -24,9 +25,6 @@ from .streams_common import (  # noqa: F401  (re-exported)
     _times_cache,
 )
 
-from .streams_common import (  # noqa: F401  (re-exported)
-    CACHE_VERSION,
-)
 
 
 class SliceStream(RecordFile):
@@ -70,7 +68,8 @@ class BoundaryStream(RecordFile):
         self.quantity, self.short, self.units = (self.text(i) for i in range(3))
         self.n_patches = self.ints(3)[0]
         _need(self, 4 + self.n_patches)
-        self.patches: List[Tuple[int, ...]] = [self.ints(4 + p) for p in range(self.n_patches)]
+        self.patches: List[Tuple[int, ...]] = [struct.unpack(f"<{len(b) // 4}i", b)
+                                               for b in self.read_many(4, self.n_patches)]
         if any(len(p) not in (7, 9) for p in self.patches):
             raise StreamError(f"{path}: unexpected boundary patch record")
         self.sizes = [(p[1] - p[0] + 1) * (p[3] - p[2] + 1) * (p[5] - p[4] + 1) for p in self.patches]
@@ -88,8 +87,8 @@ class BoundaryStream(RecordFile):
         return np.array([float(self.floats(self._t(k))[0]) for k in range(self.n_frames)])
 
     def frame(self, k: int) -> List[np.ndarray]:
-        base = self._t(k)
-        return [self.floats(base + 1 + p)[:self.sizes[p]].astype(np.float32) for p in range(self.n_patches)]
+        records = self.read_many(self._t(k) + 1, self.n_patches)
+        return [np.frombuffer(b, dtype="<f4")[:size].astype(np.float32) for b, size in zip(records, self.sizes)]
 
 
 class Plot3DStream(RecordFile):

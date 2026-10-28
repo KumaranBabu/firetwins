@@ -37,9 +37,6 @@ from .viewer_types import (  # noqa: F401  (re-exported)
     Frame,
 )
 
-from .viewer_types import (  # noqa: F401  (re-exported)
-    Frame,
-)
 
 
 class ViewerManager(ViewerManagerPlaybackMixin, ViewerManagerColorbarsMixin, ViewerManagerPrefsMixin, ViewerManagerData3DMixin, ViewerExtras):
@@ -120,7 +117,18 @@ class ViewerManager(ViewerManagerPlaybackMixin, ViewerManagerColorbarsMixin, Vie
             self.new()
             self.load_results(smv)
             self.path = vis
+            self._show_model_geometry()
         return self.viz
+
+    def _show_model_geometry(self) -> None:
+        """A run opened for the first time shows its geometry (as Smokeview does) instead of an empty black view.
+        Through the activation model directly: showing geometry must not start playback."""
+        if self.viz.active or self.tree is None or self.tree.find("geometry/fds_actual") is None:
+            return
+        try:
+            self.activation.activate("geometry/fds_actual")
+        except Exception:                          # a first view is a courtesy: never let it stop the case opening
+            pass
 
     def load_results(self, smv: str) -> FdsRun:
         """File ▸ Load Results: the previous settings are kept and applied to the new run."""

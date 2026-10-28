@@ -47,12 +47,6 @@ from .viewport_camera import (  # noqa: F401  (re-exported)
     ViewportState,
 )
 
-from .viewport_types import (  # noqa: F401  (re-exported)
-    ProjectionMode,
-)
-from .viewport_camera import (  # noqa: F401  (re-exported)
-    SnapSettings,
-)
 
 
 class ViewportController:

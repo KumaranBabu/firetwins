@@ -19,19 +19,6 @@ from .transform_common import (  # noqa: F401  (re-exported)
     _verts_centroid,
 )
 
-from .transform_scale_mirror import (  # noqa: F401  (re-exported)
-    MirrorCommand,
-    MirrorGeomCommand,
-    ScaleCommand,
-    ScaleGeomCommand,
-)
-from .transform_rotate import (  # noqa: F401  (re-exported)
-    RotateCommand,
-    RotateGeomCommand,
-)
-from .transform_common import (  # noqa: F401  (re-exported)
-    _verts_centroid,
-)
 
 
 class MoveObstCommand(Command):

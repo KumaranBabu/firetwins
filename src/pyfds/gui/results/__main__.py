@@ -17,6 +17,8 @@ def main(argv=None) -> int:
     app = QApplication.instance() or QApplication(sys.argv[:1])
     if argv and not argv[0].startswith("-") and send_open(argv[0]):
         return 0                                  # a viewer is already open: it takes the file, this one is not needed
+    from pyfds.gui.crash_log import install
+    install("pyfds_results")                      # log file + uncaught-error report
     win = ResultsWindow(FdsApi())
     win.results_server = ResultsServer(win)       # the model editor and a second double-click reach this window through it
     app.aboutToQuit.connect(win.results_server.close)

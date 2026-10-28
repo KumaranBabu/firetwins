@@ -93,6 +93,18 @@ class RecordFile:
             fh.seek(off)
             return fh.read(n)
 
+    def read_many(self, first: int, count: int) -> List[bytes]:
+        """Records ``first .. first+count-1`` with one open and one read: they lie back to back in the file, and a
+        boundary frame has one record per patch (opening the file per record made a frame of 1,000 patches ~0.3 s)."""
+        recs = self._rec[first:first + count]
+        if not recs:
+            return []
+        start, end = recs[0][0], recs[-1][0] + recs[-1][1]
+        with open(self.path, "rb") as fh:
+            fh.seek(start)
+            buf = fh.read(end - start)
+        return [buf[off - start:off - start + n] for off, n in recs]
+
     def ints(self, i: int) -> Tuple[int, ...]:
         b = self.read(i)
         return struct.unpack(f"<{len(b) // 4}i", b)

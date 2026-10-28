@@ -19,6 +19,8 @@ __all__ = ["MainWindow", "ProjectExplorer", "main"]
 
 def main() -> None:
     app = QApplication.instance() or QApplication([])
+    from pyfds.gui.crash_log import install
+    install("pyfds")                   # log file + uncaught-error report, before any window exists
     from pyfds.gui.theme import apply_theme, saved_theme
     apply_theme(saved_theme(), app, remember=False)
     window = MainWindow()

@@ -289,3 +289,13 @@ def test_a_cell_centred_slice_has_one_point_per_index_with_a_ghost_first(run):
     lo, hi = cc.ijk[0], cc.ijk[1]
     assert len(xs) == hi - lo + 1 and ys.tolist() == [1.5]
     assert xs[0] == nodes_x[0] and xs[1] == pytest.approx(0.5 * (nodes_x[0] + nodes_x[1]))
+
+
+def test_boundary_frame_reads_its_patches_in_one_go_and_matches_record_by_record():
+    s = st.BoundaryStream(str(FIX / "rroom_1_1.bf"), use_cache=False)
+    k = s.n_frames - 1
+    base = s._t(k) + 1
+    one_by_one = [s.floats(base + p)[:s.sizes[p]] for p in range(s.n_patches)]
+    batched = s.frame(k)
+    assert len(batched) == s.n_patches and all(np.array_equal(a, b) for a, b in zip(batched, one_by_one))
+    assert s.read_many(base, 0) == [] and s.read_many(base, 2) == [s.read(base), s.read(base + 1)]

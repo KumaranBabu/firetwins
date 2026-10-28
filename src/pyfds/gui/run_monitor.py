@@ -48,6 +48,11 @@ def read_hrr(csv_file: Path) -> List[Tuple[float, float]]:
     return rows
 
 
+def _tick(v: float) -> str:
+    """Axis label: whole numbers from 100 up, else 3 significant digits (a 1.1 kW scale printed 0 0 1 1 1 as integers)."""
+    return f"{v:.0f}" if abs(v) >= 100 else f"{v:.3g}"
+
+
 class HrrPlot(QWidget):
     """Heat release rate against time, drawn directly (no plotting library on the GUI thread)."""
 
@@ -76,13 +81,13 @@ class HrrPlot(QWidget):
         p.setPen(QColor("#555"))
         for i in range(5):
             y = area.bottom() - area.height() * i / 4
-            p.drawText(2, int(y) + 4, f"{ymax * i / 4:.0f}")
+            p.drawText(2, int(y) + 4, _tick(ymax * i / 4))
             p.setPen(QPen(QColor("#e4e0d8")))
             p.drawLine(int(area.left()), int(y), int(area.right()), int(y))
             p.setPen(QColor("#555"))
-        for i in range(5):
+        for i in range(5 if self.t_end > 1e-3 else 0):          # no time axis numbers before a run is followed
             x = area.left() + area.width() * i / 4
-            p.drawText(int(x) - 10, h - 10, f"{self.t_end * i / 4:.0f}")
+            p.drawText(int(x) - 10, h - 10, _tick(self.t_end * i / 4))
         p.drawText(int(area.left()) + 4, top + 12, "Heat release rate (kW)  vs  time (s)")
         if len(self.points) > 1:
             pen = QPen(QColor("#c2410c"))

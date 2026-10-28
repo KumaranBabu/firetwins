@@ -50,12 +50,6 @@ from .fds_writer_common import (  # noqa: F401  (re-exported)
     check_number_format,
 )
 
-from .fds_writer_common import (  # noqa: F401  (re-exported)
-    NUMBER_STYLES,
-    _fds_bool,
-    _fmt,
-    _fmt_float,
-)
 
 
 logger = logging.getLogger(__name__)

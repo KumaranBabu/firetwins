@@ -51,18 +51,6 @@ from .smv_parser_views import (  # noqa: F401  (re-exported)
     SmvParserViewsMixin,
 )
 
-from .smv_parser_model import (  # noqa: F401  (re-exported)
-    SmvBoundary,
-    SmvDevice,
-    SmvGrid,
-    SmvIsosurface,
-    SmvParticle,
-    SmvPlot3D,
-    SmvSlice,
-    SmvSmoke3D,
-    SmvSurface,
-    SmvViewpoint,
-)
 
 
 logger = logging.getLogger(__name__)

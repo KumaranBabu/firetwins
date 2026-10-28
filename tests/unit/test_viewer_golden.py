@@ -33,6 +33,8 @@ def render(tmp_path, ids):
     v = FdsApi().viewer
     v.open_results(str(tmp_path / "r" / "rroom.smv"))
     v.set_rendering(antialiasing="disabled", ambient_occlusion=False)
+    for leaf in v.active_leaves():                   # a first open shows the geometry: each scene draws only its list
+        v.deactivate(leaf.id)
     for i in ids:
         v.activate(i)
     v.standard_view("isometric")

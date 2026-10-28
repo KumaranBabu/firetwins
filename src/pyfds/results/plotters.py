@@ -52,24 +52,6 @@ from .plotters_animate import (  # noqa: F401  (re-exported)
     animate_slice,
 )
 
-from .plotters_common import (  # noqa: F401  (re-exported)
-    _get_figure,
-    _get_plt,
-)
-from .plotters_series import (  # noqa: F401  (re-exported)
-    plot_device_timeseries,
-    plot_hrr,
-    plot_timeseries_interactive,
-)
-from .plotters_fields import (  # noqa: F401  (re-exported)
-    plot_multi_quantity,
-    plot_particle_positions,
-    plot_slice_contour,
-)
-from .plotters_animate import (  # noqa: F401  (re-exported)
-    animate_particles,
-    animate_slice,
-)
 
 
 logger = logging.getLogger(__name__)

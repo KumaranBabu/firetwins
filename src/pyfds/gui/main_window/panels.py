@@ -61,7 +61,8 @@ class PanelsMixin:
         if not visible or self._messages_sized:
             return
         self._messages_sized = True
-        QTimer.singleShot(0, lambda: self.resizeDocks([self.messages_dock], [_MESSAGES_HEIGHT], Qt.Vertical))
+        height = max(110, min(_MESSAGES_HEIGHT, int(0.18 * self.height())))     # 128 px on a 768 px screen
+        QTimer.singleShot(0, lambda: self.resizeDocks([self.messages_dock], [height], Qt.Vertical))
 
 
     def _show_messages(self, panel) -> None:

@@ -80,7 +80,37 @@ has a non-zero `LOSS` list (none in the corpus). Tests: `tests/unit/test_fds_rou
 - The dialog no longer grows to ~1500 px wide (an unwrapped label on the cluster page).
 - No time or memory estimate is shown: it would need benchmarks of FDS on the user's machine.
 
-## 6. Tests
+## 6. Whole-codebase pass and delivery readiness
+
+**Verdict: not ready for client delivery yet.** The core works and is well tested (86.6 % statement coverage, 3,770+
+tests), but the items under "Before delivery" are open. Packaging was put on hold by request.
+
+### What was checked
+| Check | Result |
+|---|---|
+| Static bug rules (pyflakes, bugbear, pylint errors) over all of `src` | No real runtime bug. 84 duplicated re-export imports (left by an earlier module split, all from the same source) removed. |
+| Coverage of the full suite | 86.6 %. Weakest: `gui/viewport_3d.py` 0 % (the editor's 3D view), `cli` 43 %, `smokeview` 49 %, meshing engines 30-40 % (optional packages). |
+| Results backend on every real result set on disk (example 1, couch x2, fixture: 172 datasets, 12 kinds) | All load, none empty. First display of a boundary file on the couch case took ~21 s on the GUI thread: the reader opened the file once per patch record (105,506 opens). Now one read per frame: 28.6 s -> 2.2 s cold. |
+| Both programs launched on the real screen (1360x768, 100 %) with the GPU | Work. Fixed: project tree squeezed to 4 rows (left column now full height, bottom panel only under the 3D view); results viewer opened to a black view (now shows the FDS geometry on first open); time readout hidden under the icon strip (now bottom right); heat-release axis labels `0 0 1 1 1` and `2.5e-07`. |
+| Support in the field | No log file and no handler for uncaught errors existed. Added `gui/crash_log.py`: rotating log in `<user dir>/logs/`, uncaught errors logged with traceback and reported once in a message box. |
+
+### Before delivery (open)
+1. **Installer / packaging** (on hold). With it: `user_data/` beside the program is read-only under Program Files, so the user
+   library would silently stay in memory (logs fall back to the temp folder); licence notices for the bundled FDS, Smokeview
+   and MPI files; no `LICENSE` file although `pyproject.toml` says MIT; `pyproject.toml` names a `README.md` that does not
+   exist and a project URL that is not this repository.
+2. **A real FDS run from the new Run dialog** (local and MPI) on the target machine, then the results opened: not done here.
+3. **Display scaling**: verified at 1360x768 / 100 % only; 125 %, 150 % and 4K not checked.
+4. **The editor's 3D view** has no automated test; it was checked by launching only.
+5. **AI assistant panel**: needs the optional `anthropic` package and a key; key handling and what the client is told were not reviewed.
+
+### Should fix (not blocking)
+- Command-line tools (43 %) and Smokeview integration (49 %) are the least tested parts.
+- Import limits from item 1 (shared fan copied per duct; node `DUCT_ID` order).
+- The test run's exit code is non-zero from Windows COM noise in the print-to-PDF test although every test passes.
+- Not reviewed line by line: `domain`, `meshing`, `engineering`, `tenability`, `agent`.
+
+## 7. Tests
 
 - Baseline before edits: 44 GUI tests passed.
 - Full suite (`pytest tests`, offscreen Qt, conda env `agent`): **3735 passed, 0 failed** (10 min). The command exited non-zero (code 9) with a
@@ -91,3 +121,5 @@ has a non-zero `LOSS` list (none in the corpus). Tests: `tests/unit/test_fds_rou
   tests of the dialog path; three tests that asserted the old behaviour (first-element array alias, numeric
   SMOKEVIEW_PARAMETERS, 7-decimal rounding) were updated. The run dialog's last three small fixes (combo width, label
   wrap, cell-size units) were re-tested with the run and architecture tests only.
+- Whole-codebase pass: full suite **3775 passed, 0 failed**. The three results-viewer golden images were regenerated: they
+  dated from an older rendering style (mean difference ~5 against a limit of 6) and moving the time readout tipped two over.

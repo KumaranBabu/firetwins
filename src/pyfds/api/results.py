@@ -11,9 +11,6 @@ from .results_smokeview import (  # noqa: F401  (re-exported)
     SmokeviewManager,
 )
 
-from .results_smokeview import (  # noqa: F401  (re-exported)
-    SmokeviewManager,
-)
 
 
 if TYPE_CHECKING:

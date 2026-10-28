@@ -62,13 +62,6 @@ from .schema_geometry import (  # noqa: F401  (re-exported)
     _build_vent_schema,
 )
 
-from .schema_types import (  # noqa: F401  (re-exported)
-    EntitySchema,
-    FT,
-    FieldType,
-    PropertyDescriptor,
-    _p,
-)
 
 
 _registry_instance: Optional[SchemaRegistry] = None

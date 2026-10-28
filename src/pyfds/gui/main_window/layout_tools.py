@@ -14,7 +14,7 @@ from pyfds.gui.panel_hiding import PanelHidingMixin
 from .view_overlay import ViewOverlay
 
 _SIDE_WIDTH = 270                                  # the left and right docks start this wide
-_LAYOUT_VERSION = 4                                # saved window states of older layouts are ignored (they would bring back the 400 px bottom dock)
+_LAYOUT_VERSION = 5                                # saved window states of older layouts are ignored (bottom dock height, full-height left column)
 _OVERLAY_VIEWS = (("Front", CameraPreset.FRONT), ("Top", CameraPreset.TOP), ("Left", CameraPreset.LEFT),
                   ("Iso", CameraPreset.ISOMETRIC))
 
@@ -31,6 +31,9 @@ class LayoutToolsMixin(PanelHidingMixin):
         # one column on the left (project tree above, properties below) instead of one on each side: the 3D view gets the width back.
         # Qt cannot split a dock that is already in a tab stack, so the left docks are taken out and put back in the right order.
         self.setDockOptions(self.dockOptions() | QMainWindow.AllowNestedDocks)
+        # the left column runs the full height; the bottom Messages dock sits only under the 3D view (on a 768 px
+        # screen the column otherwise lost ~190 px to it and the project tree showed four rows)
+        self.setCorner(Qt.BottomLeftCorner, Qt.LeftDockWidgetArea)
         docks = (self.explorer_dock, self.layers_dock, self.tool_properties_dock, self.properties_dock, self.agent_dock)
         shown = [d for d in docks if not d.isHidden()]
         for d in docks:
@@ -47,7 +50,7 @@ class LayoutToolsMixin(PanelHidingMixin):
         self.explorer_dock.raise_()
         self.properties_dock.raise_()
         self.resizeDocks([self.explorer_dock, self.properties_dock], [_SIDE_WIDTH, _SIDE_WIDTH], Qt.Horizontal)
-        self.resizeDocks([self.explorer_dock, self.properties_dock], [380, 320], Qt.Vertical)
+        self.resizeDocks([self.explorer_dock, self.properties_dock], [600, 400], Qt.Vertical)     # the tree gets more
         self.tool_manager.subscribe(self._raise_for_tool)
         self._build_view_overlay()
 

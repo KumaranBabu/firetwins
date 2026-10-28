@@ -33,12 +33,6 @@ from .runner_monitor import (  # noqa: F401  (re-exported)
     _is_numeric,
 )
 
-from .runner_monitor import (  # noqa: F401  (re-exported)
-    LiveMonitor,
-    _HRR_RE,
-    _TIMED_RE,
-    _is_numeric,
-)
 
 
 logger = logging.getLogger(__name__)

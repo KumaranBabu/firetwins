@@ -39,10 +39,6 @@ from .window_common import (  # noqa: F401  (re-exported)
     _VIZ_FILTER,
 )
 
-from .window_common import (  # noqa: F401  (re-exported)
-    _SMV_FILTER,
-    _VIZ_FILTER,
-)
 
 
 class ResultsWindow(ResultsLayoutMixin, ResultsAnalysisMixin, ResultsWindowRecordMixin, ResultsWindowTimebarMixin, ResultsWindowMenusMixin, ResultsWindowFilesMixin, ResultsWindowToolsMixin, QMainWindow):

@@ -40,6 +40,15 @@ examples/*/user_manual_postprocessing.html
 *.out
 *.csv
 *.log
+*.bf
+*.prt5
+*.s3dd
+*.iso
+*.viso
+*.gbnd
+*.binfo
+*.restart
+*_git.txt
 
 # Editors and OS
 .vscode/

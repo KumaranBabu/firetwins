@@ -50,11 +50,6 @@ from .hvac_network_editor_common import (  # noqa: F401  (re-exported)
     _next_free_name,
 )
 
-from .hvac_network_editor_common import (  # noqa: F401  (re-exported)
-    _AMBIENT_BRUSH,
-    _NORMAL_PEN_COLOR,
-    _ROOM_BRUSH,
-)
 
 
 class HvacNetworkEditorDialog(QDialog):

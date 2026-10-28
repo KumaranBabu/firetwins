@@ -191,3 +191,37 @@ def test_ray_floor_point():
     assert ray_floor_point((0, 0, 10), (2, 4, -10)) == (1.0, 2.0, 0.0)
     assert ray_floor_point((0, 0, 5), (1, 1, 5)) is None          # parallel to the floor
     assert ray_floor_point((0, 0, 5), (1, 1, 9)) is None          # floor is behind the ray
+
+
+def test_bottom_dock_opens_compact_and_narrow(app):
+    """The Messages dock must not eat the 3D view: about five log lines high, and no tab forces the window wide."""
+    w = MainWindow(FdsApi())
+    try:
+        w.resize(1600, 900)
+        w.show()
+        app.processEvents()
+        view_before = w.viewport_widget.height()
+        w._show_messages(w.run_panel)
+        for _ in range(4):
+            app.processEvents()
+        assert w.messages_dock.height() <= 200
+        assert w.viewport_widget.height() >= view_before - 250
+        for panel in (w.validation_panel, w.run_panel, w.results_panel, w.output_panel):
+            assert panel.minimumSizeHint().width() <= 450, type(panel).__name__
+        w.run_panel.timer.stop()
+    finally:
+        w.close()
+
+
+def test_main_window_fits_a_short_screen(win):
+    assert win.minimumSizeHint().height() <= 500
+
+
+def test_run_monitor_log_keeps_scroll_when_unchanged(win, tmp_path):
+    (tmp_path / "case.out").write_text("\n".join(f"line {i}" for i in range(30)))
+    win.run_panel.watch(str(tmp_path), "case", 20.0)
+    win.run_panel.timer.stop()
+    win.run_panel.log.verticalScrollBar().setValue(0)
+    win.run_panel.refresh()                              # same file: the user's scroll position stays
+    assert win.run_panel.log.verticalScrollBar().value() == 0
+    assert win.run_panel.log.toPlainText().endswith("line 29")

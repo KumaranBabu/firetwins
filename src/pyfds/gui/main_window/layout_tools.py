@@ -14,7 +14,7 @@ from pyfds.gui.panel_hiding import PanelHidingMixin
 from .view_overlay import ViewOverlay
 
 _SIDE_WIDTH = 270                                  # the left and right docks start this wide
-_LAYOUT_VERSION = 3                                # saved window states of older layouts are ignored (they would undo the compact docks)
+_LAYOUT_VERSION = 4                                # saved window states of older layouts are ignored (they would bring back the 400 px bottom dock)
 _OVERLAY_VIEWS = (("Front", CameraPreset.FRONT), ("Top", CameraPreset.TOP), ("Left", CameraPreset.LEFT),
                   ("Iso", CameraPreset.ISOMETRIC))
 

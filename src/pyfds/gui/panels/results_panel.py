@@ -6,7 +6,7 @@ from typing import Callable, List, Optional
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QPushButton, QVBoxLayout, QWidget,
+    QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QPushButton, QSizePolicy, QVBoxLayout, QWidget,
 )
 
 _PATTERNS = ("*.smv",)
@@ -30,7 +30,10 @@ class ResultsPanel(QWidget):
         self._folder = folder_provider
         self._open_smv = open_smv
         root = QVBoxLayout(self)
+        root.setContentsMargins(4, 2, 4, 2)
+        root.setSpacing(2)
         self.note = QLabel("")
+        self.note.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)         # a long folder path must not widen the dock
         root.addWidget(self.note)
         self.list = QListWidget()
         self.list.itemDoubleClicked.connect(lambda _item: self.open_selected())

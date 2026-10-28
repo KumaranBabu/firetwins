@@ -6,7 +6,7 @@ from typing import Any, Optional
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
-    QHBoxLayout, QLabel, QPushButton, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget,
+    QHBoxLayout, QLabel, QPushButton, QSizePolicy, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget,
 )
 
 _COLOURS = {"ERROR": "#b91c1c", "WARNING": "#b45309", "INFO": "#475569"}      # keyed by Severity.name
@@ -20,8 +20,11 @@ class ValidationPanel(QWidget):
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         root = QVBoxLayout(self)
+        root.setContentsMargins(4, 2, 4, 2)
+        root.setSpacing(2)
         row = QHBoxLayout()
         self.summary = QLabel("Not validated yet.")
+        self.summary.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)      # a long summary must not widen the dock
         row.addWidget(self.summary, 1)
         self.validate_button = QPushButton("Validate")
         self.validate_button.clicked.connect(self.validate_requested)

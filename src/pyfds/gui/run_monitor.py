@@ -12,7 +12,7 @@ from typing import Callable, List, Optional, Tuple
 from PySide6.QtCore import QPointF, QRectF, Qt, QTimer
 from PySide6.QtGui import QColor, QPainter, QPen
 from PySide6.QtWidgets import (
-    QDialog, QHBoxLayout, QLabel, QPlainTextEdit, QProgressBar, QPushButton, QVBoxLayout, QWidget,
+    QDialog, QHBoxLayout, QLabel, QPlainTextEdit, QProgressBar, QPushButton, QSizePolicy, QSplitter, QVBoxLayout, QWidget,
 )
 
 _TOTAL_TIME = re.compile(r"Total Time:\s+([0-9.]+)\s*s")
@@ -22,7 +22,10 @@ def read_progress(out_file: Path, t_end: float) -> Tuple[float, str]:
     """(simulated seconds so far, state) where state is ``waiting``, ``running``, ``done`` or ``failed``."""
     if not out_file.exists():
         return 0.0, "waiting"
-    text = out_file.read_text(encoding="utf-8", errors="replace")
+    return progress_from_text(out_file.read_text(encoding="utf-8", errors="replace"), t_end)
+
+
+def progress_from_text(text: str, t_end: float) -> Tuple[float, str]:
     times = _TOTAL_TIME.findall(text)
     t = float(times[-1]) if times else 0.0
     if "STOP: FDS completed successfully" in text:
@@ -52,7 +55,8 @@ class HrrPlot(QWidget):
         super().__init__(parent)
         self.t_end = max(t_end, 1e-6)
         self.points: List[Tuple[float, float]] = []
-        self.setMinimumHeight(170)
+        self.setMinimumHeight(70)
+        self.setMinimumWidth(160)
 
     def set_points(self, pts: List[Tuple[float, float]]) -> None:
         self.points = pts
@@ -101,32 +105,44 @@ class _MonitorBody:
         self.open_results = open_results
         self.state = "idle"
 
+        # compact: one status row on top, the curve and the solver log side by side below, so a short dock shows all of it
         root = QVBoxLayout(self)
+        root.setContentsMargins(4, 2, 4, 2)
+        root.setSpacing(2)
+        top = QHBoxLayout()
         self.headline = QLabel("")
-        self.headline.setStyleSheet("font-size: 15px; font-weight: 600;")
-        root.addWidget(self.headline)
+        self.headline.setStyleSheet("font-size: 13px; font-weight: 600;")
+        self.headline.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        top.addWidget(self.headline, 3)
         self.bar = QProgressBar()
         self.bar.setRange(0, 1000)
         self.bar.setFormat("%p%")
-        root.addWidget(self.bar)
+        self.bar.setMaximumHeight(16)
+        self.bar.setMinimumWidth(60)
+        top.addWidget(self.bar, 2)
         self.detail = QLabel("")
         self.detail.setStyleSheet("color: #555;")
-        root.addWidget(self.detail)
+        self.detail.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)      # a long line must not widen the dock
+        top.addWidget(self.detail, 4)
+        self.results_button = QPushButton("Open Results Viewer")
+        self.results_button.setEnabled(False)
+        self.results_button.clicked.connect(lambda: self.open_results and self.open_results())
+        top.addWidget(self.results_button)
+        self.extra_row = top
+        root.addLayout(top)
         self.plot = HrrPlot(t_end)
-        root.addWidget(self.plot)
         self.log = QPlainTextEdit()
         self.log.setReadOnly(True)
         self.log.setMaximumBlockCount(400)
         self.log.setStyleSheet("font-family: Consolas, monospace; font-size: 11px;")
-        root.addWidget(self.log, 1)
-        row = QHBoxLayout()
-        row.addStretch(1)
-        self.results_button = QPushButton("Open Results Viewer")
-        self.results_button.setEnabled(False)
-        self.results_button.clicked.connect(lambda: self.open_results and self.open_results())
-        row.addWidget(self.results_button)
-        self.extra_row = row
-        root.addLayout(row)
+        self.log.setMinimumHeight(40)
+        body = QSplitter(Qt.Horizontal)
+        body.setChildrenCollapsible(False)
+        body.addWidget(self.plot)
+        body.addWidget(self.log)
+        body.setStretchFactor(0, 2)
+        body.setStretchFactor(1, 3)
+        root.addWidget(body, 1)
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.refresh)
@@ -148,7 +164,8 @@ class _MonitorBody:
         self.refresh()
 
     def refresh(self) -> None:
-        t, self.state = read_progress(self.out_file, self.t_end)
+        text = self.out_file.read_text(encoding="utf-8", errors="replace") if self.out_file.exists() else None   # read once per tick
+        t, self.state = progress_from_text(text, self.t_end) if text is not None else (0.0, "waiting")
         frac = 0.0 if self.t_end <= 0 else min(t / self.t_end, 1.0)
         self.bar.setValue(int(frac * 1000))
         headline = {"waiting": "Waiting for FDS to start...", "running": "Running", "done": "Finished",
@@ -160,10 +177,11 @@ class _MonitorBody:
         if pts:
             now += f"  |  heat release now {pts[-1][1]:.0f} kW, peak {max(q for _, q in pts):.0f} kW"
         self.detail.setText(now)
-        if self.out_file.exists():
-            tail = self.out_file.read_text(errors="replace").splitlines()[-14:]
-            self.log.setPlainText("\n".join(tail))
-            self.log.verticalScrollBar().setValue(self.log.verticalScrollBar().maximum())
+        if text is not None:
+            tail = "\n".join(text.splitlines()[-14:])
+            if tail != self.log.toPlainText():           # keep the user's scroll position and selection while nothing changed
+                self.log.setPlainText(tail)
+                self.log.verticalScrollBar().setValue(self.log.verticalScrollBar().maximum())
         self.results_button.setEnabled(self.state == "done")
         if self.state in ("done", "failed"):
             self.timer.stop()

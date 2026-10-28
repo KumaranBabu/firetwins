@@ -90,9 +90,6 @@ class WorkspacesMixin:
         if state is not None:
             self.restoreState(state, _LAYOUT_VERSION)
 
-    def has_saved_geometry(self) -> bool:
-        return QSettings(*_SETTINGS).value("main_window/geometry") is not None
-
     def save_layout(self) -> None:
         settings = QSettings(*_SETTINGS)
         settings.setValue("main_window/state", self.saveState(_LAYOUT_VERSION))

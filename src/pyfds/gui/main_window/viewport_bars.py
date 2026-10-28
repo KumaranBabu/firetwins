@@ -9,7 +9,7 @@ from typing import Any, Dict
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QActionGroup
-from PySide6.QtWidgets import QComboBox, QDockWidget, QFileDialog, QLabel, QMessageBox, QToolBar
+from PySide6.QtWidgets import QComboBox, QDockWidget, QFileDialog, QFrame, QLabel, QMessageBox, QScrollArea, QToolBar
 
 from pyfds.core.events import EventType
 from pyfds.core.viewport import CameraPreset, VisibilityFlags
@@ -194,7 +194,11 @@ class ViewportBarsMixin:
         self.tool_properties = ToolPropertiesPanel(self.api, self.tool_manager, self)
         dock = QDockWidget("Tool Properties", self)
         dock.setObjectName("ToolPropertiesDock")
-        dock.setWidget(self.tool_properties)
+        scroll = QScrollArea()                    # scrolls instead of forcing the whole window taller on a short screen
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.NoFrame)
+        scroll.setWidget(self.tool_properties)
+        dock.setWidget(scroll)
         self.addDockWidget(Qt.LeftDockWidgetArea, dock)
         self.tool_properties_dock = dock
 

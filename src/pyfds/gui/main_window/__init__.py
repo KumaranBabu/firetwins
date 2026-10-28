@@ -24,8 +24,7 @@ def main() -> None:
     window = MainWindow()
     window.api.library.use_default_path()      # the user library is kept between sessions
     window._persist_layout = True      # remember the dock arrangement between sessions
-    first_run = not window.has_saved_geometry()
     window.restore_saved_layout()
     window.restore_keymap()            # shortcuts changed in Help > Keyboard Shortcuts
-    window.showMaximized() if first_run else window.show()       # the 3D view should start as large as the screen allows
+    window.showMaximized()             # always start as large as the screen allows; the saved geometry is what "restore down" returns to
     app.exec()

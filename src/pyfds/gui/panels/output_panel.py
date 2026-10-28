@@ -34,7 +34,9 @@ class OutputPanel(QWidget):
         super().__init__(parent)
         self._api = api
         root = QVBoxLayout(self)
+        root.setContentsMargins(0, 0, 0, 0)
         self.tabs = QTabWidget()
+        self.tabs.setDocumentMode(True)                       # flat inner tabs: the outer Messages tab bar is already there
         root.addWidget(self.tabs)
 
         self.log = QPlainTextEdit()

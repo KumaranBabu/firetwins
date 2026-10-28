@@ -1,13 +1,15 @@
 """Dockable panels of the main window: Properties (right), Validation and Run Monitor (bottom tabs)."""
 from __future__ import annotations
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import QDockWidget, QMessageBox, QTabWidget
 
 from pyfds.gui.panels import PropertiesPanel, ValidationPanel
 from pyfds.gui.run_monitor import RunMonitorPanel
 
 from .shared import _REFRESH_EVENTS
+
+_MESSAGES_HEIGHT = 150          # dock height in pixels: title bar, tab bar and about five lines of log
 
 
 class PanelsMixin:
@@ -30,8 +32,10 @@ class PanelsMixin:
         self.messages_dock.setObjectName("MessagesDock")
         self.messages_dock.setWidget(self.messages_tabs)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.messages_dock)
-        self.resizeDocks([self.messages_dock], [210], Qt.Vertical)   # keep the 3D view the biggest area
         self.messages_dock.hide()                 # opens when a validation or a run produces something
+        # Qt ignores resizeDocks() on a hidden dock, so the compact height is applied the first time the dock appears
+        self._messages_sized = False
+        self.messages_dock.visibilityChanged.connect(self._size_messages_dock)
 
         self.explorer.itemSelectionChanged.connect(self._on_selection_changed)
         self.validation_panel.validate_requested.connect(self._on_validate)
@@ -52,6 +56,14 @@ class PanelsMixin:
             self.layers_panel.sync()
 
     # -- Messages ----------------------------------------------------------------------------------
+    def _size_messages_dock(self, visible: bool) -> None:
+        """Start the bottom dock at about five log lines high; the user can drag it taller (the choice is saved)."""
+        if not visible or self._messages_sized:
+            return
+        self._messages_sized = True
+        QTimer.singleShot(0, lambda: self.resizeDocks([self.messages_dock], [_MESSAGES_HEIGHT], Qt.Vertical))
+
+
     def _show_messages(self, panel) -> None:
         self.messages_tabs.setCurrentWidget(panel)
         self.messages_dock.show()

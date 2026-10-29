@@ -5,6 +5,7 @@ found in only one run is listed as missing. Typical use: a mesh-sensitivity run,
 """
 from __future__ import annotations
 
+import math
 from pathlib import Path
 from typing import Any, Optional
 
@@ -14,6 +15,13 @@ from PySide6.QtWidgets import (
 )
 
 _COLUMNS = ["Channel", "Units", "Baseline peak", "Variant peak", "Peak diff %", "Mean diff %", "Status"]
+_STATUS = {"ok": "ok", "warning": "above threshold", "missing_baseline": "variant only",
+           "missing_variant": "baseline only"}
+
+
+def _num(value: float, spec: str) -> str:
+    """A number for the table; '-' where a run has no value (a channel only one run has)."""
+    return "-" if math.isnan(value) else format(value, spec)
 
 
 def _folder_row(parent: QWidget, edit: QLineEdit) -> QHBoxLayout:
@@ -74,8 +82,9 @@ class CompareRunsDialog(QDialog):
         report = self.api.engineering.compare_runs(base, var, self.threshold.value())
         self.table.setRowCount(len(report.channels))
         for r, c in enumerate(report.channels):
-            cells = [c.name, c.units, f"{c.baseline_peak:.4g}", f"{c.variant_peak:.4g}", f"{c.peak_pct_diff:+.1f}",
-                     f"{c.mean_pct_diff:+.1f}", c.status + (f" ({c.note})" if c.note else "")]
+            cells = [c.name, c.units, _num(c.baseline_peak, ".4g"), _num(c.variant_peak, ".4g"),
+                     _num(c.peak_pct_diff, "+.1f"), _num(c.mean_pct_diff, "+.1f"), _STATUS.get(c.status, c.status)
+                     + (f": {c.note}" if c.note and c.status == "warning" else "")]
             for k, text in enumerate(cells):
                 self.table.setItem(r, k, QTableWidgetItem(text))
         self.table.resizeColumnsToContents()

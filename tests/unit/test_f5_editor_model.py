@@ -160,6 +160,15 @@ def test_library_and_info(api):
     assert any("surface type" in line for line in _model(api, "surfaces").info(s))
 
 
+def test_mesh_facts_have_no_float_noise():
+    """The couch example's mesh: 2.4 m / 24 cells is 0.09999999999999999 in floating point; the editor shows 0.1."""
+    api = FdsApi()
+    mesh = api.meshes.add_mesh([25, 25, 24], [0, 2.5, 0, 2.5, 0, 2.4], name="MESH_0")
+    info = dict(line.split(": ", 1) for line in _model(api, "meshes").info(mesh))
+    assert info["cell size"] == "0.1, 0.1, 0.1" and info["aspect ratio"] == "1"
+    assert info["non uniform axes"] == "none" and info["cells"] == "25, 25, 24"
+
+
 @pytest.mark.parametrize("attr", ["meshes", "surfaces", "materials", "reactions", "species", "zones", "particles",
                                   "ramps", "obstructions", "vents", "holes", "devices", "controls", "inits", "props"])
 def test_every_collection_can_be_listed_described_edited_and_previewed(api, attr):

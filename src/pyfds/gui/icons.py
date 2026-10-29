@@ -268,6 +268,8 @@ def _decorate_menu(menu: QMenu, top: str, seen: set) -> int:
         if act.icon().isNull():
             act.setIcon(icon_for_text(act.text(), top))
             n += 1
+        if act.isCheckable() and act.menu() is None:      # an on/off entry: Qt shows its state as a tick only without
+            act.setIconVisibleInMenu(False)               # an icon (toolbars still show the icon)
         sub = act.menu()
         if sub is not None and id(sub) not in seen:
             seen.add(id(sub))

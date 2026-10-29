@@ -5,6 +5,7 @@ dose uses FDS's own constants (``pyfds.tenability.fed``), so it agrees with an F
 """
 from __future__ import annotations
 
+import re
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -40,16 +41,31 @@ def to_percent(values: np.ndarray, unit: str) -> np.ndarray:
     return to_ppm(values, unit) / 1e4
 
 
-def guess(series: Dict[str, Any], role: str) -> Optional[str]:
-    """The first column whose quantity or name suggests *role* (a CO2 column is never taken for CO or O2)."""
+def _place_tag(sid: str) -> str:
+    """What a device name says about where it is: 'CO_15' -> '15', 'O2_ROOM' -> 'room' (the gas word removed)."""
+    name = sid.rsplit("/", 1)[-1].strip().lower()
+    return re.sub(r"^(co2|co|o2|hcn)[_\- .]*|[_\- .]*(co2|co|o2|hcn)$", "", name)
+
+
+def guess(series: Dict[str, Any], role: str, near: Optional[str] = None) -> Optional[str]:
+    """The first column whose quantity or name suggests *role* (a CO2 column is never taken for CO or O2). With *near*
+    (the chosen CO column), a column whose name carries the same place tag wins: GAS_T_15 for CO_15, not TC_060."""
     words = ROLES[role][1]
+    hits = []
     for sid, s in series.items():
         text = f" {s.quantity} {s.description} {sid} ".lower()
         if role in ("co", "o2") and ("co2" in text or "dioxide" in text):
             continue
-        if any(w in text for w in words):
-            return sid
-    return None
+        in_degrees = role == "temp" and str(getattr(s, "unit", "")).strip().lower() in ("c", "°c", "k")
+        if in_degrees or any(w in text for w in words):          # a _devc.csv column has only its name and unit
+            hits.append(sid)
+    tag = _place_tag(near) if near else ""
+    if tag and tag != near.rsplit("/", 1)[-1].strip().lower():
+        same = [sid for sid in hits
+                if re.search(rf"(^|[_\- .]){re.escape(tag)}($|[_\- .])", sid.rsplit("/", 1)[-1].strip().lower())]
+        if same:
+            return same[0]
+    return hits[0] if hits else None
 
 
 def tenability(api: Any, series: Dict[str, Any], picks: Dict[str, Optional[str]],
@@ -107,12 +123,13 @@ class TenabilityDialog(QDialog):
         v.addWidget(note)
         form = QFormLayout()
         self.combos: Dict[str, QComboBox] = {}
+        co_pick = guess(self.series, "co")
         for role, (label, _words) in ROLES.items():
             box = QComboBox(self)
             box.addItem(NONE, None)
             for sid in self.series:
                 box.addItem(sid, sid)
-            hit = guess(self.series, role)
+            hit = guess(self.series, role, near=None if role == "co" else co_pick)   # the gases' own place
             if hit:
                 box.setCurrentIndex(box.findData(hit))
             form.addRow(label, box)

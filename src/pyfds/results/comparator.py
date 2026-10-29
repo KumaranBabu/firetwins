@@ -173,27 +173,25 @@ class SimulationComparator:
         variant: Optional[object],
         threshold_pct: float,
     ) -> ChannelComparison:
-        if baseline is None:
+        nan = float("nan")
+
+        def stats(result: object) -> Tuple[float, float]:
+            arr = np.asarray(getattr(result, "data", []), dtype=float)
+            return (float(np.max(np.abs(arr))), float(np.mean(arr))) if arr.size else (nan, nan)
+
+        if baseline is None or variant is None:          # the run that has the channel keeps its numbers
+            present = variant if baseline is None else baseline
+            peak, mean = stats(present)
+            side = "baseline" if baseline is None else "variant"
             return ChannelComparison(
-                name=name, units="",
-                baseline_peak=float("nan"), variant_peak=float("nan"),
-                peak_pct_diff=float("nan"),
-                baseline_mean=float("nan"), variant_mean=float("nan"),
-                mean_pct_diff=float("nan"),
+                name=name, units=getattr(present, "units", ""),
+                baseline_peak=nan if baseline is None else peak, variant_peak=peak if baseline is None else nan,
+                peak_pct_diff=nan,
+                baseline_mean=nan if baseline is None else mean, variant_mean=mean if baseline is None else nan,
+                mean_pct_diff=nan,
                 threshold_pct=threshold_pct,
-                status="missing_baseline",
-                note="Channel not found in baseline directory.",
-            )
-        if variant is None:
-            return ChannelComparison(
-                name=name, units=getattr(baseline, "units", ""),
-                baseline_peak=float("nan"), variant_peak=float("nan"),
-                peak_pct_diff=float("nan"),
-                baseline_mean=float("nan"), variant_mean=float("nan"),
-                mean_pct_diff=float("nan"),
-                threshold_pct=threshold_pct,
-                status="missing_variant",
-                note="Channel not found in variant directory.",
+                status=f"missing_{side}",
+                note=f"Channel not found in {side} directory.",
             )
 
         b_arr = np.asarray(getattr(baseline, "data", []), dtype=float)

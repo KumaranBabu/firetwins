@@ -3,6 +3,8 @@ Tests for pyfds.tenability.fed — FED incapacitation model (Purser, with FDS 6.
 """
 from __future__ import annotations
 
+import math
+
 import pytest
 
 from pyfds.tenability.fed import (
@@ -99,6 +101,12 @@ class TestFedO2Step:
 
     def test_above_normal_no_dose(self):
         assert fed_o2_step(21.0, 1.0) == pytest.approx(0.0, abs=1e-12)
+
+    def test_humid_ambient_air_no_dose_as_in_fds(self):
+        # FDS's FED device stays at 0 in humid ambient air (20.76 % O2) and counts O2 only below 20 %
+        assert fed_o2_step(20.76, 1.0) == 0.0
+        assert fed_o2_step(20.0, 1.0) == 0.0
+        assert fed_o2_step(19.9, 1.0) == pytest.approx(1.0 / math.exp(8.13 - 0.54 * 1.0))
 
     def test_depleted_o2_positive_dose(self):
         assert fed_o2_step(10.0, 1.0) > 0.0

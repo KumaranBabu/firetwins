@@ -349,13 +349,22 @@ class EntityEditorModel:
         try:
             if self.attr == "meshes":
                 s = self.manager.stats(entity)
-                lines += [f"{k.replace('_', ' ')}: {v}" for k, v in s.items()]
+                lines += [f"{k.replace('_', ' ')}: {_fact(v)}" for k, v in s.items()]
                 lines.append(f"alignment test: {self.manager.alignment_test().get(entity.name)}")
             elif self.attr == "surfaces":
                 lines.append(f"surface type: {self.manager.kind(entity.name)}")
         except Exception as exc:
             lines.append(f"({exc})")
         return lines
+
+
+def _fact(v: Any) -> str:
+    """A read-only fact as a person reads it: 0.1, not 0.09999999999999999; (25, 25, 24) without brackets; [] as none."""
+    if isinstance(v, float):
+        return f"{v:.6g}"
+    if isinstance(v, (list, tuple)):
+        return ", ".join(_fact(x) for x in v) if v else "none"
+    return str(v)
 
 
 def _norm(v: Any) -> Any:

@@ -43,6 +43,10 @@ _CO_DENOM:  float = 1.0 / 2.764e-5   # ≈ 36,180 ppm^1.036 · min
 # O₂ depletion (FDS eq. 22.48): t_inc [min] = exp(8.13 - 0.54 · (20.9 - C_O2))
 _O2_A:  float = 8.13
 _O2_B:  float = 0.54
+# FDS 6.10.1's FED device adds the O₂ term only below 20 % O₂ (the User Guide states no cutoff; found by comparing
+# with QUANTITY='FED' in client_demos/example_3, where humid ambient air has 20.76 % and the device stays at 0 until
+# the oxygen drops below 20 %). Without it, ordinary air alone adds 0.0003 FED per minute.
+_O2_CUTOFF_PCT: float = 20.0
 
 # HCN (FDS eq. 22.44): FED_CN = ∫ (exp(C_CN / 43) / 220 - 0.0045) dt   [t in min, C in ppm]
 _HCN_SCALE:  float = 43.0      # ppm
@@ -98,10 +102,12 @@ def fed_o2_step(pct_o2: float, dt_min: float) -> float:
 
     Parameters
     ----------
-    pct_o2:  O₂ concentration [%v/v].  Normal ambient = 20.9 %.
+    pct_o2:  O₂ concentration [%v/v].  Normal ambient = 20.9 % (dry air; humid air has a little less).
     dt_min:  Exposure duration [min].
+
+    Zero at 20 % O₂ and above, as FDS's FED device does.
     """
-    if pct_o2 >= 20.9:
+    if pct_o2 >= _O2_CUTOFF_PCT:
         return 0.0
     # Time to incapacitation at this O₂ level [min]
     t_inc = math.exp(_O2_A - _O2_B * (20.9 - pct_o2))

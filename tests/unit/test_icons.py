@@ -118,6 +118,18 @@ def test_main_window_every_menu_entry_and_toolbar_button_has_an_icon():
     w.close()
 
 
+def test_on_off_menu_entries_show_a_tick_not_their_icon():
+    """Analysis > Open Smokeview After Run (and every other toggle): with an icon, Qt shows the checked state only as a
+    faint frame; hiding the icon in the menu brings the tick back. The action keeps its icon for toolbars."""
+    from pyfds.gui.main_window import MainWindow
+    w = MainWindow(FdsApi())
+    toggles = [a for _path, acts in _menus(w) for a in acts if a.isCheckable() and not a.menu()]
+    assert w._open_smokeview_action in toggles
+    assert not w._open_smokeview_action.isIconVisibleInMenu() and not w._open_smokeview_action.icon().isNull()
+    assert all(not a.isIconVisibleInMenu() for a in toggles)
+    w.close()
+
+
 def test_project_explorer_rows_have_icons_and_disabled_ones_are_grey():
     from pyfds.gui.main_window import MainWindow
     w = MainWindow(FdsApi())

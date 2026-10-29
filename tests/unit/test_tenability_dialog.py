@@ -38,6 +38,22 @@ def test_columns_are_guessed_and_co2_is_not_taken_for_co():
     assert guess(s, "o2") == "case_devc.csv/O2_1" and guess(s, "temp") == "case_devc.csv/TC_1"
 
 
+def test_gas_temperature_is_taken_where_the_gases_are(app):
+    """Example 3's devices as a _devc.csv gives them (name and unit only, no quantity): a plume thermocouple comes first
+    in the file, but CO_15's temperature is GAS_T_15 - whose name does not say 'temperature', only its unit (C) does."""
+    t = np.linspace(0.0, 60.0, 61)
+    cols = [("HEAT_DET", "C"), ("TC_060", "C"), ("CO_15", "mol/mol"), ("CO2_15", "mol/mol"), ("O2_15", "mol/mol"),
+            ("GAS_T_15", "C"), ("VIS_15", "m")]
+    s = {f"c_devc.csv/{n}": TimeSeries(n, "", u, t, np.zeros_like(t)) for n, u in cols}
+    co = guess(s, "co")
+    assert co == "c_devc.csv/CO_15"
+    assert guess(s, "temp", near=co) == "c_devc.csv/GAS_T_15"
+    assert guess(s, "temp") == "c_devc.csv/HEAT_DET"                  # without a place: the first column in degrees
+    dlg = TenabilityDialog(FdsApi(), SimpleNamespace(csv_series=lambda: s))
+    assert dlg.combos["temp"].currentData() == "c_devc.csv/GAS_T_15"
+    dlg.close()
+
+
 def test_units_are_converted_before_the_dose():
     assert to_ppm(np.array([1e-3]), "mol/mol")[0] == pytest.approx(1000.0)
     assert to_ppm(np.array([2.0]), "%")[0] == pytest.approx(20000.0)
@@ -79,13 +95,17 @@ def test_compare_runs_dialog_flags_a_changed_device(app, tmp_path):
     base, var = tmp_path / "base", tmp_path / "var"
     for d, scale in ((base, 1.0), (var, 1.2)):
         d.mkdir()
-        rows = "\n".join(f"{t},{20 + scale * t},{20 + t}" for t in range(0, 61, 10))
-        (d / "case_devc.csv").write_text(f's,C,C\nTime,"TC_A","TC_B"\n{rows}\n')
+        rows = "\n".join(f"{t},{20 + scale * t},{20 + t}" + (f",{t / 2}" if d is var else "") for t in range(0, 61, 10))
+        extra = (',C', ',"TC_NEW"') if d is var else ("", "")
+        (d / "case_devc.csv").write_text(f's,C,C{extra[0]}\nTime,"TC_A","TC_B"{extra[1]}\n{rows}\n')
     dlg = CompareRunsDialog(FdsApi(), str(base))
     dlg.variant.setText(str(var))
     report = dlg.compare()
     status = {c.name: c.status for c in report.channels}
-    assert status == {"TC_A": "warning", "TC_B": "ok"} and dlg.table.rowCount() == 2
+    assert status == {"TC_A": "warning", "TC_B": "ok", "TC_NEW": "missing_baseline"} and dlg.table.rowCount() == 3
+    cells = [dlg.table.item(2, k).text() for k in range(dlg.table.columnCount())]      # variant only: no 'nan'
+    assert cells[0] == "TC_NEW" and cells[2] == "-" and cells[3] == "30" and cells[4] == "-"
+    assert cells[6] == "variant only" and not any("nan" in c for c in cells)
     dlg.variant.setText(str(tmp_path / "nowhere"))
     assert dlg.compare() is None and "Choose two" in dlg.summary.text()
     dlg.close()

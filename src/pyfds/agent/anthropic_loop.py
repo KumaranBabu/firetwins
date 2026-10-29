@@ -21,7 +21,9 @@ from typing import Any, Callable, Dict, List, Optional
 from .dispatcher import AgentToolDispatcher
 from .registry import get_tool
 
-DEFAULT_MODEL = "claude-sonnet-5"
+DEFAULT_MODEL = "claude-opus-5-5"
+#: on a safety decline the API re-runs the request on a fallback model it chooses (server-side fallback)
+_FALLBACK_BETA = "server-side-fallback-2026-07-01"
 
 DEFAULT_SYSTEM_PROMPT = (
     "You are an assistant embedded in PyFDS, a fire-modeling CAD/simulation tool. "
@@ -64,6 +66,9 @@ class AgentSession:
     system_prompt: str = DEFAULT_SYSTEM_PROMPT
     max_tool_iterations: int = 10
     on_tool_call: Optional[Callable[[ToolCallLogEntry], None]] = None
+    #: runs each tool call; a GUI passes one that hands the call to its main thread (tools change the model, and
+    #: the model's listeners redraw widgets, which only the main thread may touch). Default: call it here.
+    tool_executor: Optional[Callable[[Callable[[], Any]], Any]] = None
     client: Any = None
 
     messages: List[Dict[str, Any]] = field(default_factory=list)
@@ -79,14 +84,19 @@ class AgentSession:
         self.messages.append({"role": "user", "content": user_text})
 
         for _ in range(self.max_tool_iterations):
-            response = self.client.messages.create(
+            response = self.client.beta.messages.create(
                 model=self.model,
                 system=self.system_prompt,
-                max_tokens=4096,
+                max_tokens=16000,
                 tools=self.dispatcher.anthropic_tools(),
                 messages=self.messages,
+                betas=[_FALLBACK_BETA],
+                fallbacks="default",
             )
+            # the whole content goes back (thinking and fallback blocks included), never only the text
             self.messages.append({"role": "assistant", "content": response.content})
+            if getattr(response, "stop_reason", None) == "refusal":
+                return "(The assistant declined this request.)"
 
             tool_uses = [b for b in response.content if b.type == "tool_use"]
             if not tool_uses:
@@ -108,7 +118,8 @@ class AgentSession:
     def _run_tool(self, name: str, arguments: Dict[str, Any]) -> ToolCallLogEntry:
         try:
             spec = get_tool(name)
-            result = self.dispatcher.call(name, arguments)
+            call = lambda: self.dispatcher.call(name, arguments)          # noqa: E731
+            result = self.tool_executor(call) if self.tool_executor else call()
             entry = ToolCallLogEntry(tool_name=name, arguments=arguments, result=result, mutated=spec.mutates)
         except Exception as exc:
             entry = ToolCallLogEntry(tool_name=name, arguments=arguments, result=None, mutated=False, error=str(exc))

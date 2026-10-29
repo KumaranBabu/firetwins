@@ -39,6 +39,7 @@ class _ScriptedClient:
                 return self._responses.pop(0)
 
         self.messages = _Messages()
+        self.beta = SimpleNamespace(messages=self.messages)
 
 
 def test_send_returns_text_when_no_tool_use():
@@ -112,3 +113,32 @@ def test_exceeding_max_tool_iterations_raises():
 
     with pytest.raises(RuntimeError):
         session.send("loop forever")
+
+
+def test_request_uses_current_model_and_server_side_fallback():
+    from pyfds.agent import AgentSession
+    client = _ScriptedClient([SimpleNamespace(content=[_text_block("ok")])])
+    AgentSession(dispatcher=_make_dispatcher(), client=client).send("hi")
+    call = client.calls[0]
+    assert call["model"] == "claude-opus-5-5" and call["fallbacks"] == "default"
+    assert call["betas"] == ["server-side-fallback-2026-07-01"] and call["max_tokens"] == 16000
+
+
+def test_refusal_is_reported_not_read_as_text():
+    from pyfds.agent import AgentSession
+    client = _ScriptedClient([SimpleNamespace(content=[], stop_reason="refusal")])
+    reply = AgentSession(dispatcher=_make_dispatcher(), client=client).send("hi")
+    assert "declined" in reply
+
+
+def test_tool_calls_go_through_the_tool_executor():
+    from pyfds.agent import AgentSession
+    client = _ScriptedClient([
+        SimpleNamespace(content=[_tool_use_block("list_meshes", {})]),
+        SimpleNamespace(content=[_text_block("done")]),
+    ])
+    ran = []
+    session = AgentSession(dispatcher=_make_dispatcher(), client=client,
+                           tool_executor=lambda fn: ran.append(fn) or fn())
+    session.send("list meshes")
+    assert len(ran) == 1 and session.log[0].error is None

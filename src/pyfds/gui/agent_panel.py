@@ -19,7 +19,10 @@ the whole app, including the 3D viewport and every other dock, for the
 duration of the request. ``_on_send()`` instead runs it on a background
 ``_SendWorker`` QThread and only touches widgets again from the
 ``succeeded``/``failed`` signal handlers, which Qt marshals back onto the
-main thread automatically. The input row is disabled while a request is in
+main thread automatically. The tool calls themselves change the model, and
+the model's listeners (Project Explorer, panels) rebuild widgets, so each
+tool call is handed to the main thread (``_MainThreadCall``) and the worker
+waits for its result. The input row is disabled while a request is in
 flight — both to give the user feedback and because ``AgentSession``'s
 ``messages``/``log`` lists are plain, non-thread-safe Python lists; only
 ever one send in flight at a time.
@@ -28,7 +31,7 @@ from __future__ import annotations
 
 from typing import Any, Protocol
 
-from PySide6.QtCore import QThread, Signal
+from PySide6.QtCore import QObject, Qt, QThread, Signal, Slot
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QLineEdit, QPushButton,
 )
@@ -47,6 +50,33 @@ def _describe(entry: Any) -> str:
         return f"  ↳ {entry.tool_name}({args}) ✗ {entry.error}"
     kind = "mutated" if entry.mutated else "advisory"
     return f"  ↳ {entry.tool_name}({args}) ✓ [{kind}]"
+
+
+class _MainThreadCall(QObject):
+    """Runs a function on the thread this object lives on (the GUI thread) and returns its result to the caller,
+    which blocks until it is done. Called from the GUI thread itself it simply runs the function."""
+    _request = Signal(object)
+
+    def __init__(self, parent: QObject | None = None) -> None:
+        super().__init__(parent)
+        self._request.connect(self._run, Qt.BlockingQueuedConnection)
+
+    def __call__(self, fn: Any) -> Any:
+        if QThread.currentThread() is self.thread():
+            return fn()
+        box: dict = {}
+        self._request.emit((fn, box))
+        if "error" in box:
+            raise box["error"]
+        return box.get("result")
+
+    @Slot(object)
+    def _run(self, job: Any) -> None:
+        fn, box = job
+        try:
+            box["result"] = fn()
+        except Exception as exc:                 # handed back to the worker, which reports it to the assistant
+            box["error"] = exc
 
 
 class _SendWorker(QThread):
@@ -80,6 +110,8 @@ class AgentChatPanel(QWidget):
         self._session = session
         self._history = history
         self._rendered_log_count = 0
+        if hasattr(session, "tool_executor"):
+            session.tool_executor = _MainThreadCall(self)
 
         self.transcript = QTextEdit(self)
         self.transcript.setReadOnly(True)

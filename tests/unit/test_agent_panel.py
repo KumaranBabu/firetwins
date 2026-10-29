@@ -14,6 +14,8 @@ from types import SimpleNamespace
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
+import time
+
 import pytest
 
 pytest.importorskip("PySide6")
@@ -44,6 +46,16 @@ class _ScriptedClient:
                 return self._responses.pop(0)
 
         self.messages = _Messages()
+        self.beta = SimpleNamespace(messages=self.messages)
+
+
+def _wait(panel) -> None:
+    """Let the worker finish while this (main) thread keeps processing events: the worker hands every tool call
+    to the main thread and waits for it, so a plain ``wait()`` here would deadlock."""
+    while not panel._worker.isFinished():
+        QApplication.processEvents()
+        time.sleep(0.005)
+    QApplication.processEvents()
 
 
 def _make_session(responses):
@@ -62,8 +74,7 @@ def _send_and_wait(panel, text: str) -> None:
     _on_send() returns before the reply is ready."""
     panel.input_box.setText(text)
     panel._on_send()
-    panel._worker.wait()
-    QApplication.processEvents()
+    _wait(panel)
 
 
 def test_panel_constructs_with_undo_redo_disabled():
@@ -90,6 +101,21 @@ def test_send_renders_transcript_and_enables_undo():
     assert "Assistant: Added the mesh." in text
     assert panel.undo_button.isEnabled() is True
     assert len(api.meshes.all()) == 1
+
+
+def test_tool_calls_and_model_listeners_run_on_the_main_thread():
+    from PySide6.QtCore import QThread
+    from pyfds.core.events import EventType
+    from pyfds.gui.agent_panel import AgentChatPanel
+    session, api = _make_session([
+        SimpleNamespace(content=[_tool_use_block("add_mesh", {"ijk": [10, 10, 5], "xb": [0, 4, 0, 4, 0, 2]})]),
+        SimpleNamespace(content=[_text_block("Added the mesh.")]),
+    ])
+    threads = []
+    api.subscribe(EventType.COMMAND_EXECUTED, lambda event: threads.append(QThread.currentThread()))
+    panel = AgentChatPanel(session, api.history)
+    _send_and_wait(panel, "add a mesh")
+    assert threads and all(t is QApplication.instance().thread() for t in threads)
 
 
 def test_undo_button_reverts_agent_mutation():
@@ -121,8 +147,7 @@ def test_input_disabled_while_send_in_flight_and_reenabled_after():
     assert panel.input_box.isEnabled() is False
     assert panel.send_button.isEnabled() is False
 
-    panel._worker.wait()
-    QApplication.processEvents()
+    _wait(panel)
 
     assert panel.input_box.isEnabled() is True
     assert panel.send_button.isEnabled() is True
@@ -136,6 +161,7 @@ def test_send_failure_appends_error_and_reenables_input():
             def create(self, **kwargs):
                 raise RuntimeError("network unreachable")
         messages = _Messages()
+        beta = SimpleNamespace(messages=_Messages())
 
     from pyfds.agent import AgentSession, AgentToolDispatcher
     from pyfds.api import FdsApi

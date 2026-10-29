@@ -129,7 +129,7 @@ class ActionsImportMixin:
         from pathlib import Path
         out = output_dir or getattr(self, "_last_run_dir", None)
         if not out:
-            QMessageBox.information(self, "Monitor Simulation", "Start a run first (Run > Run Simulation).")
+            QMessageBox.information(self, "Monitor Simulation", "Start a run first (Analysis > Run Simulation).")
             return False
         self.run_panel.watch(out, self.api.project.chid, self.api.project.params.t_end,
                              lambda: self.open_in_results(str(Path(out) / f"{self.api.project.chid}.smv")))

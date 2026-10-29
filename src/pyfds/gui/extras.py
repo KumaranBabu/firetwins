@@ -90,7 +90,7 @@ def install_extras(w) -> None:
     def monitor(output_dir: Optional[str] = None) -> None:
         out = output_dir or getattr(w, "_last_run_dir", None)
         if not out:
-            QMessageBox.information(w, "Monitor Simulation", "Start a run first (Run > Run Simulation).")
+            QMessageBox.information(w, "Monitor Simulation", "Start a run first (Analysis > Run Simulation).")
             return
         w.run_panel.watch(out, api.project.chid, api.project.params.t_end,
                           lambda: results_window(str(Path(out) / f"{api.project.chid}.smv")))

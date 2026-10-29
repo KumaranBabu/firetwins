@@ -155,7 +155,7 @@ class _MonitorBody:
         if output_dir:
             self.watch(output_dir, chid, t_end, open_results)
         else:
-            self.headline.setText("No run yet - start one with Run > Run Simulation.")
+            self.headline.setText("No run yet - start one with Analysis > Run Simulation.")
 
     def watch(self, output_dir: str, chid: str, t_end: float, open_results: Optional[Callable[[], None]] = None) -> None:
         """Follow the files of another run (a panel is reused from run to run)."""

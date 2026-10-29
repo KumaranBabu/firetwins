@@ -1,5 +1,5 @@
 """
-Tests for pyfds.tenability.fed — FED/FEC incapacitation model (ISO 13571).
+Tests for pyfds.tenability.fed — FED incapacitation model (Purser, with FDS 6.10's constants).
 """
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from pyfds.tenability.fed import (
     FED_INCAPACITATION, FED_LETHALITY,
     fed_co_step, fed_hcn_step, fed_o2_step, fed_heat_step,
     calculate_fed, aset_margin, FEDResult,
-    _CO_COEFF, _CO_DENOM, _HCN_COEFF, _HCN_DENOM,
+    _CO_COEFF, _CO_DENOM, _HCN_SCALE, _HCN_RATE, _HCN_OFFSET,
     _VCO2_A, _VCO2_B, _VCO2_C,
 )
 
@@ -41,8 +41,8 @@ class TestFedCoStep:
         import math
         ppm, dt = 1000.0, 5.0
         base = (ppm ** _CO_COEFF * dt) / _CO_DENOM
-        vcо2 = max(1.0, math.exp(_VCO2_A * 0.0 + _VCO2_B) / _VCO2_C)
-        expected = base * vcо2
+        hv = max(1.0, math.exp(_VCO2_A * 0.0 + _VCO2_B) / _VCO2_C)
+        expected = base * hv
         assert fed_co_step(ppm, dt) == pytest.approx(expected, rel=1e-6)
 
     def test_co2_hyperventilation_increases_dose(self):
@@ -64,14 +64,33 @@ class TestFedHcnStep:
         assert fed_hcn_step(100.0, 1.0) > 0.0
 
     def test_formula(self):
+        import math
         ppm, dt = 50.0, 5.0
-        expected = (ppm ** _HCN_COEFF * dt) / _HCN_DENOM
+        hv = math.exp(_VCO2_B) / _VCO2_C
+        expected = (math.exp(ppm / _HCN_SCALE) / _HCN_RATE - _HCN_OFFSET) * dt * hv
         assert fed_hcn_step(ppm, dt) == pytest.approx(expected, rel=1e-6)
+
+    def test_co2_hyperventilation_applies_to_hcn_too(self):
+        assert fed_hcn_step(100.0, 1.0, pct_co2=3.0) > fed_hcn_step(100.0, 1.0)
 
     def test_linear_in_time(self):
         d1 = fed_hcn_step(50.0, 1.0)
         d2 = fed_hcn_step(50.0, 3.0)
         assert d2 == pytest.approx(3.0 * d1, rel=1e-6)
+
+
+class TestFdsUserGuideConstants:
+    """The numbers FDS 6.10 uses (User Guide eq. 22.43, 22.44, 22.49), so PyFDS agrees with FDS's FED device."""
+
+    def test_co_constant(self):
+        import math
+        hv0 = math.exp(2.0004) / 7.1
+        assert fed_co_step(1000.0, 1.0) == pytest.approx(2.764e-5 * 1000.0 ** 1.036 * hv0, rel=1e-9)
+
+    def test_hcn_constant(self):
+        import math
+        hv0 = math.exp(2.0004) / 7.1
+        assert fed_hcn_step(200.0, 1.0) == pytest.approx((math.exp(200.0 / 43) / 220 - 0.0045) * hv0, rel=1e-9)
 
 
 class TestFedO2Step:
@@ -168,6 +187,13 @@ class TestCalculateFed:
         result_with    = calculate_fed(times, co, o2_pct=o2_dep)
         result_without = calculate_fed(times, co)
         assert result_with.max_fed > result_without.max_fed
+
+    def test_heat_is_a_separate_dose(self):
+        n = 601
+        times = [float(i) for i in range(n)]
+        result = calculate_fed(times, [0.0] * n, temp_c=[150.0] * n)
+        assert result.fed_heat[-1] > 1.0 and result.t_heat_incapacitation is not None
+        assert result.max_fed == pytest.approx(0.0, abs=1e-12) and result.t_incapacitation is None
 
     def test_times_stored(self):
         times = [0.0, 1.0, 2.0]

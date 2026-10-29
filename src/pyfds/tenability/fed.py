@@ -5,27 +5,29 @@ Incapacitation and lethality calculations from FDS DEVC output data.
 
 References
 ----------
-- ISO 13571:2012 — Life-threatening components of fire. Guidelines for the
-  estimation of time to compromised tenability in fires.
-- Purser, D.A. (2002). Toxicity assessment of combustion products.
-  SFPE Handbook of Fire Protection Engineering, 3rd ed., Chapter 2-6.
-- BS 7974-6:2004 — Application of fire safety engineering principles.
-  Human factors: Life safety strategies.
+- FDS 6.10 User Guide, section 22.10.18 (eq. 22.42-22.49): the constants used here,
+  identical to FDS's own ``QUANTITY='FED'`` device.
 - Purser, D.A. & McAllister, J.L. (2016). Assessment of hazards to occupants
   from smoke, toxic gases, and heat. SFPE Handbook, 5th ed., Chapter 63.
+- ISO 13571:2012 — Life-threatening components of fire. Guidelines for the
+  estimation of time to compromised tenability in fires.
 
-FED Model Summary (ISO 13571 / Purser)
---------------------------------------
-FED_total = FED_CO · VCO₂ + FED_HCN + FED_O₂ + FED_heat
+FED Model Summary (Purser, as in FDS)
+-------------------------------------
+FED_total = (FED_CO + FED_HCN) · HV_CO₂ + FED_O₂
 
-where VCO₂ is the CO₂ hyperventilation factor (increases CO uptake rate).
+where HV_CO₂ is the CO₂ hyperventilation factor. NOx and irritant gases, which FDS
+also adds, are not tracked here.
 Incapacitation is predicted when FED_total ≥ 0.3.
 Lethality is predicted when FED_total ≥ 1.0 (LC₅₀).
+
+Convected heat is a separate dose (ISO 13571; FDS leaves it out of FED too): it is
+reported as ``fed_heat`` and ``t_heat_incapacitation`` and not added to FED_total.
 """
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Optional, Sequence
 
 
@@ -34,25 +36,20 @@ from typing import List, Optional, Sequence
 FED_INCAPACITATION: float = 0.3   # FED for incapacitation (escape impaired)
 FED_LETHALITY:      float = 1.0   # FED for 50% lethality (LC₅₀)
 
-# CO50 — effective dose for 50% incapacitation (Purser 2002)
-# FED_CO uses C^1.036 form (Stewart, 1974 / Purser SFPE):
-#   FED_CO = C_CO^1.036 · Δt_min / 40,000
+# CO (FDS eq. 22.43): FED_CO = ∫ 2.764e-5 · C_CO^1.036 dt   [t in min, C in ppm]
 _CO_COEFF:  float = 1.036
-_CO_DENOM:  float = 40_000.0   # ppm^1.036 · min
+_CO_DENOM:  float = 1.0 / 2.764e-5   # ≈ 36,180 ppm^1.036 · min
 
-# O₂ depletion — simplified Purser model (SFPE 5th ed., Table 63.8)
-# t_inc(O₂) [min] from exposure concentration [%O₂]:
-#   t_inc = exp(8.13 - 0.54 · (20.9 - C_O2))
+# O₂ depletion (FDS eq. 22.48): t_inc [min] = exp(8.13 - 0.54 · (20.9 - C_O2))
 _O2_A:  float = 8.13
 _O2_B:  float = 0.54
 
-# HCN (Purser model, Eq. 63.27 in SFPE 5th ed.)
-# FED_HCN = C_HCN^2.36 · Δt_min / 1,200,000
-_HCN_COEFF: float = 2.36
-_HCN_DENOM: float = 1_200_000.0  # ppm^2.36 · min
+# HCN (FDS eq. 22.44): FED_CN = ∫ (exp(C_CN / 43) / 220 - 0.0045) dt   [t in min, C in ppm]
+_HCN_SCALE:  float = 43.0      # ppm
+_HCN_RATE:   float = 220.0     # min
+_HCN_OFFSET: float = 0.0045    # 1/min
 
-# CO₂ hyperventilation factor (Purser, SFPE 5th ed.)
-# VCO₂ = exp(0.1903 · %CO₂ + 2.0004) / 7.1
+# CO₂ hyperventilation factor (FDS eq. 22.49): HV = exp(0.1903 · %CO₂ + 2.0004) / 7.1, on CO and HCN
 _VCO2_A: float = 0.1903
 _VCO2_B: float = 2.0004
 _VCO2_C: float = 7.1
@@ -60,14 +57,14 @@ _VCO2_C: float = 7.1
 
 # ── Per-step dose calculators ─────────────────────────────────────────────────
 
-def _vcо2_factor(pct_co2: float) -> float:
+def _hv_co2_factor(pct_co2: float) -> float:
     """CO₂ hyperventilation multiplier (dimensionless, ≥ 1)."""
     return max(1.0, math.exp(_VCO2_A * pct_co2 + _VCO2_B) / _VCO2_C)
 
 
 def fed_co_step(ppm_co: float, dt_min: float, pct_co2: float = 0.0) -> float:
     """
-    Incremental FED_CO for one timestep (Purser / ISO 13571).
+    Incremental FED_CO for one timestep (Purser, FDS eq. 22.43).
 
     Parameters
     ----------
@@ -76,26 +73,28 @@ def fed_co_step(ppm_co: float, dt_min: float, pct_co2: float = 0.0) -> float:
     pct_co2: CO₂ concentration [%v/v] — used for hyperventilation factor.
     """
     base = (ppm_co ** _CO_COEFF * dt_min) / _CO_DENOM
-    return base * _vcо2_factor(pct_co2)
+    return base * _hv_co2_factor(pct_co2)
 
 
-def fed_hcn_step(ppm_hcn: float, dt_min: float) -> float:
+def fed_hcn_step(ppm_hcn: float, dt_min: float, pct_co2: float = 0.0) -> float:
     """
-    Incremental FED_HCN for one timestep (Purser, SFPE 5th ed.).
+    Incremental FED_HCN for one timestep (Purser, FDS eq. 22.44).
 
     Parameters
     ----------
-    ppm_hcn: HCN concentration [ppm].
+    ppm_hcn: HCN concentration [ppm] (FDS subtracts NO and NO₂ first; pass that value if known).
     dt_min:  Exposure duration [min].
+    pct_co2: CO₂ concentration [%v/v] — used for hyperventilation factor.
     """
     if ppm_hcn <= 0:
         return 0.0
-    return (ppm_hcn ** _HCN_COEFF * dt_min) / _HCN_DENOM
+    rate = max(0.0, math.exp(ppm_hcn / _HCN_SCALE) / _HCN_RATE - _HCN_OFFSET)
+    return rate * dt_min * _hv_co2_factor(pct_co2)
 
 
 def fed_o2_step(pct_o2: float, dt_min: float) -> float:
     """
-    Incremental FED_O₂ for one timestep (Purser / ISO 13571).
+    Incremental FED_O₂ for one timestep (Purser, FDS eq. 22.48).
 
     Parameters
     ----------
@@ -137,11 +136,12 @@ class FEDResult:
     fed_co:         List[float]
     fed_hcn:        List[float]
     fed_o2:         List[float]
-    fed_heat:       List[float]
-    fed_total:      List[float]
+    fed_heat:       List[float]  # separate dose, not part of fed_total
+    fed_total:      List[float]  # gases: (CO + HCN) · HV_CO₂ + O₂
     t_incapacitation: Optional[float]  # s; None if not reached
     t_lethality:      Optional[float]  # s; None if not reached
     max_fed:        float
+    t_heat_incapacitation: Optional[float] = None   # s; when fed_heat reaches 1, None if not reached
 
 
 def calculate_fed(
@@ -176,6 +176,7 @@ def calculate_fed(
     f_tot  = [0.0] * n
     t_inc  = None
     t_let  = None
+    t_heat = None
 
     cum_co = cum_hcn = cum_o2 = cum_heat = 0.0
 
@@ -190,7 +191,7 @@ def calculate_fed(
         t_gas  = temp_c[i]  if temp_c  else 20.0
 
         cum_co   += fed_co_step(c_co, dt_min, c_co2)
-        cum_hcn  += fed_hcn_step(c_hcn, dt_min)
+        cum_hcn  += fed_hcn_step(c_hcn, dt_min, c_co2)
         cum_o2   += fed_o2_step(c_o2, dt_min)
         cum_heat += fed_heat_step(t_gas, dt_min)
 
@@ -198,12 +199,14 @@ def calculate_fed(
         f_hcn[i]  = cum_hcn
         f_o2[i]   = cum_o2
         f_heat[i] = cum_heat
-        f_tot[i]  = cum_co + cum_hcn + cum_o2 + cum_heat
+        f_tot[i]  = cum_co + cum_hcn + cum_o2
 
         if t_inc is None and f_tot[i] >= FED_INCAPACITATION:
             t_inc = times_s[i]
         if t_let is None and f_tot[i] >= FED_LETHALITY:
             t_let = times_s[i]
+        if t_heat is None and cum_heat >= 1.0:
+            t_heat = times_s[i]
 
     return FEDResult(
         times=list(times_s),
@@ -212,6 +215,7 @@ def calculate_fed(
         t_incapacitation=t_inc,
         t_lethality=t_let,
         max_fed=max(f_tot),
+        t_heat_incapacitation=t_heat,
     )
 
 

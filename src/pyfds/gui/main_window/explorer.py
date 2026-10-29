@@ -1,7 +1,8 @@
 """ProjectExplorer: the navigation tree, laid out like PyroSim's (Views, Tags, Meshes, ... Model, Model Checks)."""
 from __future__ import annotations
 
-from typing import Any, Dict, Iterator, List, Optional, Tuple
+import re
+from typing import Any, Dict, Iterator, List, Optional, Set, Tuple
 
 from PySide6.QtCore import Qt, QItemSelectionModel, Signal
 from PySide6.QtGui import QColor
@@ -33,6 +34,7 @@ class ProjectExplorer(QTreeWidget):
         self.setHeaderLabels(["Project"])
         self._api = api
         self._categories: Dict[str, QTreeWidgetItem] = {}
+        self._filter = ""
         self.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self._sub_ids = [api.subscribe(t, self._on_event) for t in _REFRESH_EVENTS]
         self.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -50,15 +52,72 @@ class ProjectExplorer(QTreeWidget):
         self.entity_context_menu_requested.emit()
 
     def refresh(self) -> None:
-        """Rebuild the tree; the selection survives (entities still present stay selected)."""
+        """Rebuild the tree; the selection, the folders the user collapsed, the scroll position and the filter
+        survive (entities still present stay selected)."""
         keep = self.selected_entities()
+        collapsed = self._collapsed_paths()
+        scroll = self.verticalScrollBar().value()
         self.blockSignals(True)
         try:
             self._rebuild()
+            self._collapse(collapsed)
             self.select_entities(keep)
+            self.apply_filter(self._filter)
         finally:
             self.blockSignals(False)
+        self.verticalScrollBar().setValue(scroll)
         self.itemSelectionChanged.emit()
+
+    # -- expansion and filter -------------------------------------------------------------
+    @staticmethod
+    def _key(item: QTreeWidgetItem) -> str:
+        """A row's text without its count (``Meshes (3)`` -> ``Meshes``), so it is the same after objects change."""
+        return re.sub(r" \(\d+\)$", "", item.text(0))
+
+    def _path(self, item: QTreeWidgetItem) -> Tuple[str, ...]:
+        parts = []
+        while item is not None:
+            parts.append(self._key(item))
+            item = item.parent()
+        return tuple(reversed(parts))
+
+    def _all_items(self) -> Iterator[QTreeWidgetItem]:
+        stack = [self.topLevelItem(i) for i in reversed(range(self.topLevelItemCount()))]
+        while stack:
+            item = stack.pop()
+            yield item
+            stack.extend(item.child(i) for i in reversed(range(item.childCount())))
+
+    def _collapsed_paths(self) -> Set[Tuple[str, ...]]:
+        return {self._path(i) for i in self._all_items() if i.childCount() and not i.isExpanded()}
+
+    def _collapse(self, paths: Set[Tuple[str, ...]]) -> None:
+        if paths:
+            for item in self._all_items():
+                if item.childCount() and self._path(item) in paths:
+                    item.setExpanded(False)
+
+    def apply_filter(self, query: str) -> int:
+        """Show only the object rows matching *query* (same rules as :meth:`find_matches`) and the folders that lead
+        to them; an empty query shows everything. Returns the number of matching rows."""
+        self._filter = query or ""
+        items = list(self._all_items())
+        if not self._filter.strip():
+            for item in items:
+                item.setHidden(False)
+            return 0
+        matches = {id(r) for r in self.find_matches(self._filter)}
+        for item in items:
+            item.setHidden(True)
+        for item in items:
+            if id(item) in matches:
+                node = item
+                while node is not None:
+                    node.setHidden(False)
+                    node = node.parent()
+                if item.parent() is not None:
+                    item.parent().setExpanded(True)
+        return len(matches)
 
     # -- building -------------------------------------------------------------------------
     def _rebuild(self) -> None:

@@ -3,7 +3,7 @@ navigation tree. Everything here only calls ``api``; the widgets mirror the mode
 every refresh event."""
 from __future__ import annotations
 
-from PySide6.QtWidgets import QComboBox, QLabel, QMessageBox, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QComboBox, QLabel, QLineEdit, QMessageBox, QVBoxLayout, QWidget
 
 BASE_MODEL = "Base model"
 ALL_FLOORS = "All floors"
@@ -45,6 +45,13 @@ class ShellBarsMixin:
         self.floor_combo.setToolTip("Show only the objects of one floor")
         self.floor_combo.activated.connect(self._on_floor_chosen)
         layout.addWidget(self.floor_combo)
+        self.explorer_filter = QLineEdit(box)
+        self.explorer_filter.setPlaceholderText("Filter (name, tag:, type:)")
+        self.explorer_filter.setToolTip("Show only the objects whose name, tag or kind contains this text. "
+                                        "Start with name:, tag: or type: to look in one field only.")
+        self.explorer_filter.setClearButtonEnabled(True)
+        self.explorer_filter.textChanged.connect(self.explorer.apply_filter)
+        layout.addWidget(self.explorer_filter)
         layout.addWidget(self.explorer)
         return box
 

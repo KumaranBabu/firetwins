@@ -41,8 +41,13 @@ def menu(w, title):
 
 
 def trigger(w, top, text):
-    m = menu(w, top)
-    act = next(a for a in m.actions() if a.text().replace("&", "").startswith(text))
+    stack, acts = [menu(w, top)], []                  # the menu and its submenus (Section Box, Movie, ...)
+    while stack:
+        for a in stack.pop().actions():
+            acts.append(a)
+            if a.menu() is not None:
+                stack.append(a.menu())
+    act = next(a for a in acts if a.text().replace("&", "").startswith(text))
     act.trigger()
 
 

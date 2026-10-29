@@ -10,7 +10,13 @@ from tests.unit.test_results_window import app, win, menu  # noqa: F401  (fixtur
 
 
 def _titles(w):
-    return [a.text().replace("&", "") for a in menu(w, "File").actions()]
+    out, stack = [], [menu(w, "File")]              # File and its submenus (the recording entries are under Movie)
+    while stack:
+        for a in stack.pop().actions():
+            out.append(a.text().replace("&", ""))
+            if a.menu() is not None:
+                stack.append(a.menu())
+    return out
 
 
 def test_menu_has_record_controls_and_buttons_start_disabled(win):

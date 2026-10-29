@@ -141,6 +141,8 @@ class MainWindow(
         self._build_toolbar()
         self._build_shell_bars()
         self._build_viewport_bars()
+        from pyfds.gui.menu_regroup import MAIN_GROUPS, regroup
+        regroup(self.menuBar(), MAIN_GROUPS)       # fold long flat menus into submenus, once every entry exists
         from pyfds.gui.icons import install_icons
         install_icons(self, "pyfds")      # task-coloured icons on every menu entry and toolbar button
         self._build_layout_tools()      # slim toolbars, tabbed side docks, the icon strip over the 3D view

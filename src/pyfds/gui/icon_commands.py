@@ -10,6 +10,15 @@ from __future__ import annotations
 from typing import Dict
 
 COMMAND_GLYPHS: Dict[str, str] = {
+    # submenus made by gui.menu_regroup
+    'add from library': 'library+add',
+    'add special': 'template+add',
+    'model checks': 'errors',
+    'visibility': 'eye',
+    'transform': 'move',
+    'movie': 'movie',
+    'section box': 'section',
+    'rendering mode': 'shaded',
     '3d smoke': 'smoke',
     'add aspiration detection system': 'pipe@device',
     'add burner surface': 'burner',
@@ -127,7 +136,7 @@ COMMAND_GLYPHS: Dict[str, str] = {
     'run fds cluster': 'cluster',
     'run fds parallel': 'cpu',
     'run jobs': 'jobs',
-    'run model checks': 'errors',
+    'run model checks': 'validate@run',
     'save bookmark': 'bookmark+add',
     'save image': 'camera',
     'scenarios': 'group@physics',

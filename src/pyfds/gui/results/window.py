@@ -67,6 +67,8 @@ class ResultsWindow(ResultsLayoutMixin, ResultsAnalysisMixin, ResultsWindowRecor
         self._build_menus()
         from .parity import install_parity
         install_parity(self)
+        from pyfds.gui.menu_regroup import RESULTS_GROUPS, regroup
+        regroup(self.menuBar(), RESULTS_GROUPS)
         from pyfds.gui.icons import install_icons
         install_icons(self, "results")
         self.statusBar().showMessage("No results loaded")

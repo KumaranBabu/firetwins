@@ -1,49 +1,45 @@
 """
 PyFDS SMV Script Builder (SSF)
 ===============================
-Programmatic construction of Smokeview Script Files (``*.ssf``) for
-headless/automated rendering, movie generation, and scene configuration.
+Programmatic construction of Smokeview Script Files (``*.ssf``) for automated rendering: run them with
+``smokeview -script <file>.ssf <casename>``.
 
-SSF is a line-oriented command language read by ``smokeview -ini <file>``.
-This builder provides a fluent API that validates command combinations and
-emits well-formed SSF text.
+Every command the builder writes was checked against Smokeview 6.10.1 (an unknown keyword stops the whole
+script). Methods for things Smokeview's scripts cannot do raise :class:`SmokeviewScriptUnsupported` instead of
+writing a command that would fail or be ignored.
 
-Supported SSF commands
-----------------------
-SETTIMEVAL          — jump to a specific simulation time
-SETVIEWPOINT        — load a named camera viewpoint
-LOADSLICE           — activate a slice file by quantity + mesh
-LOADBOUNDARY        — activate a boundary file by quantity + mesh
-LOADISOSURFACE      — activate an isosurface
-LOADSMOKE3D         — activate a smoke-3D file
-RENDERONCE          — capture a single PNG/JPEG screenshot
-RENDERMOVIE         — render all frames as a movie
-RENDERTYPE          — image format of the rendered pictures (size = the Smokeview window)
-LABEL               — add overlay text label
-UNLOADALL           — deactivate all currently-loaded visualization objects
+Commands written
+----------------
+RENDERTYPE              image format (PNG / JPG)
+LOADINIFILE             the render settings (picture size, labels off) from a small .ini written beside the script
+SETTIMEVAL              jump to a simulation time
+SETVIEWPOINT            a named viewpoint from the case
+XYZVIEW                 camera position and direction (set_camera)
+VIEWXMIN ... VIEWZMAX   look at the scene along an axis (set_view)
+LOADSLICE / LOADSLCF    a slice (LOADSLCF for cell-centred slices and vector slices)
+LOADBOUNDARY, LOADISO, LOAD3DSMOKE, LOADPARTICLES, LOADPLOT3D
+SETCBAR                 colour bar (colour map)
+SETCLIPMODE, SETCLIPX/Y/Z   clip planes
+RENDERONCE, RENDERALL   one picture / one picture per frame
+UNLOADALL
 
 Example::
 
     from pyfds.smokeview.scripting import SsfScriptBuilder
 
     builder = SsfScriptBuilder()
-    builder.set_render_options(width=1920, height=1080, image_format="png")
-    builder.load_slice(quantity="TEMPERATURE", mesh=1)
-    builder.set_viewpoint("front")
-
-    for t in [30, 60, 90, 120]:
+    builder.set_render_options(width=1280, height=720)
+    builder.load_slice("TEMPERATURE", axis=2, position=2.4)
+    for t in [30, 60]:
         builder.set_time(t)
-        builder.screenshot(f"temp_{t:03d}s.png")
-
-    print(builder.build())
-
-    # Or write directly to a file
-    builder.write("render_script.ssf")
+        builder.screenshot(f"temp_{t:03d}s")
+    builder.write("render_script.ssf")        # also writes render_script_settings.ini, which the script loads
 """
 from __future__ import annotations
 
+import math
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from .scripting_load import (  # noqa: F401  (re-exported)
     SsfScriptBuilderLoadMixin,
@@ -55,7 +51,9 @@ from .scripting_style import (  # noqa: F401  (re-exported)
     SsfScriptBuilderStyleMixin,
 )
 from .scripting_common import (  # noqa: F401  (re-exported)
+    SmokeviewScriptUnsupported,
     _SsfCommand,
+    _unsupported,
 )
 
 
@@ -71,6 +69,7 @@ class SsfScriptBuilder(SsfScriptBuilderLoadMixin, SsfScriptBuilderShowMixin, Ssf
         self._render_width  = 800
         self._render_height = 600
         self._image_format  = "png"
+        self._settings: Dict[str, str] = {}       # Smokeview .ini keyword -> value line (LOADINIFILE)
 
     def set_render_options(
         self,
@@ -78,6 +77,7 @@ class SsfScriptBuilder(SsfScriptBuilderLoadMixin, SsfScriptBuilderShowMixin, Ssf
         width: int = 800,
         height: int = 600,
         image_format: str = "png",
+        labels: bool = False,
     ) -> "SsfScriptBuilder":
         """
         Configure output image dimensions and format.
@@ -88,16 +88,20 @@ class SsfScriptBuilder(SsfScriptBuilderLoadMixin, SsfScriptBuilderShowMixin, Ssf
             Pixel dimensions of rendered images.
         image_format : str
             ``"png"`` or ``"jpg"`` / ``"jpeg"``.
+        labels : bool
+            Keep Smokeview's title, frame number and mesh labels on the pictures (False: the time bar and
+            colour bar only, whatever the user's own smokeview.ini says).
         """
         self._render_width  = width
         self._render_height = height
         self._image_format  = image_format.lower().replace("jpeg", "jpg")
-        # Smokeview 6.10 has no SETRENDER keyword (it stopped every script at line 1): the format is RENDERTYPE,
-        # and the picture size is the Smokeview window's (width/height are kept for callers that size the window)
-        self._commands.append(_SsfCommand(
-            "RENDERTYPE", [self._image_format.upper()],
-            comment=f"render options ({width}x{height} requested; Smokeview renders at its window size)",
-        ))
+        # The picture is the size of Smokeview's window. RENDERSIZE is accepted but changes nothing (Smokeview
+        # 6.10.1), so the window size goes into the settings .ini that the script loads first.
+        self._settings["WINDOWWIDTH"] = str(int(width))
+        self._settings["WINDOWHEIGHT"] = str(int(height))
+        if not labels:
+            self._settings.update({"SHOWTITLE": "0 0 0", "SHOWFRAMELABEL": "0", "SHOWBLOCKLABEL": "0"})
+        self._commands.append(_SsfCommand("RENDERTYPE", [self._image_format.upper()]))
         return self
 
     def set_time(self, sim_time: float) -> "SsfScriptBuilder":
@@ -109,14 +113,21 @@ class SsfScriptBuilder(SsfScriptBuilderLoadMixin, SsfScriptBuilderShowMixin, Ssf
         return self
 
     def step_forward(self, n_steps: int = 1) -> "SsfScriptBuilder":
-        """Advance *n_steps* time steps."""
-        for _ in range(n_steps):
-            self._commands.append(_SsfCommand("STEP_FORWARD"))
-        return self
+        """Not available: Smokeview scripts move through a run by time only."""
+        raise _unsupported("step through frames", "Use set_time() for each time, or render_movie() for all frames.")
 
     def set_viewpoint(self, name: str) -> "SsfScriptBuilder":
-        """Load a named viewpoint defined in the ``.smv`` file."""
+        """Load a named viewpoint defined in the case (its .ini or the .smv)."""
         self._commands.append(_SsfCommand("SETVIEWPOINT", [name]))
+        return self
+
+    def set_view(self, side: str) -> "SsfScriptBuilder":
+        """Look at the whole scene from one side: ``"xmin"``, ``"xmax"``, ``"ymin"``, ``"ymax"``, ``"zmin"`` or
+        ``"zmax"`` (``"xmin"`` looks from the low-x side towards +x). Use it to see an x- or z-slice face on."""
+        side = side.lower()
+        if side not in ("xmin", "xmax", "ymin", "ymax", "zmin", "zmax"):
+            raise ValueError(f"side must be xmin, xmax, ymin, ymax, zmin or zmax, not {side!r}")
+        self._commands.append(_SsfCommand(f"VIEW{side.upper()}"))
         return self
 
     def set_camera(
@@ -126,20 +137,23 @@ class SsfScriptBuilder(SsfScriptBuilderLoadMixin, SsfScriptBuilderShowMixin, Ssf
         up: tuple = (0.0, 0.0, 1.0),
     ) -> "SsfScriptBuilder":
         """
-        Set camera position / target / up-vector explicitly.
+        Put the camera at *eye* looking towards *target* (Smokeview's XYZVIEW).
 
         Parameters
         ----------
-        eye    : (x, y, z) — camera position
+        eye    : (x, y, z) — camera position (metres)
         target : (x, y, z) — look-at point
-        up     : (x, y, z) — up direction vector
+        up     : kept for old callers; Smokeview keeps the z axis up
         """
-        args = [
-            f"{eye[0]:.4f}",    f"{eye[1]:.4f}",    f"{eye[2]:.4f}",
-            f"{target[0]:.4f}", f"{target[1]:.4f}", f"{target[2]:.4f}",
-            f"{up[0]:.4f}",     f"{up[1]:.4f}",     f"{up[2]:.4f}",
-        ]
-        self._commands.append(_SsfCommand("SETCAMERA", args))
+        dx, dy, dz = (target[i] - eye[i] for i in range(3))
+        if dx == dy == dz == 0:
+            raise ValueError("eye and target are the same point")
+        # XYZVIEW x y z azimuth elevation: azimuth 0 looks along +y and 90 along +x; elevation is positive upwards
+        azimuth = math.degrees(math.atan2(dx, dy))
+        elevation = math.degrees(math.atan2(dz, math.hypot(dx, dy)))
+        self._commands.append(_SsfCommand(
+            "XYZVIEW", [f"{eye[0]:g} {eye[1]:g} {eye[2]:g} {azimuth:.2f} {elevation:.2f}"],
+        ))
         return self
 
     def unload_all(self) -> "SsfScriptBuilder":
@@ -197,19 +211,31 @@ class SsfScriptBuilder(SsfScriptBuilderLoadMixin, SsfScriptBuilderShowMixin, Ssf
         self._commands.clear()
         return self
 
-    def build(self) -> str:
-        """Render all commands to a SSF-formatted string."""
+    def settings_ini(self) -> str:
+        """The render settings (picture size, labels) as Smokeview .ini text, or "" when there are none."""
+        return "".join(f"{key}\n {value}\n" for key, value in self._settings.items())
+
+    def build(self, settings_file: Optional[str] = None) -> str:
+        """Render all commands to SSF text. With *settings_file* (where :meth:`settings_ini` is written) the
+        script loads it first; :meth:`write` and the Smokeview runner do this for you."""
         if not self._commands:
             return ""
         lines = []
+        if settings_file and self._settings:
+            lines.append(_SsfCommand("LOADINIFILE", [str(settings_file)]).render())
         for cmd in self._commands:
             lines.append(cmd.render())
         lines.append("")
         return "\n".join(lines)
 
     def write(self, filepath: str) -> None:
-        """Write the script to *filepath*."""
-        Path(filepath).write_text(self.build(), encoding="utf-8")
+        """Write the script to *filepath*, and its render settings to ``<name>_settings.ini`` beside it."""
+        path = Path(filepath)
+        settings = None
+        if self._settings:
+            settings = path.with_name(f"{path.stem}_settings.ini").resolve()
+            settings.write_text(self.settings_ini(), encoding="utf-8")
+        path.write_text(self.build(str(settings) if settings else None), encoding="utf-8")
 
     def __repr__(self) -> str:
         return f"<SsfScriptBuilder commands={len(self._commands)}>"

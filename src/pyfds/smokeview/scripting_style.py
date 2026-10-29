@@ -1,14 +1,16 @@
 """SsfScriptBuilder: colour bars, colour maps, contours, transparency, colours."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
-from typing import Optional
-
-from .scripting_common import _SsfCommand
+from .scripting_common import _SsfCommand, _unsupported
 
 if TYPE_CHECKING:
     from .scripting import SsfScriptBuilder
+
+# common names -> Smokeview's own colour bar names (each checked against Smokeview 6.10.1's SETCBAR)
+_COLORBARS = {"rainbow": "Rainbow", "greyscale": "black->white", "grayscale": "black->white",
+              "black->white": "black->white", "fire": "fire", "cool": "cool"}
 
 
 class SsfScriptBuilderStyleMixin:
@@ -19,76 +21,41 @@ class SsfScriptBuilderStyleMixin:
         *,
         auto: bool = False,
     ) -> "SsfScriptBuilder":
-        """Set the colour-scale range for the active visualization."""
-        if auto:
-            self._commands.append(_SsfCommand("SETCOLORBARAUTO"))
-        else:
-            self._commands.append(_SsfCommand(
-                "SETCOLORBARRANGE", [f"{vmin:.6g}", f"{vmax:.6g}"],
-            ))
-        return self
+        """Not available: Smokeview 6.10.1's SETSLICEBOUNDS either has no effect or sets the bounds to 0,
+        whatever argument order is used."""
+        raise _unsupported("set a colour bar range", "Set the bounds in Smokeview (Dialogs > Data Bounds), or in "
+                                                     "PyFDS Results (Preferences > Colorbar).")
 
     def set_colormap(self, colormap: str) -> "SsfScriptBuilder":
         """
-        Set the colormap for the currently active visualization.
+        Use Smokeview colour bar *colormap* for the data shown.
 
         Parameters
         ----------
         colormap : str
-            Smokeview colormap name: ``"rainbow"``, ``"greyscale"``,
-            ``"hsv"``, ``"fire"``, ``"cool"``, ``"jet"``, etc.
+            ``"rainbow"``, ``"greyscale"``, ``"fire"`` or ``"cool"``; any other text is passed to Smokeview as a
+            colour bar name (as listed in its Colorbar dialog, e.g. ``"blue->red split"``).
         """
-        self._commands.append(_SsfCommand("SETCOLORMAP", [colormap]))
+        self._commands.append(_SsfCommand("SETCBAR", [_COLORBARS.get(colormap.lower(), colormap)]))
         return self
 
     def set_contour_type(self, contour_type: str = "SLICE") -> "SsfScriptBuilder":
-        """
-        Set how contours are drawn.
-
-        Parameters
-        ----------
-        contour_type : str
-            ``"SLICE"`` (flat), ``"SMOOTH"`` (interpolated), or ``"SOLID"``.
-        """
-        self._commands.append(_SsfCommand("SETCONTOURTYPE", [contour_type.upper()]))
-        return self
+        """Not available in Smokeview scripts."""
+        raise _unsupported("change how contours are drawn", "Use Smokeview's Dialogs > Display menu.")
 
     def set_contour_levels(self, n: int) -> "SsfScriptBuilder":
-        """Set the number of contour levels for the active colorbar."""
-        self._commands.append(_SsfCommand("SETCONTOURLEVELS", [str(n)]))
-        return self
+        """Not available in Smokeview scripts."""
+        raise _unsupported("change the number of colour bar levels", "Use Smokeview's Colorbar dialog.")
 
-    def set_transparency(self, surface_id: str,
-                         value: float) -> "SsfScriptBuilder":
-        """
-        Set the transparency of a named surface/obstruction.
+    def set_transparency(self, surface_id: str, value: float) -> "SsfScriptBuilder":
+        """Not available in Smokeview scripts."""
+        raise _unsupported("make a surface transparent", "Set the surface's TRANSPARENCY on its &SURF line.")
 
-        Parameters
-        ----------
-        surface_id : str
-            FDS surface ID.
-        value : float
-            0.0 = opaque, 1.0 = fully transparent.
-        """
-        self._commands.append(_SsfCommand(
-            "SETTRANSPARENCY", [surface_id, f"{value:.4f}"],
-        ))
-        return self
+    def set_background_color(self, r: int, g: int, b: int) -> "SsfScriptBuilder":
+        """Not available: there is no script command, and the .ini colours swap roles with Smokeview's
+        white/black background setting."""
+        raise _unsupported("set the background colour", "Use Smokeview's Dialogs > Display > Colors.")
 
-    def set_background_color(
-        self, r: int, g: int, b: int
-    ) -> "SsfScriptBuilder":
-        """Set the scene background colour (RGB 0–255)."""
-        self._commands.append(_SsfCommand(
-            "SETBACKGROUNDCOLOR", [str(r), str(g), str(b)],
-        ))
-        return self
-
-    def set_foreground_color(
-        self, r: int, g: int, b: int
-    ) -> "SsfScriptBuilder":
-        """Set the scene foreground (text/axes) colour (RGB 0–255)."""
-        self._commands.append(_SsfCommand(
-            "SETFOREGROUNDCOLOR", [str(r), str(g), str(b)],
-        ))
-        return self
+    def set_foreground_color(self, r: int, g: int, b: int) -> "SsfScriptBuilder":
+        """Not available (see :meth:`set_background_color`)."""
+        raise _unsupported("set the foreground colour", "Use Smokeview's Dialogs > Display > Colors.")

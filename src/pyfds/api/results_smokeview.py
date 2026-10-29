@@ -15,10 +15,13 @@ class SmokeviewManager:
     Accessible via ``api.smokeview``.
     """
 
-    def run_script(self, smv_path: str, script_content: str, output_dir: Optional[str] = None) -> int:
-        """Run Smokeview headless on *smv_path* with the given SSF script text; returns its exit code."""
+    def run_script(self, smv_path: str, script_content: str, output_dir: Optional[str] = None,
+                   settings_ini: Optional[str] = None) -> int:
+        """Run Smokeview headless on *smv_path* with the given SSF script text (and the builder's
+        ``settings_ini()``: picture size, labels); returns its exit code."""
         from pyfds.smokeview.runner import SmokeviewRunner
-        return SmokeviewRunner().render(smv_path, script_content=script_content, output_dir=output_dir)
+        return SmokeviewRunner().render(smv_path, script_content=script_content, settings_ini=settings_ini,
+                                        output_dir=output_dir)
 
     def __init__(self, api: "FdsApi") -> None:
         self._api = api
@@ -36,14 +39,14 @@ class SmokeviewManager:
     # ── Rendering ─────────────────────────────────────────────────────────────
 
     def _slice_plane(self, quantity: str):
-        """(axis 1/2/3, position) of a slice to show: the project's own slice of that quantity, else the middle
-        of the first mesh on the y plane."""
+        """(axis 1/2/3, position, cell-centred) of a slice to show: the project's own slice of that quantity,
+        else the middle of the first mesh on the y plane."""
         p = self._api.project
         for sl in p.slices:
             if sl.quantity == quantity and getattr(sl, "plane", None) in ("X", "Y", "Z"):
-                return "XYZ".index(sl.plane) + 1, float(sl.position)
+                return "XYZ".index(sl.plane) + 1, float(sl.position), bool(getattr(sl, "cell_centered", False))
         m = p.meshes[0] if p.meshes else None
-        return 2, ((m.y_min + m.y_max) / 2 if m else 0.0)
+        return 2, ((m.y_min + m.y_max) / 2 if m else 0.0), False
 
     def render_screenshots(
         self,
@@ -55,11 +58,11 @@ class SmokeviewManager:
         """Render screenshots of a slice at given simulation times (real Smokeview). Returns the image paths."""
         from pyfds.smokeview.runner import SmokeviewRunner
         cfg = self._api.config
-        axis, pos = self._slice_plane(quantity)
+        axis, pos, cell = self._slice_plane(quantity)
         return SmokeviewRunner(
             smv_binary=getattr(cfg, "smv_binary", None)
         ).capture_screenshots(smv_filepath, times, quantity=quantity,
-                               output_dir=output_dir, axis=axis, position=pos)
+                               output_dir=output_dir, axis=axis, position=pos, cell_centered=cell)
 
     def render_movie(
         self,
@@ -88,14 +91,14 @@ class SmokeviewManager:
         cfg = self._api.config
         out = Path(output_file).resolve()
         frames_dir = Path(output_dir).resolve() if output_dir else out.parent
-        axis, pos = self._slice_plane(quantity)
+        axis, pos, cell = self._slice_plane(quantity)
         builder = SsfScriptBuilder()
-        builder.load_slice(quantity=quantity, axis=axis, position=pos)
+        builder.load_slice(quantity=quantity, axis=axis, position=pos, cell_centered=cell)
         if start_time is not None:
             builder.set_time(start_time)
         builder.render_movie(out.stem)
         runner = SmokeviewRunner(smv_binary=getattr(cfg, "smv_binary", None))
-        rc = runner.render(smv_filepath, script_content=builder.build(),
+        rc = runner.render(smv_filepath, script_content=builder.build(), settings_ini=builder.settings_ini(),
                            output_dir=str(frames_dir), cancel=cancel)
         if rc != 0:
             return rc

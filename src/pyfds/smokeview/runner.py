@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import logging
 import os
+import shutil
 import subprocess
 import tempfile
 import threading
@@ -115,6 +116,7 @@ class SmokeviewRunner:
         *,
         script: Optional[str] = None,
         script_content: Optional[str] = None,
+        settings_ini: Optional[str] = None,
         output_dir: Optional[str] = None,
         extra_args: Optional[List[str]] = None,
         timeout: Optional[float] = 900.0,
@@ -134,6 +136,9 @@ class SmokeviewRunner:
             Path to an existing SSF script file.
         script_content : str, optional
             SSF commands as a string; written to a temp file if provided.
+        settings_ini : str, optional
+            Smokeview .ini text loaded before the script runs (``SsfScriptBuilder.settings_ini()``: picture
+            size, labels); written to a temp file beside the script.
         output_dir : str, optional
             Working directory for rendered images. Defaults to the smv dir.
         extra_args : list, optional
@@ -157,8 +162,14 @@ class SmokeviewRunner:
 
         # Resolve script path
         tmp_file = None
+        tmp_ini = None
         if script_content is not None:
             text = script_content if script_content.rstrip().endswith("EXIT") else script_content.rstrip() + "\nEXIT\n"
+            if settings_ini:
+                tmp_ini = tempfile.NamedTemporaryFile(mode="w", suffix=".ini", delete=False, dir=cwd)
+                tmp_ini.write(settings_ini)
+                tmp_ini.close()
+                text = f"LOADINIFILE\n {tmp_ini.name}\n" + text
             tmp_file = tempfile.NamedTemporaryFile(
                 mode="w", suffix=".ssf", delete=False, dir=cwd
             )
@@ -187,7 +198,7 @@ class SmokeviewRunner:
             if case_dir != cwd_path.resolve():
                 for f in case_dir.glob("*.[pj][np]g"):
                     if f not in before or f.stat().st_mtime > before[f]:
-                        os.replace(f, cwd_path / f.name)
+                        shutil.move(str(f), str(cwd_path / f.name))     # os.replace cannot cross drives
             if rc != 0:
                 logger.error("SmokeviewRunner: render failed rc=%d\n%s", rc, stderr)
             else:
@@ -198,11 +209,12 @@ class SmokeviewRunner:
             logger.error("SmokeviewRunner: binary not found: %s", self._smv_binary)
             raise
         finally:
-            if tmp_file is not None:
-                try:
-                    os.unlink(tmp_file.name)
-                except OSError:
-                    pass
+            for tmp in (tmp_file, tmp_ini):
+                if tmp is not None:
+                    try:
+                        os.unlink(tmp.name)
+                    except OSError:
+                        pass
 
     @staticmethod
     def _run_cancellable(cmd, cwd, timeout, cancel):
@@ -246,6 +258,7 @@ class SmokeviewRunner:
         image_format: str = "png",
         axis: int = 2,
         position: float = 0.0,
+        cell_centered: bool = False,
     ) -> List[str]:
         """
         High-level helper: render screenshots at given simulation times.
@@ -277,7 +290,7 @@ class SmokeviewRunner:
         out_dir  = Path(output_dir) if output_dir else smv_path.parent
 
         builder = SsfScriptBuilder()
-        builder.load_slice(quantity, axis=axis, position=position)
+        builder.load_slice(quantity, axis=axis, position=position, cell_centered=cell_centered)
         out_paths: List[str] = []
 
         for i, t in enumerate(times):
@@ -286,8 +299,8 @@ class SmokeviewRunner:
             builder.screenshot(stem)
             out_paths.append(str(out_dir / f"{stem}.{image_format}"))
 
-        content = builder.build()
-        self.render(smv_filepath, script_content=content, output_dir=str(out_dir))
+        self.render(smv_filepath, script_content=builder.build(), settings_ini=builder.settings_ini(),
+                    output_dir=str(out_dir))
         return out_paths
 
     # ── Internal ──────────────────────────────────────────────────────────────

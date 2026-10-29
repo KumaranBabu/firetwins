@@ -71,7 +71,8 @@ def cmd_render(args: argparse.Namespace) -> int:
         builder.load_slice(quantity=args.quantity)
         builder.render_movie(args.movie, fps=args.fps,
                              start_time=t_start, end_time=t_end)
-        rc = api.smokeview.run_script(smv_path, builder.build(), args.output_dir)
+        rc = api.smokeview.run_script(smv_path, builder.build(), args.output_dir,
+                                      settings_ini=builder.settings_ini())
         return 0 if rc == 0 else 1
 
     times = args.times or []

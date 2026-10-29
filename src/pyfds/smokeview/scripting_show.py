@@ -3,47 +3,36 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .scripting_common import _SsfCommand
+from .scripting_common import _SsfCommand, _unsupported
 
 if TYPE_CHECKING:
     from .scripting import SsfScriptBuilder
 
+# Smokeview's SETCLIPMODE: 1 clips blockages and data (2 = blockages only, 3 = data only; 0 = off)
+_CLIP_BOTH = "1"
+
 
 class SsfScriptBuilderShowMixin:
     def show_geometry(self, show: bool = True) -> "SsfScriptBuilder":
-        """Toggle solid geometry (obstructions) visibility."""
-        state = "1" if show else "0"
-        self._commands.append(_SsfCommand("SHOWGEOM", [state]))
-        return self
+        """Not available: there is no script command for it (SHOWBLOCKS in an .ini had no effect either)."""
+        raise _unsupported("hide or show the geometry", "Use Smokeview's Show/Hide menu, or a clip plane "
+                                                        "(set_clip_plane) to cut it away.")
 
-    def show_obstruction(self, obst_id: str,
-                         show: bool = True) -> "SsfScriptBuilder":
-        """Show or hide a named obstruction."""
-        self._commands.append(_SsfCommand(
-            "SHOWOBST", [obst_id, "1" if show else "0"],
-        ))
-        return self
+    def show_obstruction(self, obst_id: str, show: bool = True) -> "SsfScriptBuilder":
+        """Not available in Smokeview scripts."""
+        raise _unsupported("show or hide a single obstruction", "Use a clip plane (set_clip_plane).")
 
     def show_vent(self, vent_id: str, show: bool = True) -> "SsfScriptBuilder":
-        """Show or hide a named vent."""
-        self._commands.append(_SsfCommand(
-            "SHOWVENT", [vent_id, "1" if show else "0"],
-        ))
-        return self
+        """Not available in Smokeview scripts."""
+        raise _unsupported("show or hide a single vent", "Use Smokeview's Show/Hide > Geometry > Vents menu.")
 
     def show_mesh(self, mesh: int = 1, show: bool = True) -> "SsfScriptBuilder":
-        """Show or hide a mesh boundary."""
-        self._commands.append(_SsfCommand(
-            "SHOWMESH", [str(mesh), "1" if show else "0"],
-        ))
-        return self
+        """Not available in Smokeview scripts."""
+        raise _unsupported("show or hide a mesh", "Data is loaded on every mesh; use a clip plane to cut it.")
 
     def show_zone(self, zone_id: str, show: bool = True) -> "SsfScriptBuilder":
-        """Show or hide a pressure zone."""
-        self._commands.append(_SsfCommand(
-            "SHOWZONE", [zone_id, "1" if show else "0"],
-        ))
-        return self
+        """Not available in Smokeview scripts."""
+        raise _unsupported("show or hide a pressure zone", "Use Smokeview's Show/Hide menu.")
 
     def set_clip_plane(
         self,
@@ -53,7 +42,7 @@ class SsfScriptBuilderShowMixin:
         clip_min: bool = True,
     ) -> "SsfScriptBuilder":
         """
-        Set a clipping plane perpendicular to *axis* at *position*.
+        Cut the scene (geometry and data) with a plane perpendicular to *axis* at *position*.
 
         Parameters
         ----------
@@ -62,12 +51,16 @@ class SsfScriptBuilderShowMixin:
         position : float
             World-space coordinate of the cutting plane.
         clip_min : bool
-            If True, clip the negative side; if False, clip the positive side.
+            True removes everything below *position* (the near side when looking along +axis); False removes
+            everything above it.
         """
-        side = "MIN" if clip_min else "MAX"
-        self._commands.append(_SsfCommand(
-            "CLIP", [axis.upper(), f"{position:.6g}", side],
-        ))
+        axis = axis.upper()
+        if axis not in ("X", "Y", "Z"):
+            raise ValueError(f"axis must be X, Y or Z, not {axis!r}")
+        # SETCLIPx takes: use-min min use-max max (checked against Smokeview 6.10.1)
+        bounds = f"1 {position:g} 0 0" if clip_min else f"0 0 1 {position:g}"
+        self._commands.append(_SsfCommand("SETCLIPMODE", [_CLIP_BOTH]))
+        self._commands.append(_SsfCommand(f"SETCLIP{axis}", [bounds], comment=f"clip {axis} at {position}"))
         return self
 
     def add_label(
@@ -79,20 +72,6 @@ class SsfScriptBuilderShowMixin:
         size: int = 14,
         color: str = "white",
     ) -> "SsfScriptBuilder":
-        """
-        Add a text overlay label at normalised screen coordinates.
-
-        Parameters
-        ----------
-        text : str
-        x, y : float
-            Normalised screen position (0–1).
-        size : int
-            Font size.
-        color : str
-            ``"white"``, ``"black"``, ``"red"``, etc.
-        """
-        self._commands.append(_SsfCommand(
-            "LABEL", [f"{x:.3f}", f"{y:.3f}", str(size), color, f'"{text}"'],
-        ))
-        return self
+        """Not available: Smokeview's LABEL script keyword names a script step; it draws nothing on the image."""
+        raise _unsupported("draw text on the rendered image", "Add the text to the pictures afterwards, or use "
+                                                              "PyFDS Results (Tools > Add Label).")

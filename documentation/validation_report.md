@@ -91,21 +91,20 @@ HRR measured at 5, 10, 15, 20 and 25 s: 56, 300, 561, 544 and 543 kW. The fire s
 | Results viewer, software smoke renderer | When the GPU volume renderer is slow (as on this PC), PyFDS switches to VTK's software mapper. Its default sample distance is 1.0 world unit, ten 0.1 m cells per step, so 3D smoke was drawn as large grey triangles. | The sample distance is now locked to the grid spacing (`scene_adapter_extras._jitter`). Test: `test_software_smoke_renderer_samples_at_the_cell_size`. |
 | Validation | Fuels FDS knows natively, such as PROPANE, were flagged as "fuel species not defined" | Built-in FDS fuels are accepted (`FuelSpeciesRule`); test added |
 | Smokeview scripts | The builder wrote keywords Smokeview 6.10.1 rejects: SETRENDER, LOADSMOKE3D, LOADISOSURFACE, LOADPARTICLE | Now RENDERTYPE, LOAD3DSMOKE, LOADISO, LOADPARTICLES and LOADBOUNDARY [quantity], each checked against Smokeview 6.10.1 |
+| Smokeview script builder (2026-10-29) | Commands Smokeview 6.10.1 does not know (SETCAMERA, SETCOLORMAP, SETFRAME, SHOWGEOM, STEP_FORWARD, LOADVECTOR, CLIP ...); RENDERSIZE ignored, so pictures were always 640x480; LOADSLICE cannot load cell-centred slices; LOADPLOT3D written with the wrong arguments; the runner could not move images to another drive | Camera, views, colour bar, clip planes, vectors and Plot3D now use XYZVIEW, VIEWXMIN.., SETCBAR, SETCLIPMODE/SETCLIPx, LOADSLCF and LOADPLOT3D mesh time, each checked by rendering with Smokeview 6.10.1; picture size and labels come from a small .ini the script loads (LOADINIFILE); cell-centred slices use LOADSLCF ... CELL_CENTERED=T; what scripts cannot do (colour bar range, labels on the image, frame stepping, hiding geometry, colours) raises SmokeviewScriptUnsupported. A test checks every keyword written against Smokeview's own keyword list. |
 | Defaults | NUMBER_RADIATION_ANGLES default was 100 | 104, the FDS default |
 | Run dialog | The dialog was about 890 px tall and mostly blank (hidden pages kept their size) | Sized to the visible page |
 
-After these changes the full test suite passes: `pytest tests`, 3777 passed, 0 failed (offscreen Qt, 14 min).
+After these changes the full test suite passes: `pytest tests`, 3799 passed, 0 failed (offscreen Qt, 10 min, 2026-10-29).
 
 ## 5. Open issues (not fixed; recommended follow-ups)
 
-1. **Smokeview script builder:** keywords that Smokeview 6.10.1 does not accept are still offered: SETFRAME, SETCAMERA, SETCOLORMAP, SETCOLORBARAUTO, SETCONTOURLEVELS, SETCONTOURTYPE, SHOWGEOM, STEP_FORWARD and LOADVECTOR. RENDERSIZE has no effect, and images are always 640x480.
-2. **Cell-centred slices can't be loaded by Smokeview script** (couch case): LOADSLICE, LOADSLICEM and LOADSLCF were tried. The slices do display in PyFDS Results.
-3. **"Open Mesh Boundaries" opens the floor (ZMIN) too.** For a room on the ground this is rarely wanted. A default without the floor is recommended.
-4. **Float noise in written inputs.** Draw Room wrote the window top as `1.9500000000000002` (0.9 + 1.05). FDS reads it correctly, but the value should be rounded where it is computed.
-5. **PRES VELOCITY_TOLERANCE** is always written (0.05) even when it is not set. **DUMP DT_\*** values override NFRAMES.
-6. **HVAC:** a fan shared by several ducts is copied into each duct; the DUCT_ID order on nodes is not preserved.
-7. **Distribution:** `user_data` is read-only when installed under Program Files, and LICENSE and README are missing. Packaging is on hold by request.
-8. **Resolution.** Example 1 runs at D*/dx = 4.8, accepted with a warning. A design-grade study of this fire needs about 0.05 m cells (ratio ≥ 10). That is about 650,000 cells, and the run is hours rather than minutes.
+1. **"Open Mesh Boundaries" opens the floor (ZMIN) too.** For a room on the ground this is rarely wanted. A default without the floor is recommended.
+2. **Float noise in written inputs.** Draw Room wrote the window top as `1.9500000000000002` (0.9 + 1.05). FDS reads it correctly, but the value should be rounded where it is computed.
+3. **PRES VELOCITY_TOLERANCE** is always written (0.05) even when it is not set. **DUMP DT_\*** values override NFRAMES.
+4. **HVAC:** a fan shared by several ducts is copied into each duct; the DUCT_ID order on nodes is not preserved.
+5. **Distribution:** `user_data` is read-only when installed under Program Files, and LICENSE and README are missing. Packaging is on hold by request.
+6. **Resolution.** Example 1 runs at D*/dx = 4.8, accepted with a warning. A design-grade study of this fire needs about 0.05 m cells (ratio ≥ 10). That is about 650,000 cells, and the run is hours rather than minutes.
 
 ## 6. Reproducing
 

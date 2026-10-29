@@ -540,8 +540,7 @@ def example_2(m: Manual, log: list, f: dict) -> None:
                                                     "programs or reduce T_END."],
              ["Only a quarter of a slice is shown", "Results are per mesh: tick the slice for all four meshes."],
              ["A Smokeview script stops with 'Slice files of type TEMPERATURE failed to load'",
-              "This case's slices are cell-centred; Smokeview 6.10.1 scripts do not load them. Load the slice "
-              "interactively (right-click > Load/Unload > Slice file) or view it in PyFDS Results."]],
+              "This case's slices are cell-centred and LOADSLICE cannot load them; use LOADSLCF with QUANTITY='TEMPERATURE' PBX=2.5 CELL_CENTERED=T (PyFDS's script builder does this with cell_centered=True), or load the slice from Smokeview's right-click > Load/Unload menu."]],
             [6.5, 9.5])
     m.h("H  Quick reference", 2)
     m.bullets(["Start PyFDS; File > Open: couch_original.fds",

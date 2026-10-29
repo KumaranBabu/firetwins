@@ -69,6 +69,8 @@ class ResultsWindow(ResultsLayoutMixin, ResultsAnalysisMixin, ResultsWindowRecor
         install_parity(self)
         from .tenability_dialog import install as install_tenability
         install_tenability(self)
+        from .compare_dialog import install as install_compare
+        install_compare(self)
         from pyfds.gui.menu_regroup import RESULTS_GROUPS, regroup
         regroup(self.menuBar(), RESULTS_GROUPS)
         from pyfds.gui.icons import install_icons

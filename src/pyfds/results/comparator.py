@@ -127,7 +127,7 @@ class SimulationComparator:
         base_data = self._load_all(self._base)
         var_data  = self._load_all(self._var)
 
-        all_channels = sorted(set(base_data) | set(var_data) - {"Time"})
+        all_channels = sorted((set(base_data) | set(var_data)) - {"Time"})
         channels: List[ChannelComparison] = []
 
         for name in all_channels:

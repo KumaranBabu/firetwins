@@ -72,3 +72,20 @@ def test_results_window_has_the_entry(app, monkeypatch):
     analysis = next(a.menu() for a in w.menuBar().actions() if a.text().replace("&", "") == "Analysis")
     assert "Tenability (FED)..." in [a.text().replace("&", "") for a in analysis.actions()]
     w.close()
+
+
+def test_compare_runs_dialog_flags_a_changed_device(app, tmp_path):
+    from pyfds.gui.results.compare_dialog import CompareRunsDialog
+    base, var = tmp_path / "base", tmp_path / "var"
+    for d, scale in ((base, 1.0), (var, 1.2)):
+        d.mkdir()
+        rows = "\n".join(f"{t},{20 + scale * t},{20 + t}" for t in range(0, 61, 10))
+        (d / "case_devc.csv").write_text(f's,C,C\nTime,"TC_A","TC_B"\n{rows}\n')
+    dlg = CompareRunsDialog(str(base))
+    dlg.variant.setText(str(var))
+    report = dlg.compare()
+    status = {c.name: c.status for c in report.channels}
+    assert status == {"TC_A": "warning", "TC_B": "ok"} and dlg.table.rowCount() == 2
+    dlg.variant.setText(str(tmp_path / "nowhere"))
+    assert dlg.compare() is None and "Choose two" in dlg.summary.text()
+    dlg.close()

@@ -60,10 +60,11 @@ class HvacTopologyRule:
 
         # Fan must reference a defined duct
         for fan in p.fans:
-            if fan.duct_id and fan.duct_id not in duct_ids:
-                results.append(_e(self.name,
-                    f"FAN '{fan.name}' DUCT_ID='{fan.duct_id}' references an undefined DUCT.",
-                    entity=fan.name))
+            for duct_id in (fan.duct_id, *fan.more_duct_ids):
+                if duct_id and duct_id not in duct_ids:
+                    results.append(_e(self.name,
+                        f"FAN '{fan.name}' DUCT_ID='{duct_id}' references an undefined DUCT.",
+                        entity=fan.name))
 
         # Damper must reference a defined duct
         for damper in p.dampers:

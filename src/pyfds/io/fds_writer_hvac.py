@@ -45,7 +45,7 @@ class FdsWriterHvacMixin:
         if obj.vent_id:                        d["VENT_ID"] = obj.vent_id      # FDS puts the node at the vent centre
         else:                                  d["XYZ"] = [obj.x, obj.y, obj.z]
         if obj.ambient:                        d["AMBIENT"] = True
-        flt = next((f for f in p.hvac_filters if self._filter_node(f) == obj.name), None)
+        flt = next((f for f in p.hvac_filters if self._filter_node(f) == obj.name or obj.name in f.more_node_ids), None)
         if flt is not None:                    d["FILTER_ID"] = flt.name
         elif getattr(obj, "filter_id", None):  d["FILTER_ID"] = obj.filter_id
         return _nl("HVAC", d)
@@ -63,8 +63,8 @@ class FdsWriterHvacMixin:
         if obj.length is not None:             d["LENGTH"] = obj.length
         d["ROUGHNESS"] = obj.roughness
         if tuple(obj.loss) != (0.0, 0.0):      d["LOSS"] = list(obj.loss)
-        fan = next((f for f in p.fans if f.duct_id == obj.name), None)
-        coil = next((c for c in p.hvac_aircoils if c.duct_id == obj.name), None)
+        fan = next((f for f in p.fans if obj.name in (f.duct_id, *f.more_duct_ids)), None)
+        coil = next((c for c in p.hvac_aircoils if obj.name in (c.duct_id, *c.more_duct_ids)), None)
         damper = next((x for x in p.dampers if x.duct_id == obj.name), None)
         ctrl = obj.ctrl_id
         if fan is not None:

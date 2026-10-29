@@ -138,7 +138,7 @@ class HvacNetworkEditorDialog(QDialog):
             self.scene.addItem(item)
             self._node_items[node.name] = item
 
-        fans = {f.duct_id: f for f in self.api.fans.all()}
+        fans = {d: f for f in self.api.fans.all() for d in (f.duct_id, *f.more_duct_ids)}
         dampers = {d.duct_id: d for d in self.api.dampers.all()}
         filters = {f.duct_id: f for f in self.api.hvac_filters.all()}
 

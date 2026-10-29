@@ -47,6 +47,8 @@ class Fan(FdsEntity):
     """&FAN namelist."""
     name: str = "DefaultFan"
     duct_id: str = ""
+    #: further ducts driven by this same fan (FDS: several ducts with the same FAN_ID); one object, one set of values
+    more_duct_ids: List[str] = Field(default_factory=list)
     ramp_id: Optional[str] = None
     volume_flow_rate: Optional[float] = None
     max_flow: Optional[float] = None
@@ -73,6 +75,7 @@ class HvacFilter(FdsEntity):
     clean_loss: Optional[float] = None          # clean-filter loss coefficient
     ctrl_id: Optional[str] = None
     node_id: Optional[str] = None               # the node the filter sits at (it needs exactly two ducts)
+    more_node_ids: List[str] = Field(default_factory=list)   # further nodes with this same FILTER_ID
     spec_id: Optional[str] = None               # SPEC_ID - the species the filter removes
     loading: Optional[float] = None             # LOADING (kg) the filter starts with
     loading_multiplier: Optional[float] = None  # LOADING_MULTIPLIER (1/kg) in the loss model
@@ -83,6 +86,7 @@ class HvacAircoil(FdsEntity):
     """&AIRCOIL namelist — heat exchanger on a duct (cooling/heating coil)."""
     name: str = "DefaultAircoil"
     duct_id: str = ""
+    more_duct_ids: List[str] = Field(default_factory=list)   # further ducts with this same AIRCOIL_ID
     effectiveness: float = 0.8                   # heat-exchange effectiveness (0..1)
     coolant_temperature: Optional[float] = None  # COOLANT_TEMPERATURE (deg C)
     coolant_specific_heat: Optional[float] = None  # COOLANT_SPECIFIC_HEAT (kJ/kg/K)

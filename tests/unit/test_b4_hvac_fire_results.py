@@ -15,6 +15,7 @@ from pyfds.domain import pyrolysis_kinetics as pk
 from pyfds.io.fds_parser import FdsParser
 from pyfds.io.fds_writer import FdsWriter
 from pyfds.io.serializer import Serializer
+from pyfds.validation.rules.hvac import HvacTopologyRule
 
 
 @pytest.fixture
@@ -58,7 +59,7 @@ def test_network_written_in_fds6_form_and_read_back(api, tmp_path):
     assert (f.node_id, f.spec_id, f.clean_loss, f.loss) == ("B", "SOOT", 2.0, 100.0)
 
 
-def test_shared_fan_class_is_copied_per_duct_on_import(tmp_path):
+def test_shared_fan_stays_one_fan_on_import_and_export(tmp_path):
     f = tmp_path / "x.fds"
     f.write_text("&HEAD CHID='x'/\n&HVAC TYPE_ID='NODE',ID='A',XYZ=0,0,0,DUCT_ID='D1'/\n"
                  "&HVAC TYPE_ID='NODE',ID='B',XYZ=1,0,0,DUCT_ID='D1','D2'/\n&HVAC TYPE_ID='NODE',ID='C',XYZ=2,0,0,DUCT_ID='D2'/\n"
@@ -66,9 +67,12 @@ def test_shared_fan_class_is_copied_per_duct_on_import(tmp_path):
                  "&HVAC TYPE_ID='DUCT',ID='D2',NODE_ID='B','C',AREA=0.1,FAN_ID='F',DAMPER=F/\n"
                  "&HVAC TYPE_ID='FAN',ID='F',MAX_FLOW=1.,MAX_PRESSURE=500./\n&TAIL/\n")
     p = FdsParser().parse(str(f))
-    assert sorted((x.name, x.duct_id) for x in p.fans) == [("F", "D1"), ("F_D2", "D2")]
+    assert [(x.name, x.duct_id, x.more_duct_ids) for x in p.fans] == [("F", "D1", ["D2"])]
     text = FdsWriter().generate_content(p)
-    assert "FAN_ID='F_D2'" in text and text.count("TYPE_ID='FAN'") == 2
+    assert text.count("FAN_ID='F'") == 2 and text.count("TYPE_ID='FAN'") == 1
+    p.fans[0].max_flow = 2.0                                  # one edit changes the fan of both ducts
+    assert "MAX_FLOW=2.0" in FdsWriter().generate_content(p)
+    assert not [r for r in HvacTopologyRule().check(p) if "undefined DUCT" in r.message]
 
 
 def test_damper_and_aircoil_round_trip(api, tmp_path):

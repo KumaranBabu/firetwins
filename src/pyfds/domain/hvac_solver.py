@@ -134,7 +134,7 @@ class HvacNetworkSolver:
 
         nodes  = {n.name: n for n in p.hvac_nodes}
         ducts  = list(p.hvac_ducts)
-        fans   = {f.duct_id: f for f in p.fans}
+        fans   = {d: f for f in p.fans for d in (f.duct_id, *getattr(f, "more_duct_ids", ()))}
 
         if not nodes or not ducts:
             result.warnings.append("No HVAC nodes or ducts defined.")
@@ -152,7 +152,6 @@ class HvacNetworkSolver:
 
         # Build index
         node_names  = list(nodes.keys())
-        n_nodes     = len(node_names)
         node_idx    = {nm: i for i, nm in enumerate(node_names)}
         n_ducts     = len(ducts)
 
@@ -162,18 +161,11 @@ class HvacNetworkSolver:
         # Compute duct resistance coefficients  R  so that  ΔP = R × Q |Q|
         R, areas = self._compute_resistances(ducts)
 
-        # Fan source pressures (keyed by duct index)
+        # Fan source pressures (keyed by duct index); one fan may drive several ducts
         fan_dp: Dict[int, float] = {}
         for di, duct in enumerate(ducts):
             if duct.name in fans:
                 fan_dp[di] = self._fan_pressure(fans[duct.name], Q[di])
-            elif duct.duct_id if hasattr(duct, "duct_id") else False:
-                pass
-        # Also check fans by their duct_id referencing this duct name
-        for fan in p.fans:
-            for di, duct in enumerate(ducts):
-                if fan.duct_id == duct.name:
-                    fan_dp[di] = self._fan_pressure(fan, Q[di])
 
         # Hardy-Cross iteration
         for iteration in range(self._max_iter):

@@ -108,7 +108,8 @@ class HvacBuilders:
 
     def _finish_hvac(self, p: FdsProject) -> None:
         """Attach the fan/aircoil/filter classes to the ducts and nodes that use them (a class used more than
-        once is copied as ``<id>_<duct>``), and turn ``DAMPER=T`` into damper objects."""
+        once stays one object and lists the further holders in ``more_duct_ids`` / ``more_node_ids``), and turn
+        ``DAMPER=T`` into damper objects."""
         st = getattr(self, "_hvac_links", None)
         if not st:
             return
@@ -122,10 +123,8 @@ class HvacBuilders:
                 if not getattr(tmpl, attr):
                     setattr(tmpl, attr, holder)
                 else:
-                    clone = tmpl.model_copy(update={"name": f"{cls_id}_{holder}", attr: holder})
-                    p.add_entity(clone)
-                    # the duct/node record must now point at the clone: the writer derives the link from
-                    # the object, so nothing else to update
+                    more = "more_node_ids" if attr == "node_id" else "more_duct_ids"
+                    setattr(tmpl, more, [*getattr(tmpl, more), holder])
         for duct, ctrl in st["damper"].items():
             p.add_entity(Damper(name=f"{duct}_damper", duct_id=duct, ctrl_id=ctrl or ""))
         self._hvac_links = {"fan": {}, "aircoil": {}, "damper": {}, "filter": {}}

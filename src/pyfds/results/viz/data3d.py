@@ -88,7 +88,6 @@ def isosurface(vol: RectilinearVolume, value: float) -> TriMesh:
         raise ValueError("an isosurface needs at least two nodes in every direction")
     gx, gy, gz = np.meshgrid(np.arange(nx - 1), np.arange(ny - 1), np.arange(nz - 1), indexing="ij")
     base = np.column_stack([gx.ravel(), gy.ravel(), gz.ravel()])              # cell origins
-    offs = np.array([[i & 1, (i >> 1) & 1, (i >> 2) & 1] for i in range(8)])
     # cube corner index order used in _TETS: 0:(0,0,0) 1:(1,0,0) 2:(1,1,0) 3:(0,1,0) 4:(0,0,1) 5:(1,0,1) 6:(1,1,1) 7:(0,1,1)
     corner = np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0], [0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]])
     cv = np.stack([vals[base[:, 0] + c[0], base[:, 1] + c[1], base[:, 2] + c[2]] for c in corner], axis=1)   # (cells, 8)

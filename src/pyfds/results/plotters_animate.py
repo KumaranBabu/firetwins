@@ -70,7 +70,7 @@ def animate_slice(
     cbar = fig.colorbar(cf, ax=ax)
     cbar.set_label(reader_result.units or "")
     qty = reader_result.quantity or "Quantity"
-    title_obj = ax.set_title(f"{qty} @ t=0.0s")
+    ax.set_title(f"{qty} @ t=0.0s")
     ax.set_xlabel("i-index")
     ax.set_ylabel("j-index")
     fig.tight_layout()

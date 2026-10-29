@@ -125,7 +125,6 @@ def duplicate_keyframes(tour: Tour, indices: Sequence[int], mode: str = "end_of_
     if idx[-1] >= len(ks) or idx[0] < 0:
         raise IndexError("keyframe index out of range")
     chosen = [copy.deepcopy(ks[i]) for i in idx]
-    span = chosen[-1].time - chosen[0].time
     after = ks[idx[-1] + 1] if idx[-1] + 1 < len(ks) else None
     gap = (after.time - ks[idx[-1]].time) if after is not None else 10.0
     if mode == "end_of_tour":

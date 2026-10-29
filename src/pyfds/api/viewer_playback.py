@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import copy
 import threading
-from dataclasses import field
 from typing import Any, Callable, List, Optional, Sequence, Tuple
 
 import numpy as np
@@ -115,8 +114,8 @@ class ViewerManagerPlaybackMixin:
         """Shapes of one result at *t*: skipped when its renderer is set to "disabled" (Preferences ▸ Rendering), large
         volumes thinned when level of detail is on, and the last few frames remembered so playback and scrubbing back
         and forth do not read the files again."""
-        field = self._DISABLED.get(leaf.kind)
-        if field and getattr(self.viz.rendering, field) == "disabled":
+        setting = self._DISABLED.get(leaf.kind)
+        if setting and getattr(self.viz.rendering, setting) == "disabled":
             return []
         key = (leaf.id, round(float(t), 6))
         hit = self._pcache.get(key)

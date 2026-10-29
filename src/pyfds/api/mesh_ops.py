@@ -137,7 +137,7 @@ class MeshOperations:
             raise ValueError(f"split position {at} is not inside mesh {mesh.name} "
                              f"({lo[a]}..{hi[a]}) on a cell boundary")
         plane = lo[a] + k * h
-        lo2, hi2 = list(lo), list(hi)
+        lo2 = list(lo)
         hi2_first = list(hi); hi2_first[a] = plane
         lo2[a] = plane
         cells1 = list(mesh.cell_count); cells1[a] = k

@@ -359,7 +359,7 @@ __all__ = [
 
     # v0.2.0 backward-compat shims
     "FdsValidator", "fds_format_value", "is_poisson_compliant",
-    "Layer", "SmvScriptBuilder",
+    "SmvScriptBuilder",
 
     # Engineering — zone model & detector response
     "ZoneModelResult", "DetectorResponseResult",

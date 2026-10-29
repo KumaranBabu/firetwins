@@ -204,7 +204,6 @@ class ResultsDatasetPrimitivesMixin:
         return [RectilinearVolume(leaf.label, leaf.quantity, leaf.units, x, y, z, vals.astype(float), kind, ext)]
 
     def _plot3d(self, leaf: NavNode, t: float) -> List[object]:
-        times = self.leaf_times(leaf)
         names = {p.time: p.file for p in self.run.plot3d if p.file in leaf.files}
         ts = sorted(names)
         k = int(np.clip(np.searchsorted(ts, t + 1e-9) - 1, 0, len(ts) - 1))

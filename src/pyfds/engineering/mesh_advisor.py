@@ -174,7 +174,6 @@ def mpi_split_advice(
 
     axis_len = {"X": lx, "Y": ly, "Z": lz}[split_axis.upper()]
     n_total  = _next_poisson(max(1, math.ceil(axis_len / dx)))
-    n_per    = _next_poisson(max(1, n_total // n_ranks))
 
     meshes = []
     lo = 0.0

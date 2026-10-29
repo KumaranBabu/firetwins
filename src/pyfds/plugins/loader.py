@@ -316,7 +316,6 @@ class PluginLoader:
 
     def _load_package(self, pkg_dir: Path) -> bool:
         """Import a plugin package (directory with __init__.py)."""
-        module_name = f"_pyfds_pkg_{pkg_dir.name}"
         init_file   = pkg_dir / "__init__.py"
         if not init_file.exists():
             return False

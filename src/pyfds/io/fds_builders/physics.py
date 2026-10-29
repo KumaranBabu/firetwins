@@ -16,13 +16,13 @@ class PhysicsBuilders:
     def _parse_surf(self, p: FdsProject, d: Dict) -> None:
         name = self._str(d, "ID", f"SURF_{len(p.surfaces)}")
         # Parse leak_path — FDS: LEAK_PATH='Zone1','Zone2'
-        leak_raw = d.get("LEAK_PATH", None)
+        leak_raw = d.get("LEAK_PATH")
         leak_path = None
         if leak_raw:
             parts = [x.strip().strip("'\"") for x in str(leak_raw).split(",")]
             leak_path = [x for x in parts if x]
         # Parse SPEC_ID for surface injection (may be comma-separated)
-        spec_id_raw = d.get("SPEC_ID", None)
+        spec_id_raw = d.get("SPEC_ID")
         spec_id_surf = None
         if spec_id_raw:
             parts = [x.strip().strip("'\"") for x in str(spec_id_raw).split(",")]
@@ -176,7 +176,7 @@ class PhysicsBuilders:
     def _parse_spec(self, p: FdsProject, d: Dict) -> None:
         name = self._str(d, "ID", f"SPEC_{len(p.species)}")
         # Parse component SPEC_ID array for lumped species
-        spec_id_raw = d.get("SPEC_ID", None)
+        spec_id_raw = d.get("SPEC_ID")
         spec_ids = None
         if spec_id_raw:
             parts = [s.strip().strip("'\"") for s in spec_id_raw.split(",") if s.strip()]
@@ -211,7 +211,7 @@ class PhysicsBuilders:
             except FdsParseError:
                 pass
         # Multi-species: SPEC_ID may be a comma-separated list
-        spec_id_raw = d.get("SPEC_ID", None)
+        spec_id_raw = d.get("SPEC_ID")
         spec_ids_list = None
         spec_id_scalar = None
         if spec_id_raw:
@@ -221,7 +221,7 @@ class PhysicsBuilders:
             elif parts:
                 spec_id_scalar = parts[0]
         # MASS_FRACTION may also be a comma-separated list
-        mf_raw = d.get("MASS_FRACTION", None)
+        mf_raw = d.get("MASS_FRACTION")
         mass_fractions_list = None
         mass_fraction_scalar = None
         if mf_raw:

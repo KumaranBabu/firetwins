@@ -29,10 +29,15 @@ Emitted events
 """
 from __future__ import annotations
 
+import logging
+
 import threading
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Any, Callable, Dict, FrozenSet, List, Optional, Set, Type
+
+
+logger = logging.getLogger(__name__)
 
 
 class SelectionMode(Enum):
@@ -346,7 +351,7 @@ class SelectionManager:
             try:
                 fn()
             except Exception:
-                pass
+                logger.exception("selection observer failed")
 
     def _emit_changed(self) -> None:
         self._notify_observers()
@@ -360,7 +365,7 @@ class SelectionManager:
             get_global_bus().emit(EventType.SELECTION_CHANGED, payload,
                                   source="SelectionManager")
         except Exception:
-            pass
+            logger.exception("selection event listener failed")
 
     def _emit_cleared(self) -> None:
         self._notify_observers()
@@ -369,7 +374,7 @@ class SelectionManager:
             get_global_bus().emit(EventType.SELECTION_CLEARED, None,
                                   source="SelectionManager")
         except Exception:
-            pass
+            logger.exception("selection event listener failed")
 
     def __repr__(self) -> str:
         return f"<SelectionManager selected={self.count}>"

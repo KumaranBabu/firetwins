@@ -109,7 +109,7 @@ class SpatialBuilders:
         name = self._str(d, "ID", f"VENT_{len(p.vents)}")
         xb = self._parse_xb(d.get("XB", "0,1,0,1,0,1"))
         # UVW — velocity vector
-        uvw_str = d.get("UVW", None)
+        uvw_str = d.get("UVW")
         uvw = None
         if uvw_str:
             try:
@@ -146,8 +146,8 @@ class SpatialBuilders:
         if "XYZ" in d:
             try:
                 xyz_interior = self._parse_xyz(d["XYZ"])
-            except Exception:
-                pass
+            except (TypeError, ValueError, IndexError):
+                self.warnings.append(f"&ZONE {name!r}: XYZ={d['XYZ']!r} is not three numbers; the zone point was not kept")
         p.add_entity(Zone(name=name, x_min=xb[0], x_max=xb[1],
                           y_min=xb[2], y_max=xb[3], z_min=xb[4], z_max=xb[5],
                           xyz=xyz_interior,

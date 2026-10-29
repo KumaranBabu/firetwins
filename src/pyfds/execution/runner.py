@@ -276,8 +276,8 @@ class SimulationRunner:
                 if on_line:
                     try:
                         on_line(line)
-                    except Exception:
-                        pass
+                    except Exception:            # a broken listener must not stop the run, but it is logged
+                        logger.exception("FDS output listener failed")
 
                 if on_progress:
                     self._parse_progress(line, on_progress, bus)
@@ -302,7 +302,7 @@ class SimulationRunner:
                 try:
                     on_complete(success, rc)
                 except Exception:
-                    pass
+                    logger.exception("FDS completion listener failed")
 
             if not success and not self._cancel_event.is_set():
                 logger.error("SimulationRunner: FDS exited with code %d", rc)
@@ -329,7 +329,7 @@ class SimulationRunner:
             try:
                 on_progress(step, sim_t, 0.0)
             except Exception:
-                pass
+                logger.exception("FDS progress listener failed")
             bus.emit(EventType.JOB_PROGRESS,
                      {"step": step, "time": sim_t},
                      source="SimulationRunner")

@@ -249,7 +249,7 @@ class JobQueue:
             from pyfds.core.events import get_global_bus, EventType
             get_global_bus().emit(event_type, payload, source="JobQueue")
         except Exception:
-            pass
+            logger.exception("job queue event %s: a listener failed", event_type)
 
 
 # Lazy import to avoid circular at module level

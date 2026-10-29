@@ -16,7 +16,7 @@ class DeviceBuilders:
     def _parse_devc(self, p: FdsProject, d: Dict) -> None:
         name = self._str(d, "ID", f"DEVC_{len(p.devices)}")
         xyz = self._parse_xyz(d.get("XYZ", "0,0,0"))
-        ori_str = d.get("ORIENTATION", None)
+        ori_str = d.get("ORIENTATION")
         ori = self._parse_xyz(ori_str) if ori_str else None
         # XB for spatial statistics (optional)
         xb_devc = None
@@ -97,7 +97,7 @@ class DeviceBuilders:
     def _parse_ctrl(self, p: FdsProject, d: Dict) -> None:
         name = self._str(d, "ID", f"CTRL_{len(p.controls)}")
         # INPUT_IDS may be comma-separated
-        input_ids_raw = d.get("INPUT_ID", None)
+        input_ids_raw = d.get("INPUT_ID")
         input_ids = None
         if input_ids_raw:
             input_ids = [v.strip().strip("'\"") for v in input_ids_raw.split(",")]

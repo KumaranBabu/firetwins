@@ -17,7 +17,7 @@ How each finding was established is stated; "check" means the code was read but 
 | B6 | Medium | Draw Room | Coordinates come out as values like `2.9999999` instead of `3.0`; they should be snapped to the grid before writing. | Known from the demos (validation report §5). |
 | B7 | Low | `gui/extras.py:93`, `actions_import.py:132`, `run_monitor.py:158` | User messages say "Run > Run Simulation", but the menu is titled **Analysis** (`shell_bars.py` renames it). | Menu dump + grep. |
 | B8 | Low | `agent/anthropic_loop.py:24` | `DEFAULT_MODEL = "claude-sonnet-5"` is a previous-generation model (corrected 2026-10-29: the id is valid, the first draft of this review wrongly said it would fail). The loop also ignored a `refusal` stop reason and capped replies at 4,096 tokens. | Read. |
-| B9 | Low | `engineering/mesh_advisor.py:177` | `mpi_split_advice` computes the Poisson-friendly cells per rank (`n_per`) and never uses it; meshes are cut into equal lengths instead. | ruff F841. |
+| B9 | Low | `engineering/mesh_advisor.py:177` | `n_per` was a dead duplicate of `cells_per`, which the function does use (corrected: not a bug, removed as clean-up). | ruff F841. |
 | B10 | Low | `io/fds_builders/spatial.py:149` | An unreadable `XYZ` is dropped with `except: pass`, no warning in the import report. | Read. |
 | B11 | Low | `execution/runner.py`, `queue.py`, `core/selection.py` | Callback errors (progress, completion, observers) are swallowed with `pass`; a broken GUI callback disappears without a log line. 44 such silent handlers in all. | grep. |
 
@@ -28,7 +28,7 @@ How each finding was established is stated; "check" means the code was read but 
 | Unused imports (many are deliberate re-exports with `# noqa`) | 161 F401, 110 stale `noqa` | `ruff --fix` for the stale `noqa`; review the rest per module. |
 | Unused locals | 9 (`hvac_solver.n_nodes`, `mesh_ops.hi2`, `report.times`, ...) | Delete; `hvac_solver.py:166` also has a dead `elif ... pass` branch. |
 | Cyrillic letter in a function name | `tenability/fed.py:63` `_vcо2_factor` (the "о" is U+043E) | Rename; it cannot be typed or searched for normally. |
-| Empty placeholder scaffolding | `gui/main_window/placeholders.py` (empty table, mixin still in `MainWindow`), `ActionSpec.placeholder` | Remove. |
+| Empty placeholder scaffolding | `gui/main_window/placeholders.py` (empty table, mixin still in `MainWindow`), `ActionSpec.placeholder` | Keep (corrected): five tests use the empty table as a guard that no menu entry is a "Coming soon" box. |
 | Blind `except Exception` | 276 | Log at least `logger.exception` in the 44 silent ones; narrow where the error type is known. |
 | `zip()` without `strict=` | 61 | Add `strict=True` where lengths must match (writer arrays, ramps). |
 | Complex functions (McCabe > 10) | 85 | Leave unless touched; the file-size cap (400 lines) already keeps modules small. |

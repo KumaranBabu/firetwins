@@ -110,7 +110,7 @@ class ReportSection:
         return "\n".join(lines)
 
     def as_html(self) -> str:
-        parts = [f"<section>", f"  <h2>{html.escape(self.title)}</h2>"]
+        parts = ["<section>", f"  <h2>{html.escape(self.title)}</h2>"]
         if self.rows:
             parts.append("  <table>")
             for label, value in self.rows:
@@ -229,7 +229,6 @@ class SimulationReport:
                 continue
             units = getattr(rr, "units", "") or ""
             data  = getattr(rr, "data", None)
-            times = getattr(rr, "times", None)
             if data is not None and len(data) > 0:
                 import numpy as np
                 min_v  = float(np.nanmin(data))

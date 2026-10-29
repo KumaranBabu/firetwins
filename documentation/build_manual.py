@@ -28,6 +28,7 @@ OUT = DOC / "FireTwins_User_Manual.docx"
 ACCENT = RGBColor(0xB4, 0x3A, 0x12)
 GREY = RGBColor(0x55, 0x55, 0x55)
 TEXT_WIDTH_CM = 16.5
+ACTUAL = -1.0          # figure width: as on the screen (96 dpi, 100 %)
 
 
 # -- numbers from the runs --------------------------------------------------------------------------------------------------
@@ -63,7 +64,12 @@ def facts_example_2() -> dict:
     run = DEMOS / "example_2" / "run"
     hrr = read_csv(run / "couch_hrr.csv")
     t, q = hrr["Time"], hrr["HRR"]
-    return {"hrr": {s: at(q, t, s) for s in (5, 10, 15, 20, 25)}, "hrr_peak": max(q)}
+    out = (run / "couch.out").read_text(errors="replace") if (run / "couch.out").exists() else ""
+    wall = next((ln.split(":")[-1].strip() for ln in out.splitlines() if "Total Elapsed Wall Clock Time" in ln), None)
+    late = [v for tt, v in zip(t, q) if 15 <= tt <= 25]
+    return {"hrr": {s: at(q, t, s) for s in (5, 10, 15, 20, 25)}, "hrr_peak": max(q),
+            "hrr_late_mean": sum(late) / len(late) if late else float("nan"),
+            "wall_min": float(wall) / 60 if wall else None}
 
 
 def dstar_dx(validation: dict) -> str:
@@ -74,6 +80,13 @@ def dstar_dx(validation: dict) -> str:
         if m:
             return m.group(1)
     return "4.8"
+
+
+def pres_note(example: str, fds: str) -> str:
+    """A sentence on the &PRES line of the input the run used, read from that file (empty when it has none)."""
+    path = DEMOS / example / fds
+    line = next((ln.strip() for ln in path.read_text(errors="replace").splitlines() if ln.startswith("&PRES")), "")         if path.exists() else ""
+    return (f" Note: {fds} was written by an earlier version and still has the line {line}" if line else "")
 
 
 def log_of(example: str) -> list:
@@ -139,8 +152,13 @@ class Manual:
         return para
 
     def bullets(self, items, numbered: bool = False) -> None:
-        for it in items:
-            para = self.doc.add_paragraph(style="List Number" if numbered else "List Bullet")
+        for n, it in enumerate(items, 1):
+            if numbered:                  # numbered here: Word's List Number would carry on from the previous list
+                para = self.doc.add_paragraph()
+                para.paragraph_format.left_indent, para.paragraph_format.first_line_indent = Cm(0.9), Cm(-0.6)
+                para.add_run(f"{n}.\t")
+            else:
+                para = self.doc.add_paragraph(style="List Bullet")
             if isinstance(it, tuple):
                 para.add_run(it[0]).bold = True
                 para.add_run(it[1])
@@ -162,13 +180,23 @@ class Manual:
                 run.bold = header and i == 0
         self.doc.add_paragraph().paragraph_format.space_after = Pt(2)
 
+    #: menu paths in the walkthrough logs' captions that never matched the menu bar (Run is titled Analysis; Draw
+    #: Room is in Model > Draw; Smokeview opens from Results)
+    CAPTION_FIXES = (("Run > Open Smokeview", "Results > Open Smokeview..."), ("Run > Run Simulation", "Analysis > Run Simulation"),
+                     ("Draw > Draw Room", "Model > Draw > Draw Room"))
+
     def figure(self, path: Path, caption: str, width_cm: float = None) -> int:
+        for old, new in self.CAPTION_FIXES:
+            if new not in caption:
+                caption = caption.replace(old, new)
         from PIL import Image
         w, h = Image.open(path).size
         width = width_cm or TEXT_WIDTH_CM
         if h / w > 1.0:                                    # tall dialogs: keep them on the page
             width = min(width, 11.0 * w / h * 1.6, 12.0)
         width = min(width, w / 96 * 2.54 * 1.25)            # never blow small dialogs up beyond 125 %
+        if width_cm == ACTUAL:                              # menus: the size they have on the screen
+            width = min(w / 96 * 2.54, TEXT_WIDTH_CM)
         self.doc.add_picture(str(path), width=Cm(width))
         self.doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
         self.fig += 1
@@ -201,7 +229,7 @@ class Manual:
                 el.text = text
             run._r.append(el)
 
-    def shots(self, example: str, names: list, log: list, intro: dict = None) -> dict:
+    def shots(self, example: str, names: list, log: list, intro: dict = None, width_cm: float = None) -> dict:
         """Numbered procedure: one step per screenshot whose name (after the 'NN_' number) starts with one of *names*,
         in walkthrough order. Matching the start keeps 'file_menu' from also taking 'results_file_menu'."""
         figs = {}
@@ -213,10 +241,12 @@ class Manual:
                 continue
             self.__dict__.setdefault("_used", set()).add(shot)
             n += 1
-            lead = (intro or {}).get(next(k for k in names if stem.startswith(k)))
-            if lead:
+            key = next(k for k in names if stem.startswith(k))
+            lead = (intro or {}).get(key)
+            if lead and key not in self.__dict__.setdefault("_led", set()):
+                self._led.add(key)
                 self.p(lead)
-            fig = self.figure(DOC / "screenshots" / example / shot, e["caption"])
+            fig = self.figure(DOC / "screenshots" / example / shot, e["caption"], width_cm)
             figs[shot] = fig
         return figs
 
@@ -239,8 +269,14 @@ def build() -> None:
     r.font.size = Pt(16)
     s2 = m.doc.add_paragraph()
     s2.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    r = s2.add_run("Example 1: room fire with door, window and heat detector\nExample 2: burning couch (FDS example case)")
+    r = s2.add_run("Example 1: room fire with door, window and heat detector\nExample 2: burning couch (FDS example case)"
+                   "\nExample 3: tenability and comparing runs (chapter 4)")
     r.font.size, r.font.color.rgb = Pt(12), GREY
+    s3 = m.doc.add_paragraph()
+    s3.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    r = s3.add_run("Revised 29 October 2026: every screenshot and run taken again with the current version; "
+                   "new menus and tools in chapter 4")
+    r.italic, r.font.size, r.font.color.rgb = True, Pt(10), GREY
     m.p("")
     m.table([["Software", "Version used for this manual"],
              ["PyFDS model editor and PyFDS Results", "0.3.0 (repository E:\\firetwins)"],
@@ -277,7 +313,9 @@ def build() -> None:
                                          "output), results\\ (pictures and movie), example_1.pyfdsv (saved viewer setup)"],
              ["client_demos\\example_2", "Couch fire: couch_original.fds (the unchanged FDS example), couch.pyfds, "
                                          "couch.fds, run\\, results\\, couch.pyfdsv"],
-             ["documentation", "This manual, the screenshots (screenshots\\example_1, \\example_2), the screen "
+             ["client_demos\\example_3", "Example 1 with the door closed and gas devices at head height (chapter 4): "
+                                         "example_3.pyfds, example_3.fds, run\\, scripts\\make_case.py"],
+             ["documentation", "This manual, the screenshots (screenshots\\example_1, \\example_2, \\whats_new), the screen "
                                "recordings (videos\\) and validation_report.md"],
              ["examples", "The earlier versions of both examples, kept unchanged as the reference"]], [4.5, 11.5])
     m.page_break()
@@ -285,6 +323,8 @@ def build() -> None:
     example_1(m, log1, f1)
     m.page_break()
     example_2(m, log2, f2)
+    m.page_break()
+    whats_new(m)
     m.doc.save(str(OUT))
     print("written", OUT, "figures:", m.fig)
 
@@ -331,7 +371,12 @@ def example_1(m: Manual, log: list, f: dict) -> None:
         "every change can be undone with Edit > Undo (Ctrl+Z). Values are in SI units (m, s, kW, C).")
     intro = {
         "project_settings": "Step 1 - Project settings. CHID is the base name of every file FDS writes.",
-        "simulation_parameters": None,
+        "simulation_parameters": "Step 2 - Simulation parameters. Only the end time is changed (T_END = 60 s); the "
+                                 "other tabs show the values used. Environment, Pressure and Radiation hold "
+                                 "FDS's own defaults (the velocity tolerance is left unset: FDS works it out from "
+                                 "the cell size), so PyFDS writes no &PRES line. The Output tab's intervals (1 s, "
+                                 "Plot3D 10 s) are PyFDS's choice; FDS on its own would save 1000 frames over the "
+                                 "run." + pres_note("example_1", "example_1.fds"),
         "add_mesh": "Step 3 - Mesh. The cell size is 6 m / 60 = 0.1 m in every direction. The cell size has to "
                     "resolve the fire: FDS guidance uses D*/dx, the characteristic fire diameter over the cell size. "
                     "For 180 kW, D* = 0.48 m; 0.15 m cells give only 3.2, which PyFDS's validation rejects (below 4), "
@@ -339,24 +384,23 @@ def example_1(m: Manual, log: list, f: dict) -> None:
         "library_wall": "Step 4 - Wall construction from the library.",
         "draw_room": "Step 5 - Draw the room with its two openings.",
         "burner_surface": "Step 6 - The fire: a burner surface, the burner body, the burning face and the reaction.",
-        "floor_vent_selected": "Step 7 - Outer boundaries. Model > Open Mesh Boundaries makes all six faces of the "
-                               "mesh OPEN. The room stands on the ground, so the floor vent is deleted again.",
+        "open_boundaries": "Step 7 - Outer boundaries. Model > Open Mesh Boundaries makes the sides and the top "
+                           "of the mesh OPEN, so smoke can leave the domain. The floor stays closed, because "
+                           "the room stands on the ground.",
         "library_heat_detector": "Step 8 - Instruments and outputs.",
         "model_isometric": "Step 9 - Check the finished model.",
         "editor_surfaces": "The editors (Model > Edit ...) list every object of a kind with all its settings and "
                            "the FDS text it will write; use them to review the case.",
     }
-    m.p("Step 2 - Simulation parameters. Only the end time is changed (T_END = 60 s); the other tabs show the "
-        "defaults that are used (they match FDS's own defaults).")
     m.shots("example_1", ["project_settings", "simulation_parameters", "add_mesh", "mesh_in_view", "library_wall",
                           "draw_room", "room_in_view", "burner_surface", "burner_block", "burner_vent", "reaction",
-                          "floor_vent_selected", "library_heat_detector", "heat_detector", "thermocouple", "slice_",
+                          "open_boundaries", "library_heat_detector", "heat_detector", "thermocouple", "slice_",
                           "model_isometric", "model_front", "editor_"], log, intro)
-    m.p("Save the project with File > Save As (example_1.pyfds). File > Export > FDS writes the FDS input file "
+    m.p("Save the project with File > Save As (example_1.pyfds). File > Export > Export as FDS writes the FDS input file "
         "example_1.fds, which is also written automatically when the run starts.")
 
     m.h("D  Validation and running the simulation", 2)
-    m.p("Model > Validate checks the model before it is run: meshes and their resolution, objects outside the mesh, "
+    m.p("Model > Validate Project checks the model before it is run: meshes and their resolution, objects outside the mesh, "
         "references to surfaces, materials and properties, ramps, controls, HVAC and the time and output settings.")
     n_e, n_w = len(val.get("errors", [])), len(val.get("warnings", []))
     m.p(f"Result for this case: {n_e} errors, {n_w} warning(s)." +
@@ -364,15 +408,15 @@ def example_1(m: Manual, log: list, f: dict) -> None:
         " Errors block a run; warnings do not, but should be understood. A resolution warning (D*/dx between 4 and "
         "10) is expected for a demonstration mesh: the plume is resolved, but coarsely (see section F).")
     m.shots("example_1", ["validation"], log)
-    m.p("Run > Run Simulation opens the Run dialog. For a one-mesh model it proposes 'This computer' with one "
+    m.p("Analysis > Run Simulation (or Run Simulation on the toolbar) opens the Run dialog. For a one-mesh model it proposes 'This computer' with one "
         "process. Choose the folder for the input and results (Browse...), check the FDS version (PyFDS uses the "
         "bundled FDS 6.10.1 when none is configured; Locate FDS... picks another), read the 'Before you run' "
         "summary, and press Run. 'Check the model first' stops the run if the model has errors.")
     m.shots("example_1", ["run_dialog"], log)
     m.p("The Messages panel opens with the Run Monitor: progress (simulated time / end time), the heat release "
         "rate curve as FDS computes it, and the last lines of the FDS log (.out file), refreshed twice a second. The "
-        "status bar shows the progress too. Run > Stop Simulation asks FDS to finish cleanly and write a restart "
-        "file; Run > Cancel Simulation ends it at once.")
+        "status bar shows the progress too. Analysis > Stop Simulation asks FDS to finish cleanly and write a restart "
+        "file; Analysis > Cancel Simulation ends it at once.")
     m.shots("example_1", ["run_monitor", "message", "run_finished"], log)
     m.p(f"Outcome on the test computer: FDS reported 'STOP: FDS completed successfully'; wall clock time "
         f"{run.get('wall_clock_s', '?')} s for 60 s of simulated time.")
@@ -380,22 +424,32 @@ def example_1(m: Manual, log: list, f: dict) -> None:
     m.h("E  Post-processing", 2)
     m.h("E.1  PyFDS Results", 3)
     m.p("Open the viewer from the editor with Results > Open PyFDS Results (or start it on its own, section 1.1) "
-        "and load the run with File > Load Results: choose client_demos\\example_1\\run\\example_1.smv. The "
+        "and load the run with File > Open Results (.smv): choose client_demos\\example_1\\run\\example_1.smv. The "
         "Navigation View lists everything the run wrote: geometry, devices, views, 3D smoke, Plot3D, slices. Click a "
         "result to show it; use the time bar at the bottom (Play, step, drag the slider) to move through the run.")
     m.shots("example_1", ["results_empty", "results_file_menu", "results_loaded", "results_view_"], log)
-    m.p("Time histories: File > Load CSV with example_1_hrr.csv and example_1_devc.csv, then Analysis > Time History "
+    m.p("Time histories: File > Load CSV File with example_1_hrr.csv and example_1_devc.csv, then Tools > Time History "
         "Plot and tick the series.")
     m.shots("example_1", ["time_plot"], log)
-    m.p("Pictures and movies: Preferences > Colorbar adjusts a colour bar; File > Save Screenshot and File > Save "
-        "Movie write pictures and MP4 files. File > Save Visualization keeps the whole viewer setup "
+    m.p("Pictures and movies: Preferences > Colorbar adjusts a colour bar; File > Save Screenshot and File > Movie > "
+        "Save Movie write pictures and MP4 files. File > Save Results Visualization keeps the whole viewer setup "
         "(example_1.pyfdsv) so the same views open next time.")
     m.shots("example_1", ["results_colorbar", "results_screenshot", "results_movie"], log)
     m.h("E.2  Smokeview", 3)
-    m.p("The same run opens in Smokeview: double-click example_1.smv, or start fds_smv\\SMV6\\smokeview.exe with "
-        "the file. Right-click in the Smokeview window for its menus: Load/Unload > Slice file, 3D smoke; the time "
-        "bar runs the animation; File/Bookmark/Render saves pictures. The pictures below were made by a Smokeview "
-        "script (client_demos\\results_walkthrough.py writes it), the same commands a user can type in a .ssf file.")
+    m.p("The same run opens in NIST's Smokeview. There are three ways to open it:")
+    m.bullets([("Automatically after the run. ", "Tick 'Open Smokeview when the run finishes' in the Run dialog (it "
+                "follows Analysis > Open Smokeview After Run, on by default). When FDS ends, Smokeview opens <CHID>.smv "
+                "from the run folder (section 4.4)."),
+               ("From the editor at any time. ", "Results > Open Smokeview... and choose the .smv file, here "
+                "client_demos\\example_1\\run\\example_1.smv. Results > Open Results Folder... shows the folder."),
+               ("From Windows. ", "Double-click example_1.smv (when .smv files open with Smokeview), or run "
+                "fds_smv\\SMV6\\smokeview.exe example_1.smv in the run folder.")])
+    m.p("PyFDS uses the Smokeview set in File > Preferences (smv_binary); when none is set it uses the bundled "
+        "fds_smv\\SMV6\\smokeview.exe. Smokeview starts in the run folder, so it finds the slice, boundary and "
+        "smoke files next to the .smv. Right-click in the Smokeview window for its menus: Load/Unload > Slice file, "
+        "3D smoke; the time bar runs the animation; File/Bookmark/Render saves pictures. The pictures below were made "
+        "by a Smokeview script (client_demos\\results_walkthrough.py writes it), the same commands a user can type "
+        "in a .ssf file.")
     m.shots("example_1", ["smokeview_window", "smv_"], log)
 
     m.h("F  Results and interpretation", 2)
@@ -427,10 +481,10 @@ def example_1(m: Manual, log: list, f: dict) -> None:
              ["Run button disabled; red text 'choose a folder'", "Set 'Input and results folder' in the Run dialog."],
              ["'FDS was not found on this computer'", "Use Locate FDS... and pick fds.exe (for example "
                                                      "fds_smv\\FDS6\\bin\\fds.exe)."],
-             ["'the model has errors; see Model Checks'", "Model > Validate, fix each error (double-click it to select "
+             ["'the model has errors; see Model Checks'", "Model > Validate Project (or Model > Model Checks), fix each error (double-click it to select "
                                                           "the object), or untick 'Check the model first'."],
              ["Run Monitor stays at 'Waiting for FDS to start'", "FDS has not written the .out file yet; if it never "
-                                                                  "does, check the folder is writable and see Output > Log."],
+                                                                  "does, check the folder is writable and read the Messages panel."],
              ["'FDS stopped with an error'", "Read the last lines in the Run Monitor (the ERROR line names the "
                                              "namelist); the full log is <CHID>.out in the run folder."],
              ["Heat release about twice the expected value", "The burner surface was put on the whole obstruction: "
@@ -446,14 +500,14 @@ def example_1(m: Manual, log: list, f: dict) -> None:
     m.bullets(["Start PyFDS; File > Project Settings: CHID example_1",
                "Model > Simulation Parameters: T_END 60 s",
                "Model > Add Mesh: 60,45,30 cells over 0,6,0,4.5,0,3 (0.1 m)",
-               "Model > Library: gypsum_wall_25mm; Draw > Draw Room: door S 0.9 x 2.1, window E 1.2 x 1.05 sill 0.9",
-               "Model > Add Typed Surface: burner 500 kW/m2, TAU_Q -15; Add Obstruction (INERT) and Add Vent "
+               "Model > Library: gypsum_wall_25mm; Model > Draw > Draw Room: door S 0.9 x 2.1, window E 1.2 x 1.05 sill 0.9",
+               "Model > Add Special > Add Typed Surface: burner 500 kW/m2, TAU_Q -15; Add Obstruction (INERT) and Add Vent "
                "(BURNER_SURF) on its top; Add Reaction: propane, then Edit Reactions: soot 0.024, CO 0.005",
-               "Model > Open Mesh Boundaries, then delete the floor vent",
-               "Library: heat_detector_74C; Add Device (LINK TEMPERATURE); 4 thermocouples; 3 slices",
-               "Model > Validate (0 errors); File > Save As",
-               "Run > Run Simulation: folder, Run; watch the Run Monitor until 'Finished'",
-               "PyFDS Results: File > Load Results (example_1.smv), tick slices / 3D smoke / devices, use the time bar",
+               "Model > Open Mesh Boundaries (sides and top; the floor stays closed)",
+               "Library: heat_detector_74C; Devices > Add Device (LINK TEMPERATURE); 4 thermocouples; 3 slices",
+               "Model > Validate Project (0 errors); File > Save As",
+               "Analysis > Run Simulation: folder, Run; watch the Run Monitor until 'Finished'",
+               "PyFDS Results: File > Open Results (.smv), example_1.smv, tick slices / 3D smoke / devices, use the time bar",
                "Smokeview: open example_1.smv, right-click > Load/Unload"], numbered=True)
 
 
@@ -473,8 +527,9 @@ def example_2(m: Manual, log: list, f: dict) -> None:
         "produces.", bold_lead="Engineering objectives. ")
     m.bullets(["Opening an existing FDS input file", "Multiplied meshes (MULT) and a 4-process MPI run",
                "Layered, burning-away surfaces and pyrolysis materials", "Boundary-file results on the couch surfaces"])
-    m.p(f"The original runs for 600 s. Here T_END is set to 25 s in the GUI so the demo runs in about 20 minutes on "
-        f"4 processes (4 free CPU cores); nothing else in the physics is changed.", bold_lead="Prerequisites. ")
+    took = f"it took {f['wall_min']:.0f} minutes on the test computer" if f.get("wall_min") else "it is a short run"
+    m.p(f"The original runs for 600 s. Here T_END is set to 25 s in the GUI so the demo stays short: {took} on "
+        f"4 MPI processes. Nothing else in the physics is changed.", bold_lead="Prerequisites. ")
     m.p("documentation\\videos\\example_2_open_and_run.mp4 (sections B to D, the run as a time-lapse) and "
         "example_2_post_processing.mp4 (section E).", bold_lead="Screen recordings. ")
 
@@ -492,16 +547,18 @@ def example_2(m: Manual, log: list, f: dict) -> None:
     m.shots("example_2", ["editor_"], log)
     m.p("The only change: Model > Simulation Parameters, T_END from 600 s to 25 s.")
     m.shots("example_2", ["simulation_parameters", "front_view"], log)
-    m.p("When the project is saved and written back to FDS, PyFDS adds its standard output intervals to &DUMP "
-        "(slices, boundary files and devices every 1 s, Plot3D every 10 s) in place of the original NFRAMES=3000, "
-        "and writes the &MISC, &PRES and &RADI defaults explicitly (they equal FDS's defaults). These change how "
-        "often results are saved, not the physics.", bold_lead="Note. ")
+    m.p("When the project is saved and written back to FDS, PyFDS keeps the original &DUMP settings (NFRAMES=3000, "
+        "devices and heat release every 5 s) and adds its standard intervals for the files the original leaves to "
+        "NFRAMES: slices, boundary files and isosurfaces every 1 s, Plot3D every 10 s, 3D smoke on. It also writes "
+        "&MISC and &RADI with FDS's default values; &PRES is written only when a pressure-solver setting differs "
+        "from FDS's default." + pres_note("example_2", "couch.fds") + " These change how often results are saved, "
+        "not the physics.", bold_lead="Note. ")
 
     m.h("D  Validation and running the simulation", 2)
-    m.p(f"Model > Validate: {len(val.get('errors', []))} errors, {len(val.get('warnings', []))} warning(s)." +
+    m.p(f"Model > Validate Project: {len(val.get('errors', []))} errors, {len(val.get('warnings', []))} warning(s)." +
         "".join(f" Warning: {w}" for w in val.get("warnings", [])))
     m.shots("example_2", ["validation"], log)
-    m.p("Run > Run Simulation. Because the model has 4 meshes, the dialog proposes 'This computer, in parallel "
+    m.p("Analysis > Run Simulation. Because the model has 4 meshes, the dialog proposes 'This computer, in parallel "
         "(MPI)' with 4 processes - FDS needs one process per mesh - and shows which mesh each process computes.")
     m.shots("example_2", ["run_dialog", "run_monitor", "message", "run_finished"], log)
     m.p(f"Outcome on the test computer: {'FDS completed successfully' if step(log, 'D2').get('outcome') == 'ok' else 'see the validation report'}; "
@@ -509,7 +566,7 @@ def example_2(m: Manual, log: list, f: dict) -> None:
 
     m.h("E  Post-processing", 2)
     m.h("E.1  PyFDS Results", 3)
-    m.p("File > Load Results with client_demos\\example_2\\run\\couch.smv. Results of the four meshes are listed "
+    m.p("File > Open Results (.smv) with client_demos\\example_2\\run\\couch.smv. Results of the four meshes are listed "
         "per mesh; tick all four to see the whole plane or surface.")
     m.shots("example_2", ["results_empty", "results_file_menu", "results_loaded", "results_view_", "time_plot",
                           "results_colorbar", "results_screenshot", "results_movie"], log)
@@ -524,8 +581,9 @@ def example_2(m: Manual, log: list, f: dict) -> None:
              ["Heat release rate (kW)"] + [f"{q[s]:.0f}" for s in (5, 10, 15, 20, 25)]], [5.0, 2.2, 2.2, 2.2, 2.2, 2.2])
     m.bullets(["The ignitor heats the seat fabric; flames spread over the seat and up the back - the burning-rate "
                "boundary file shows where material is pyrolysing.",
-               "The heat release rate rises as more surface burns, to about 560 kW at 15 s, and then stays near "
-               "545 kW to 25 s while the couch keeps burning - the run is stopped long before the original 600 s.",
+               f"The heat release rate rises as more surface burns, to {q[15]:.0f} kW at 15 s, and averages "
+               f"{f['hrr_late_mean']:.0f} kW from 15 to 25 s (peak {f['hrr_peak']:.0f} kW) while the couch keeps "
+               "burning - the run is stopped long before the original 600 s.",
                "Wall temperatures rise only near the couch in this short time."])
     m.p("The material properties are the FDS example's invented values, the run covers the first 25 s only, and "
         "the 0.1 m mesh is the example's. The case demonstrates the workflow; its heat release rate is not a "
@@ -546,10 +604,140 @@ def example_2(m: Manual, log: list, f: dict) -> None:
     m.bullets(["Start PyFDS; File > Open: couch_original.fds",
                "Inspect: Model > Edit Meshes / Surfaces / Materials / Particles",
                "Model > Simulation Parameters: T_END 25 s",
-               "Model > Validate; File > Save As couch.pyfds",
-               "Run > Run Simulation: parallel (MPI), 4 processes, folder, Run",
-               "PyFDS Results: File > Load Results (couch.smv); tick all 4 meshes of a result",
+               "Model > Validate Project; File > Save As couch.pyfds",
+               "Analysis > Run Simulation: parallel (MPI), 4 processes, folder, Run",
+               "PyFDS Results: File > Open Results (.smv), couch.smv; tick all 4 meshes of a result",
                "Smokeview: open couch.smv"], numbered=True)
+
+
+def facts_example_3() -> dict:
+    run = DEMOS / "example_3" / "run"
+    dev = read_csv(run / "example_3_devc.csv")
+    out = (run / "example_3.out").read_text(errors="replace") if (run / "example_3.out").exists() else ""
+    wall = next((ln.split(":")[-1].strip() for ln in out.splitlines() if "Total Elapsed Wall Clock Time" in ln), "?")
+    return {"co_max_ppm": max(dev["CO_15"]) * 1e6, "co2_max_pct": max(dev["CO2_15"]) * 100,
+            "o2_min_pct": min(dev["O2_15"]) * 100, "t_max": max(dev["GAS_T_15"]), "vis_min": min(dev["VIS_15"]),
+            "fed_end": dev["FED_15"][-1], "t_end": dev["Time"][-1], "wall": wall,
+            "ok": "STOP: FDS completed successfully" in out}
+
+
+def whats_new(m: Manual) -> None:
+    log = log_of("whats_new")
+    res_path = DOC / "screenshots" / "whats_new" / "validation_log_results.json"
+    log += json.loads(res_path.read_text(encoding="utf-8")) if res_path.exists() else []
+    m.h("4  New and changed in the version of 29 October 2026", 1)
+    m.p("This chapter shows what a code review of 29 October 2026 added or changed in the programs. The pictures were "
+        "taken from the running programs, like the rest of the manual (client_demos\\whats_new_walkthrough.py). "
+        "Chapters 2 and 3 were captured again with this version, runs included.")
+    m.bullets([("Menus. ", "Long menus are grouped into submenus (Edit > Visibility and Transform, Model > Add from "
+                           "Library, Add Special and Model Checks, View > Rendering Mode; in PyFDS Results File > Movie, "
+                           "View > Section Box and Units). Every command kept its shortcut and icon."),
+               ("Project Explorer filter. ", "A filter box over the object tree (section 4.2)."),
+               ("Fire Engineering Calculators. ", "Tools > Fire Engineering Calculators: hand calculations to check a "
+                                                  "model (section 4.3)."),
+               ("Tenability (FED) and Compare Runs. ", "Two new commands in the Analysis menu of PyFDS Results "
+                                                      "(section 4.5)."),
+               ("Help. ", "The FDS User Guide and the Smokeview Verification Guide open from Help; the PyroSim manual "
+                          "entry was removed."),
+               ("Fixes that change the FDS input. ", "Open Mesh Boundaries leaves the floor closed; &PRES is written only "
+                "when a pressure-solver setting differs from FDS's default (earlier versions always wrote "
+                "VELOCITY_TOLERANCE=0.05, a PyFDS value that FDS does not use by default); Draw Room coordinates are "
+                "rounded (1.95, not 1.9500000000000002); an HVAC fan or aircoil shared by several ducts is written once "
+                "with all its ducts."),
+               ("Other fixes. ", "The FED calculation uses FDS's own constants (FDS User Guide eq. 22.42-22.49) and, like "
+                                 "FDS's FED device, counts the oxygen term only below 20 % O2; Tenability takes the gas "
+                                 "temperature from the gases' own place; Compare Runs shows '-' instead of 'nan' for a "
+                                 "device that only one run has; on/off menu entries show a tick; the AI "
+                                 "Assistant no longer changes the model from a background thread.")])
+
+    m.h("4.1  The menus", 2)
+    m.p("The model editor's menu bar is File, Edit, Model, Devices, Output, Analysis, Results, View, Tools, Help. "
+        "Running FDS is in the Analysis menu (and on the toolbar: Run Simulation); drawing tools are in Model > Draw "
+        "and on the left edge of the window.")
+    m.shots("whats_new", ["editor_with_model"], log)
+    m.shots("whats_new", ["menu_", "submenu_"], log, width_cm=ACTUAL)
+
+    m.h("4.2  Finding objects: the Project Explorer filter", 2)
+    m.p("Type in the box above the Project Explorer to show only the objects whose name contains the text. 'tag:' "
+        "searches the tags and 'type:' the kind of object (type:vent, type:device). The clear button (x) shows "
+        "everything again; the groups that were open stay open.")
+    m.shots("whats_new", ["explorer_filter"], log)
+
+    m.h("4.3  Fire Engineering Calculators", 2)
+    m.p("Tools > Fire Engineering Calculators. Choose a calculation, enter its inputs (SI units) and press Calculate; "
+        "every number the method returns is listed. The calculations: fire size and cell size (D*, D*/dx), Heskestad "
+        "plume, Alpert ceiling jet, smoke filling time (NFPA 92), a two-layer zone model, heat detector response and "
+        "tunnel critical velocity (Kennedy). They do not change the model.")
+    cell = step(log, "W5 calculator Fire size").get("detail", {})
+    if cell:
+        m.p(f"For example 1's 180 kW burner the calculator gives D* = {cell.get('d star m')} m and a cell size of "
+            f"{cell.get('dx max m')} m or less for D*/dx of at least {cell.get('ratio min')}. Example 1 uses 0.1 m "
+            "cells (D*/dx about 4.8), which is why chapter 2 calls its resolution coarse.")
+    m.shots("whats_new", ["fire_eng_"], log)
+
+    m.h("4.4  Opening a run in Smokeview", 2)
+    m.p("When 'Open Smokeview when the run finishes' is ticked in the Run dialog, Smokeview opens the run's <CHID>.smv "
+        "as soon as FDS ends. At any later time use Results > Open Smokeview... (any .smv file), or Results > View "
+        "Results of Last Run to open the last run in PyFDS Results instead. PyFDS uses the Smokeview set in File > "
+        "Preferences (smv_binary) and otherwise the bundled fds_smv\\SMV6\\smokeview.exe.")
+    m.shots("whats_new", ["run_dialog_smokeview"], log)
+    m.p("In the Analysis menu, 'Open Smokeview After Run' shows a tick when it is on (like every on/off entry of the "
+        "menus); the Run dialog's check box starts from it.")
+
+    m.h("4.5  Example 3 - Tenability and comparing two runs", 2)
+    if not (DEMOS / "example_3" / "run" / "example_3_devc.csv").exists():
+        m.p("Example 3 has not been run yet; run client_demos\\example_3\\example_3.fds first.")
+        return
+    f = facts_example_3()
+    m.p("Example 1's room with the door closed: the only opening is the window. Gas devices at head height (1.5 m) "
+        "in the back of the room, out of the plume, record carbon monoxide, carbon dioxide and oxygen (volume "
+        "fractions), temperature, visibility and FDS's own fractional effective dose (QUANTITY='FED'). Everything "
+        "else is example 1. client_demos\\example_3\\scripts\\make_case.py builds it from example_1.pyfds.",
+        bold_lead="Scenario. ")
+    m.p(f"FDS 6.10.1, one process: {'completed successfully' if f['ok'] else 'see example_3.out'}, wall clock time "
+        f"{f['wall']} s for {f['t_end']:.0f} s of simulated time.", bold_lead="Run. ")
+    m.p("Open the run in PyFDS Results (File > Open Results (.smv), example_3.smv) and load its device file with File > Load "
+        "CSV File (example_3_devc.csv). The new commands are in the Analysis menu.")
+    m.shots("whats_new", ["results_menu_"], log, width_cm=ACTUAL)
+    m.shots("whats_new", ["time_plot_gases"], log)
+    m.p("Analysis > Tenability (FED) computes Purser's fractional effective dose from the chosen device columns. It "
+        "picks the CO, O2, CO2 and temperature columns by name, uses FDS's constants, and reports the time to FED 0.3 "
+        "(incapacitation, used as ASET), a separate heat dose, and the margin to the required safe egress time (RSET) "
+        "you enter. For the gas temperature it takes the column named for the same place as the CO column (GAS_T_15 "
+        "for CO_15), not just the first temperature in the file (here TC_060, a plume thermocouple). Check the "
+        "columns it picked before you calculate.")
+    m.shots("whats_new", ["tenability"], log)
+    ten = step(log, "R1 tenability").get("detail") or {}
+    rows = ten.get("rows", {})
+    table = [["Quantity at the device (1.5 m)", "Value"],
+             ["Peak carbon monoxide", f"{f['co_max_ppm']:.0f} ppm"],
+             ["Peak carbon dioxide", f"{f['co2_max_pct']:.2f} %"],
+             ["Lowest oxygen", f"{f['o2_min_pct']:.2f} %"],
+             ["Peak gas temperature", f"{f['t_max']:.0f} C"],
+             ["Lowest visibility", f"{f['vis_min']:.1f} m"],
+             [f"FED from FDS's FED_15 device at {f['t_end']:.0f} s", f"{f['fed_end']:.3g}"]]
+    table += [[f"PyFDS Tenability: {k}", v] for k, v in rows.items()]
+    m.table(table, [10.0, 6.0])
+    fed_hand = ten.get("rows", {}).get("Maximum FED (gases)")
+    m.p(f"The dose is very small: nobody at this point would be incapacitated by the gases in the first 60 s. "
+        f"PyFDS's value ({fed_hand}) agrees with FDS's own FED_15 device ({f['fed_end']:.3g}) to about 1 %; the rest "
+        "comes from FDS adding up the dose every time step, PyFDS from the 1 s device output. Like FDS's device, "
+        "PyFDS counts the oxygen term only below 20 % O2 (humid ambient air here has 20.76 %); FDS's User Guide "
+        "(eq. 22.48) does not state this cutoff, it was found by comparing with this run.")
+    m.p("Analysis > Compare Runs compares the devices of two run folders. The folder of the open run is filled in as "
+        "the baseline; choose the other run, set the threshold and press Compare. Each device is listed with its peak "
+        "and mean in both runs and the difference; devices that only one run has are listed as such. Here example 1 "
+        "(door open) is the baseline and example 3 (door closed) the variant. A device that only one run has shows "
+        "its own peak, '-' for the other run, and the status 'variant only' or 'baseline only'.")
+    m.shots("whats_new", ["compare_runs"], log)
+    cmp = step(log, "R2 compare runs").get("detail") or {}
+    if cmp:
+        common = {k: v for k, v in cmp.items() if v[0] in ("ok", "warning")}
+        m.p("Devices in both runs: " + "; ".join(f"{k} {v[1]:+.1f} % ({'above threshold' if v[0] == 'warning' else v[0]})" for k, v in common.items()) +
+            f". In example 3 only: {', '.join(k for k, v in cmp.items() if v[0] == 'missing_baseline') or 'none'}.")
+    m.p("A demonstration on example 1's coarse mesh (section 2F), for 60 s only, with one device location. FED is "
+        "evaluated where the devices are, not along an escape route, and leaves out irritant gases. The numbers show "
+        "how the tools work; they are not a tenability assessment of a real room.", bold_lead="Limitations. ")
 
 
 def finish_in_word() -> None:

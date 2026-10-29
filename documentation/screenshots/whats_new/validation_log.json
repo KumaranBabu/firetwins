@@ -1,0 +1,259 @@
+[
+ {
+  "screenshot": "01_editor_with_model.png",
+  "caption": "The model editor with client_demos\\example_1\\example_1.pyfds open (File > Open). The menu bar: File, Edit, Model, Devices, Output, Analysis (running FDS), Results, View, Tools, Help.",
+  "size": [
+   1360,
+   715
+  ]
+ },
+ {
+  "step": "W1 editor with example_1",
+  "outcome": "ok",
+  "detail": {
+   "obstructions": 6,
+   "devices": 5
+  },
+  "time": "20:00:35"
+ },
+ {
+  "screenshot": "02_explorer_filter.png",
+  "caption": "Project Explorer filter: typing TC_ leaves only the four thermocouples (and the groups that hold them). It also takes tag: and type: (for example type:vent).",
+  "size": [
+   270,
+   324
+  ]
+ },
+ {
+  "step": "W2 explorer filter",
+  "outcome": "ok",
+  "detail": "TC_",
+  "time": "20:00:36"
+ },
+ {
+  "screenshot": "03_explorer_filter_type.png",
+  "caption": "The same filter with type:vent - every vent of the model, nothing else.",
+  "size": [
+   270,
+   324
+  ]
+ },
+ {
+  "screenshot": "04_menu_file.png",
+  "caption": "File menu.",
+  "size": [
+   190,
+   361
+  ]
+ },
+ {
+  "screenshot": "05_menu_edit.png",
+  "caption": "Edit menu: Undo/Redo, clipboard, and the new Visibility and Transform submenus.",
+  "size": [
+   328,
+   471
+  ]
+ },
+ {
+  "screenshot": "06_menu_model.png",
+  "caption": "Model menu: the editors, the Add... commands, Add from Library, Model Checks, and (right column) Add Special, Open Mesh Boundaries and the Draw, HVAC, Scenarios and Floors submenus.",
+  "size": [
+   522,
+   766
+  ]
+ },
+ {
+  "screenshot": "07_menu_devices.png",
+  "caption": "Devices menu.",
+  "size": [
+   270,
+   546
+  ]
+ },
+ {
+  "screenshot": "08_menu_output.png",
+  "caption": "Output menu.",
+  "size": [
+   180,
+   164
+  ]
+ },
+ {
+  "screenshot": "09_menu_analysis.png",
+  "caption": "Analysis menu (running FDS): Run Simulation, parallel/cluster/cloud runs, Open Smokeview After Run, Stop and Cancel, Monitor Simulation.",
+  "size": [
+   262,
+   357
+  ]
+ },
+ {
+  "screenshot": "10_menu_results.png",
+  "caption": "Results menu of the editor: Open PyFDS Results, View Results of Last Run, Open Smokeview... (any .smv in Smokeview) and Open Results Folder.",
+  "size": [
+   211,
+   251
+  ]
+ },
+ {
+  "screenshot": "11_menu_view.png",
+  "caption": "View menu: standard views, display options and the Rendering Mode submenu.",
+  "size": [
+   277,
+   527
+  ]
+ },
+ {
+  "screenshot": "12_menu_tools.png",
+  "caption": "Tools menu, with the new Fire Engineering Calculators.",
+  "size": [
+   249,
+   193
+  ]
+ },
+ {
+  "screenshot": "13_menu_help.png",
+  "caption": "Help menu: the FDS User Guide and the Smokeview Verification Guide open in the PDF viewer.",
+  "size": [
+   238,
+   193
+  ]
+ },
+ {
+  "step": "W3 top menus",
+  "outcome": "ok",
+  "detail": [
+   "File",
+   "Edit",
+   "Model",
+   "Devices",
+   "Output",
+   "Analysis",
+   "Results",
+   "View",
+   "Tools",
+   "Help"
+  ],
+  "time": "20:00:45"
+ },
+ {
+  "screenshot": "14_submenu_visibility.png",
+  "caption": "Edit > Visibility: hide and show objects.",
+  "size": [
+   700,
+   471
+  ]
+ },
+ {
+  "screenshot": "15_submenu_transform.png",
+  "caption": "Edit > Transform: move, rotate, scale and mirror the selection.",
+  "size": [
+   489,
+   579
+  ]
+ },
+ {
+  "screenshot": "16_submenu_add_from_library.png",
+  "caption": "Model > Add from Library: surfaces, fuels and materials from the library.",
+  "size": [
+   522,
+   766
+  ]
+ },
+ {
+  "screenshot": "17_submenu_add_special.png",
+  "caption": "Model > Add Special: typed surfaces (burner, supply, exhaust), complex stoichiometry reactions, liquid fuels.",
+  "size": [
+   865,
+   766
+  ]
+ },
+ {
+  "screenshot": "18_submenu_model_checks.png",
+  "caption": "Model > Model Checks: every 'check my model' command in one place (some used to be under Tools).",
+  "size": [
+   522,
+   768
+  ]
+ },
+ {
+  "screenshot": "19_submenu_rendering_mode.png",
+  "caption": "View > Rendering Mode: wireframe, shaded, outlines, realistic.",
+  "size": [
+   438,
+   527
+  ]
+ },
+ {
+  "screenshot": "20_fire_eng_cell_size.png",
+  "caption": "Tools > Fire Engineering Calculators, 'Fire size and cell size' for example 1's 180 kW burner: the characteristic diameter D* = 0.48 m and the cell sizes for D*/dx from 10 to 20.",
+  "size": [
+   560,
+   520
+  ]
+ },
+ {
+  "step": "W5 calculator Fire size and cell size",
+  "outcome": "ok",
+  "detail": {
+   "q kw": "180",
+   "d star m": "0.4839",
+   "ratio min": "10",
+   "ratio max": "20",
+   "dx max m": "0.04839",
+   "dx recommended m": "0.03226",
+   "dx well resolved m": "0.0242",
+   "poisson ijk": "None"
+  },
+  "time": "20:00:54"
+ },
+ {
+  "screenshot": "21_fire_eng_detector.png",
+  "caption": "'Heat detector response' for the same fire, the ceiling 2.25 m above the burner top and the detector on the fire axis. The calculator uses a standard sprinkler-type link (RTI 50, 68 C), not example 1's fast detector.",
+  "size": [
+   560,
+   520
+  ]
+ },
+ {
+  "step": "W5 calculator Heat detector response",
+  "outcome": "ok",
+  "detail": {
+   "activation time s": "15",
+   "peak jet temp c": "129.9",
+   "peak jet velocity ms": "3.673",
+   "rti": "50",
+   "setpoint c": "68"
+  },
+  "time": "20:00:55"
+ },
+ {
+  "screenshot": "22_fire_eng_filling.png",
+  "caption": "'Smoke filling time (NFPA 92)' for example 1's room (4.8 x 3.3 m, 2.4 m high): the time for the smoke layer to come down to 1.5 m with no openings, steady 180 kW from the start.",
+  "size": [
+   560,
+   520
+  ]
+ },
+ {
+  "step": "W5 calculator Smoke filling time (NFPA 92)",
+  "outcome": "ok",
+  "detail": {
+   "result": "13.7"
+  },
+  "time": "20:00:55"
+ },
+ {
+  "screenshot": "23_run_dialog_smokeview.png",
+  "caption": "Analysis > Run Simulation with 'Open Smokeview when the run finishes' ticked: when FDS ends, Smokeview opens <CHID>.smv from the run folder (the dialog was closed here without running).",
+  "size": [
+   542,
+   400
+  ]
+ },
+ {
+  "step": "W6 run dialog",
+  "outcome": "ok",
+  "detail": null,
+  "time": "20:00:57"
+ }
+]

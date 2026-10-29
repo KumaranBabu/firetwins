@@ -26,7 +26,7 @@
    ],
    "t_end": 600.0
   },
-  "time": "18:47:35"
+  "time": "19:39:37"
  },
  {
   "screenshot": "02_editor_meshes.png",
@@ -64,11 +64,11 @@
   "step": "B1 inspect model in the editors",
   "outcome": "ok",
   "detail": null,
-  "time": "18:47:40"
+  "time": "19:39:43"
  },
  {
   "screenshot": "06_simulation_parameters.png",
-  "caption": "Model > Simulation Parameters: T_END reduced from 600 s to 25 s so the demo runs in about half an hour; nothing else in the case is changed.",
+  "caption": "Model > Simulation Parameters: T_END reduced from 600 s to 25 s so the demo run stays short; nothing else in the case is changed.",
   "size": [
    640,
    640
@@ -80,7 +80,7 @@
   "detail": {
    "t_end": 25.0
   },
-  "time": "18:47:42"
+  "time": "19:39:45"
  },
  {
   "screenshot": "07_front_view.png",
@@ -92,7 +92,7 @@
  },
  {
   "screenshot": "08_validation.png",
-  "caption": "Model > Validate on the imported case.",
+  "caption": "Model > Validate Project on the imported case.",
   "size": [
    1360,
    715
@@ -106,17 +106,17 @@
    "warnings": [],
    "notes": []
   },
-  "time": "18:47:46"
+  "time": "19:39:49"
  },
  {
   "step": "C2 save",
   "outcome": "ok",
   "detail": "E:\\firetwins\\client_demos\\example_2\\couch.pyfds",
-  "time": "18:47:47"
+  "time": "19:39:50"
  },
  {
   "screenshot": "09_run_dialog.png",
-  "caption": "Run > Run Simulation with four meshes: 'This computer, in parallel (MPI)' is preselected with one process per mesh; the table shows which mesh each process computes and the summary shows the cells per process.",
+  "caption": "Analysis > Run Simulation with four meshes: 'This computer, in parallel (MPI)' is preselected with one process per mesh; the table shows which mesh each process computes and the summary shows the cells per process.",
   "size": [
    542,
    512
@@ -126,7 +126,7 @@
   "step": "D1 run started",
   "outcome": "ok",
   "detail": "E:\\firetwins\\client_demos\\example_2\\run",
-  "time": "18:47:49"
+  "time": "19:39:52"
  },
  {
   "screenshot": "10_run_monitor_20.png",
@@ -164,7 +164,7 @@
   "step": "message box: Simulation complete",
   "outcome": "info",
   "detail": "Output: E:\\firetwins\\client_demos\\example_2\\run",
-  "time": "19:02:37"
+  "time": "19:55:43"
  },
  {
   "screenshot": "14_run_finished.png",
@@ -179,21 +179,21 @@
   "outcome": "ok",
   "detail": {
    "state": "done",
-   "wall_clock_s": "884.829",
+   "wall_clock_s": "947.778",
    "mpi_processes": "4",
-   "minutes_waited": 14.9
+   "minutes_waited": 15.9
   },
-  "time": "19:02:41"
+  "time": "19:55:46"
  },
  {
   "step": "E1 screen recording",
   "outcome": "ok",
   "detail": {
    "video": "E:\\firetwins\\documentation\\videos\\example_2_open_and_run.mp4",
-   "frames": 192,
-   "seconds": 38.4
+   "frames": 196,
+   "seconds": 39.2
   },
-  "time": "19:02:44"
+  "time": "19:55:49"
  },
  {
   "screenshot": "15_results_empty.png",
@@ -205,15 +205,15 @@
  },
  {
   "screenshot": "16_results_file_menu.png",
-  "caption": "PyFDS Results, File menu: Load Results opens the .smv file of a run.",
+  "caption": "PyFDS Results, File menu: Open Results (.smv) opens the .smv file of a run.",
   "size": [
-   373,
-   577
+   348,
+   469
   ]
  },
  {
   "screenshot": "17_results_loaded.png",
-  "caption": "File > Load Results with couch.smv: the geometry is shown and the Navigation View on the left lists every result of the run.",
+  "caption": "File > Open Results (.smv) with couch.smv: the geometry is shown and the Navigation View on the left lists every result of the run.",
   "size": [
    1360,
    715
@@ -223,14 +223,14 @@
   "step": "R1 open results in PyFDS Results",
   "outcome": "ok",
   "detail": {
-   "seconds": 4.11,
+   "seconds": 3.49,
    "datasets": 73,
    "time_range_s": [
     0.0,
     25.0
    ]
   },
-  "time": "20:01:22"
+  "time": "20:25:05"
  },
  {
   "screenshot": "18_results_view_1.png",
@@ -249,7 +249,7 @@
    "root/FDS Results/2D Slices/TEMPERATURE/SLCF_0 (X = 2.6)/Mesh 2",
    "root/FDS Results/2D Slices/TEMPERATURE/SLCF_0 (X = 2.6)/Mesh 4"
   ],
-  "time": "20:01:26"
+  "time": "20:25:09"
  },
  {
   "screenshot": "19_results_view_2.png",
@@ -268,7 +268,7 @@
    "root/FDS Results/2D Slices/TEMPERATURE/SLCF_0 (X = 2.6)/Mesh 2",
    "root/FDS Results/2D Slices/TEMPERATURE/SLCF_0 (X = 2.6)/Mesh 4"
   ],
-  "time": "20:01:30"
+  "time": "20:25:12"
  },
  {
   "screenshot": "20_results_view_3.png",
@@ -287,7 +287,7 @@
    "root/FDS Results/2D Slices/HRRPUV/SLCF_1 (X = 2.6)/Mesh 2",
    "root/FDS Results/2D Slices/HRRPUV/SLCF_1 (X = 2.6)/Mesh 4"
   ],
-  "time": "20:01:33"
+  "time": "20:25:15"
  },
  {
   "screenshot": "21_results_view_4.png",
@@ -310,7 +310,7 @@
    "root/FDS Results/3D Smoke/HRRPUV/Mesh 3",
    "root/FDS Results/3D Smoke/HRRPUV/Mesh 4"
   ],
-  "time": "20:01:48"
+  "time": "20:25:28"
  },
  {
   "screenshot": "22_results_view_5.png",
@@ -333,7 +333,7 @@
    "root/FDS Results/3D Smoke/HRRPUV/Mesh 3",
    "root/FDS Results/3D Smoke/HRRPUV/Mesh 4"
   ],
-  "time": "20:01:56"
+  "time": "20:25:36"
  },
  {
   "screenshot": "23_results_view_6.png",
@@ -352,7 +352,7 @@
    "root/FDS Results/Boundaries/BURNING RATE/Mesh 3",
    "root/FDS Results/Boundaries/BURNING RATE/Mesh 4"
   ],
-  "time": "20:02:53"
+  "time": "20:26:17"
  },
  {
   "screenshot": "24_results_view_7.png",
@@ -371,7 +371,7 @@
    "root/FDS Results/Boundaries/WALL TEMPERATURE/Mesh 3",
    "root/FDS Results/Boundaries/WALL TEMPERATURE/Mesh 4"
   ],
-  "time": "20:03:39"
+  "time": "20:26:59"
  },
  {
   "screenshot": "25_results_view_8.png",
@@ -394,11 +394,11 @@
    "root/FDS Results/2D Slices/TEMPERATURE/SLCF_0 (X = 2.6)/Mesh 2",
    "root/FDS Results/2D Slices/TEMPERATURE/SLCF_0 (X = 2.6)/Mesh 4"
   ],
-  "time": "20:03:44"
+  "time": "20:27:03"
  },
  {
   "screenshot": "26_time_plot.png",
-  "caption": "Analysis > Time History Plot after File > Load CSV with the heat release (_hrr.csv) and device (_devc.csv) files: tick the series to plot.",
+  "caption": "Tools > Time History Plot after File > Load CSV File with the heat release (_hrr.csv) and device (_devc.csv) files: tick the series to plot.",
   "size": [
    900,
    520
@@ -427,7 +427,7 @@
     "couch_hrr.csv/MLR_POLYURETHANE"
    ]
   },
-  "time": "20:03:47"
+  "time": "20:27:07"
  },
  {
   "screenshot": "27_results_colorbar_dialog.png",
@@ -447,7 +447,7 @@
  },
  {
   "screenshot": "29_results_movie_dialog.png",
-  "caption": "File > Save Movie: an MP4 of the time range at a chosen frame rate and speed.",
+  "caption": "File > Movie > Save Movie: an MP4 of the time range at a chosen frame rate and speed.",
   "size": [
    300,
    408
@@ -464,17 +464,17 @@
    "movie": "E:\\firetwins\\client_demos\\example_2\\results\\couch.mp4",
    "encoded": true
   },
-  "time": "20:05:27"
+  "time": "20:28:53"
  },
  {
   "step": "R5 save visualization",
   "outcome": "ok",
   "detail": "couch.pyfdsv",
-  "time": "20:05:28"
+  "time": "20:28:54"
  },
  {
   "screenshot": "30_smokeview_window.png",
-  "caption": "Smokeview 6.10.1 (Run > Open Smokeview, or double-click the .smv file) while the script runs: 3D smoke and the flame over the couch at t = 15 s. Right-click in the window for the menus.",
+  "caption": "Smokeview 6.10.1 (Results > Open Smokeview... in the editor, or double-click the .smv file) while the script renders: the case's geometry with the scripted data loaded; right-click in the window for the menus.",
   "size": "window"
  },
  {
@@ -482,10 +482,10 @@
   "outcome": "ok",
   "detail": {
    "video": "E:\\firetwins\\documentation\\videos\\example_2_post_processing.mp4",
-   "frames": 165,
-   "seconds": 33.0
+   "frames": 174,
+   "seconds": 34.8
   },
-  "time": "20:05:38"
+  "time": "20:29:05"
  },
  {
   "screenshot": "31_smv_burning_rate_t15.png",
@@ -519,6 +519,6 @@
    ],
    "desktop_capture": true
   },
-  "time": "20:05:38"
+  "time": "20:29:05"
  }
 ]

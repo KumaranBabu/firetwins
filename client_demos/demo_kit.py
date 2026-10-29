@@ -227,7 +227,22 @@ def window_shot(pid: int, path: Path) -> bool:
     except Exception:                                             # noqa: BLE001 - Windows may refuse; grab anyway
         pass
     time.sleep(0.5)
-    return screen_shot_of_desktop(path, win32gui.GetWindowRect(found[0]))
+    left, top, right, bottom = win32gui.GetWindowRect(found[0])
+    try:                                                          # the visible frame, without Windows 10's invisible
+        import ctypes                                             # 8-pixel resize borders (DWMWA_EXTENDED_FRAME_BOUNDS)
+        import ctypes.wintypes
+        rect = ctypes.wintypes.RECT()
+        if ctypes.windll.dwmapi.DwmGetWindowAttribute(found[0], 9, ctypes.byref(rect), ctypes.sizeof(rect)) == 0:
+            left, top, right, bottom = rect.left, rect.top, rect.right, rect.bottom
+    except Exception:                                             # noqa: BLE001 - keep the window rectangle
+        pass
+    try:                                                          # never the taskbar: clip to the monitor's work area
+        import win32api
+        wl, wt, wr, wb = win32api.GetMonitorInfo(win32api.MonitorFromWindow(found[0]))["Work"]
+        left, top, right, bottom = max(left, wl), max(top, wt), min(right, wr), min(bottom, wb)
+    except Exception:                                             # noqa: BLE001 - no monitor info: the window rectangle
+        pass
+    return screen_shot_of_desktop(path, (left, top, right, bottom))
 
 
 def screen_shot_of_desktop(path: Path, region=None) -> bool:

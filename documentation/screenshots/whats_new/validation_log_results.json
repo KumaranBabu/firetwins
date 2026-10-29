@@ -1,0 +1,118 @@
+[
+ {
+  "screenshot": "51_results_menu_file.png",
+  "caption": "PyFDS Results, File menu: Open Results (.smv), Load CSV File, Save Screenshot, and the Movie submenu.",
+  "size": [
+   348,
+   469
+  ]
+ },
+ {
+  "screenshot": "52_results_menu_view.png",
+  "caption": "PyFDS Results, View menu, with the Section Box and Units submenus.",
+  "size": [
+   235,
+   631
+  ]
+ },
+ {
+  "screenshot": "53_results_menu_analysis.png",
+  "caption": "PyFDS Results, Analysis menu, with the new Tenability (FED) and Compare Runs (Time History Plot is in Tools).",
+  "size": [
+   273,
+   137
+  ]
+ },
+ {
+  "screenshot": "54_time_plot_gases.png",
+  "caption": "Example 3, Tools > Time History Plot: carbon monoxide, carbon dioxide and oxygen (volume fractions) at head height in the room.",
+  "size": [
+   900,
+   520
+  ]
+ },
+ {
+  "screenshot": "55_tenability.png",
+  "caption": "Analysis > Tenability (FED) for example 3: the gas columns are picked from the loaded _devc.csv, the gas temperature from the same place as the gases (GAS_T_15 for CO_15); the dose uses FDS's own constants. RSET 60 s here.",
+  "size": [
+   640,
+   600
+  ]
+ },
+ {
+  "step": "R1 tenability",
+  "outcome": "ok",
+  "detail": {
+   "rows": {
+    "Maximum FED (gases)": "0.000813",
+    "Time to FED 0.3 (incapacitation, ASET)": "not reached",
+    "Time to FED 1 (lethality)": "not reached",
+    "Time to heat dose 1 (separate from FED)": "not reached",
+    "ASET - RSET": "ASET not reached in this run",
+    "End of the curves": "60.0 s"
+   },
+   "fds_FED_15_at_end": 0.00081868574,
+   "temperature_column": "example_3_devc.csv/GAS_T_15"
+  },
+  "time": "20:02:21"
+ },
+ {
+  "screenshot": "56_compare_runs.png",
+  "caption": "Analysis > Compare Runs: example 1 (door open, baseline) against example 3 (door closed), device by device; differences above 5 % are flagged, and devices that only one run has are listed as such.",
+  "size": [
+   780,
+   520
+  ]
+ },
+ {
+  "step": "R2 compare runs",
+  "outcome": "ok",
+  "detail": {
+   "CO2_15": [
+    "missing_baseline",
+    null
+   ],
+   "CO_15": [
+    "missing_baseline",
+    null
+   ],
+   "FED_15": [
+    "missing_baseline",
+    null
+   ],
+   "GAS_T_15": [
+    "missing_baseline",
+    null
+   ],
+   "HEAT_DET": [
+    "warning",
+    13.5
+   ],
+   "O2_15": [
+    "missing_baseline",
+    null
+   ],
+   "TC_060": [
+    "warning",
+    5.9
+   ],
+   "TC_120": [
+    "warning",
+    18.4
+   ],
+   "TC_180": [
+    "warning",
+    14.3
+   ],
+   "TC_230": [
+    "warning",
+    15.5
+   ],
+   "VIS_15": [
+    "missing_baseline",
+    null
+   ]
+  },
+  "time": "20:02:23"
+ }
+]

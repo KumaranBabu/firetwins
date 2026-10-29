@@ -11,11 +11,11 @@
   "step": "A1 launch PyFDS editor",
   "outcome": "ok",
   "detail": "window 1360x715",
-  "time": "18:02:33"
+  "time": "18:50:01"
  },
  {
   "screenshot": "02_file_menu.png",
-  "caption": "File menu: New, Open, Save, Import and Export.",
+  "caption": "File menu: New, Open, Save, Preferences, Import, Export and Project Settings.",
   "size": [
    190,
    361
@@ -36,7 +36,7 @@
    "chid": "example_1",
    "title": "Example 1: room fire with door, window, heat detector"
   },
-  "time": "18:02:36"
+  "time": "18:50:03"
  },
  {
   "screenshot": "04_simulation_parameters.png",
@@ -85,7 +85,7 @@
    "t_end": 60.0,
    "radiation_angles": 104
   },
-  "time": "18:02:40"
+  "time": "18:50:07"
  },
  {
   "screenshot": "09_add_mesh.png",
@@ -109,7 +109,7 @@
   "detail": [
    "DOMAIN"
   ],
-  "time": "18:02:42"
+  "time": "18:50:09"
  },
  {
   "screenshot": "11_library_wall.png",
@@ -121,7 +121,7 @@
  },
  {
   "screenshot": "12_draw_room.png",
-  "caption": "Draw > Draw Room: walls, ceiling and two openings - a 0.9 x 2.1 m door in the south wall and a 1.2 x 1.05 m window (sill 0.9 m) in the east wall.",
+  "caption": "Model > Draw > Draw Room: walls, ceiling and two openings - a 0.9 x 2.1 m door in the south wall and a 1.2 x 1.05 m window (sill 0.9 m) in the east wall.",
   "size": [
    600,
    694
@@ -142,11 +142,11 @@
    "obstructions": 5,
    "holes": 2
   },
-  "time": "18:02:47"
+  "time": "18:50:14"
  },
  {
   "screenshot": "14_burner_surface.png",
-  "caption": "Model > Add Typed Surface, burner: 500 kW/m2, reached along a t-squared curve in 15 s (TAU_Q = -15).",
+  "caption": "Model > Add Special > Add Typed Surface, burner: 500 kW/m2, reached along a t-squared curve in 15 s (TAU_Q = -15).",
   "size": [
    260,
    466
@@ -192,7 +192,7 @@
    "soot_yield": 0.024,
    "co_yield": 0.005
   },
-  "time": "18:02:54"
+  "time": "18:50:22"
  },
  {
   "step": "F1 open mesh boundaries",
@@ -203,14 +203,13 @@
    "DOMAIN_XMAX_OPEN",
    "DOMAIN_YMIN_OPEN",
    "DOMAIN_YMAX_OPEN",
-   "DOMAIN_ZMIN_OPEN",
    "DOMAIN_ZMAX_OPEN"
   ],
-  "time": "18:02:55"
+  "time": "18:50:23"
  },
  {
-  "screenshot": "19_floor_vent_selected.png",
-  "caption": "Open Mesh Boundaries opens all six faces of the mesh. The floor of a room standing on the ground must stay closed: select DOMAIN_ZMIN_OPEN in the Project Explorer and press Delete.",
+  "screenshot": "19_open_boundaries.png",
+  "caption": "Model > Open Mesh Boundaries: 5 OPEN vents on the sides and the top of the mesh (listed under Vents). The floor stays closed: the room stands on the ground.",
   "size": [
    1360,
    715
@@ -227,7 +226,7 @@
    "DOMAIN_YMAX_OPEN",
    "DOMAIN_ZMAX_OPEN"
   ],
-  "time": "18:02:57"
+  "time": "18:50:24"
  },
  {
   "screenshot": "20_library_heat_detector.png",
@@ -239,7 +238,7 @@
  },
  {
   "screenshot": "21_heat_detector.png",
-  "caption": "Model > Add Device: the heat detector 5 cm below the ceiling above the burner.",
+  "caption": "Devices > Add Device (by Quantity): the heat detector 5 cm below the ceiling above the burner.",
   "size": [
    369,
    491
@@ -247,7 +246,7 @@
  },
  {
   "screenshot": "22_thermocouple.png",
-  "caption": "Model > Add Thermocouple: a vertical tree of four thermocouples at 0.6, 1.2, 1.8 and 2.3 m above the burner centre (the same dialog is used four times).",
+  "caption": "Devices > Add Thermocouple: a vertical tree of four thermocouples at 0.6, 1.2, 1.8 and 2.3 m above the burner centre (the same dialog is used four times).",
   "size": [
    259,
    159
@@ -255,7 +254,7 @@
  },
  {
   "screenshot": "23_slice_slice_t_y.png",
-  "caption": "Model > Add Slice: a temperature slice through the burner (Y = 2.4 m).",
+  "caption": "Output > Add Slice: a temperature slice through the burner (Y = 2.4 m).",
   "size": [
    291,
    289
@@ -263,7 +262,7 @@
  },
  {
   "screenshot": "24_slice_slice_t_x.png",
-  "caption": "Model > Add Slice: a second temperature slice across the room (X = 3.0 m).",
+  "caption": "Output > Add Slice: a second temperature slice across the room (X = 3.0 m).",
   "size": [
    291,
    289
@@ -271,7 +270,7 @@
  },
  {
   "screenshot": "25_slice_slice_vis_z.png",
-  "caption": "Model > Add Slice: a visibility slice at head height (Z = 1.5 m).",
+  "caption": "Output > Add Slice: a visibility slice at head height (Z = 1.5 m).",
   "size": [
    291,
    289
@@ -294,7 +293,7 @@
     "SLICE_VIS_Z"
    ]
   },
-  "time": "18:03:12"
+  "time": "18:50:40"
  },
  {
   "screenshot": "26_model_isometric.png",
@@ -330,7 +329,7 @@
  },
  {
   "screenshot": "30_validation.png",
-  "caption": "Model > Validate: the findings appear in the Validation tab at the bottom. Double-click a finding to select the object it is about.",
+  "caption": "Model > Validate Project: the findings appear in the Validation tab at the bottom. Double-click a finding to select the object it is about.",
   "size": [
    1360,
    715
@@ -346,17 +345,17 @@
    ],
    "notes": []
   },
-  "time": "18:03:21"
+  "time": "18:50:49"
  },
  {
   "step": "J1 save",
   "outcome": "ok",
   "detail": "E:\\firetwins\\client_demos\\example_1\\example_1.pyfds",
-  "time": "18:03:22"
+  "time": "18:50:50"
  },
  {
   "screenshot": "31_run_dialog.png",
-  "caption": "Run > Run Simulation: where to run (this computer, one process - the model has one mesh), the folder for the input and results, the FDS version, and the 'Before you run' summary of the model and its checks.",
+  "caption": "Analysis > Run Simulation: where to run (this computer, one process - the model has one mesh), the folder for the input and results, the FDS version, and the 'Before you run' summary of the model and its checks.",
   "size": [
    542,
    400
@@ -366,7 +365,7 @@
   "step": "K1 run started",
   "outcome": "ok",
   "detail": "E:\\firetwins\\client_demos\\example_1\\run",
-  "time": "18:03:23"
+  "time": "18:50:52"
  },
  {
   "screenshot": "32_run_monitor_25.png",
@@ -404,7 +403,7 @@
   "step": "message box: Simulation complete",
   "outcome": "info",
   "detail": "Output: E:\\firetwins\\client_demos\\example_1\\run",
-  "time": "18:43:21"
+  "time": "19:34:44"
  },
  {
   "screenshot": "36_run_finished.png",
@@ -419,20 +418,20 @@
   "outcome": "ok",
   "detail": {
    "state": "done",
-   "wall_clock_s": "2396.016",
-   "minutes_waited": 40.1
+   "wall_clock_s": "2630.629",
+   "minutes_waited": 44.0
   },
-  "time": "18:43:25"
+  "time": "19:34:48"
  },
  {
   "step": "L1 screen recording",
   "outcome": "ok",
   "detail": {
    "video": "E:\\firetwins\\documentation\\videos\\example_1_build_and_run.mp4",
-   "frames": 471,
-   "seconds": 94.2
+   "frames": 484,
+   "seconds": 96.8
   },
-  "time": "18:43:27"
+  "time": "19:34:51"
  },
  {
   "screenshot": "37_results_empty.png",
@@ -444,15 +443,15 @@
  },
  {
   "screenshot": "38_results_file_menu.png",
-  "caption": "PyFDS Results, File menu: Load Results opens the .smv file of a run.",
+  "caption": "PyFDS Results, File menu: Open Results (.smv) opens the .smv file of a run.",
   "size": [
-   373,
-   577
+   348,
+   469
   ]
  },
  {
   "screenshot": "39_results_loaded.png",
-  "caption": "File > Load Results with example_1.smv: the geometry is shown and the Navigation View on the left lists every result of the run.",
+  "caption": "File > Open Results (.smv) with example_1.smv: the geometry is shown and the Navigation View on the left lists every result of the run.",
   "size": [
    1360,
    715
@@ -462,14 +461,14 @@
   "step": "R1 open results in PyFDS Results",
   "outcome": "ok",
   "detail": {
-   "seconds": 2.97,
+   "seconds": 2.88,
    "datasets": 17,
    "time_range_s": [
     0.0,
     60.0
    ]
   },
-  "time": "19:58:28"
+  "time": "20:22:14"
  },
  {
   "screenshot": "40_results_view_1.png",
@@ -485,7 +484,7 @@
   "detail": [
    "root/FDS Results/2D Slices/TEMPERATURE/SLICE_T_Y (Y = 2.4)/Mesh 1"
   ],
-  "time": "19:58:31"
+  "time": "20:22:16"
  },
  {
   "screenshot": "41_results_view_2.png",
@@ -501,7 +500,7 @@
   "detail": [
    "root/FDS Results/2D Slices/TEMPERATURE/SLICE_T_Y (Y = 2.4)/Mesh 1"
   ],
-  "time": "19:58:33"
+  "time": "20:22:18"
  },
  {
   "screenshot": "42_results_view_3.png",
@@ -518,7 +517,7 @@
    "root/FDS Results/2D Slices/TEMPERATURE/SLICE_T_Y (Y = 2.4)/Mesh 1",
    "root/FDS Results/2D Slices/TEMPERATURE/SLICE_T_X (X = 3)/Mesh 1"
   ],
-  "time": "19:58:36"
+  "time": "20:22:21"
  },
  {
   "screenshot": "43_results_view_4.png",
@@ -535,7 +534,7 @@
    "root/FDS Results/3D Smoke/SOOT DENSITY/Mesh 1",
    "root/FDS Results/3D Smoke/HRRPUV/Mesh 1"
   ],
-  "time": "19:58:42"
+  "time": "20:22:27"
  },
  {
   "screenshot": "44_results_view_5.png",
@@ -552,7 +551,7 @@
    "root/FDS Results/3D Smoke/SOOT DENSITY/Mesh 1",
    "root/FDS Results/3D Smoke/HRRPUV/Mesh 1"
   ],
-  "time": "19:58:46"
+  "time": "20:22:31"
  },
  {
   "screenshot": "45_results_view_6.png",
@@ -568,7 +567,7 @@
   "detail": [
    "root/FDS Results/2D Slices/SOOT VISIBILITY/SLICE_VIS_Z (Z = 1.5)/Mesh 1"
   ],
-  "time": "19:58:48"
+  "time": "20:22:33"
  },
  {
   "screenshot": "46_results_view_7.png",
@@ -585,11 +584,11 @@
    "devices/all",
    "root/FDS Results/2D Slices/TEMPERATURE/SLICE_T_Y (Y = 2.4)/Mesh 1"
   ],
-  "time": "19:58:51"
+  "time": "20:22:35"
  },
  {
   "screenshot": "47_time_plot.png",
-  "caption": "Analysis > Time History Plot after File > Load CSV with the heat release (_hrr.csv) and device (_devc.csv) files: tick the series to plot.",
+  "caption": "Tools > Time History Plot after File > Load CSV File with the heat release (_hrr.csv) and device (_devc.csv) files: tick the series to plot.",
   "size": [
    900,
    520
@@ -624,7 +623,7 @@
     "example_1_devc.csv/TC_230"
    ]
   },
-  "time": "19:58:54"
+  "time": "20:22:39"
  },
  {
   "screenshot": "48_results_colorbar_dialog.png",
@@ -644,7 +643,7 @@
  },
  {
   "screenshot": "50_results_movie_dialog.png",
-  "caption": "File > Save Movie: an MP4 of the time range at a chosen frame rate and speed.",
+  "caption": "File > Movie > Save Movie: an MP4 of the time range at a chosen frame rate and speed.",
   "size": [
    300,
    408
@@ -661,17 +660,17 @@
    "movie": "E:\\firetwins\\client_demos\\example_1\\results\\example_1.mp4",
    "encoded": true
   },
-  "time": "20:00:50"
+  "time": "20:24:35"
  },
  {
   "step": "R5 save visualization",
   "outcome": "ok",
   "detail": "example_1.pyfdsv",
-  "time": "20:00:51"
+  "time": "20:24:36"
  },
  {
   "screenshot": "51_smokeview_window.png",
-  "caption": "Smokeview 6.10.1 (Run > Open Smokeview, or double-click the .smv file) while the script runs: the room seen from the front at t = 1 s, before smoke has formed; the pictures the script rendered follow. Right-click in the window for the menus.",
+  "caption": "Smokeview 6.10.1 (Results > Open Smokeview... in the editor, or double-click the .smv file) while the script renders: the case's geometry with the scripted data loaded; right-click in the window for the menus.",
   "size": "window"
  },
  {
@@ -679,10 +678,10 @@
   "outcome": "ok",
   "detail": {
    "video": "E:\\firetwins\\documentation\\videos\\example_1_post_processing.mp4",
-   "frames": 166,
-   "seconds": 33.2
+   "frames": 164,
+   "seconds": 32.8
   },
-  "time": "20:01:01"
+  "time": "20:24:46"
  },
  {
   "screenshot": "52_smv_smoke_t30.png",
@@ -716,6 +715,6 @@
    ],
    "desktop_capture": true
   },
-  "time": "20:01:01"
+  "time": "20:24:46"
  }
 ]

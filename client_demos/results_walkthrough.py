@@ -91,13 +91,13 @@ d.pump(1.5)
 rec = ScreenRecorder(ROOT / "documentation" / "videos" / f"{CASE}_post_processing.mp4")
 d.shot(win, "results_empty", "PyFDS Results (Results > Open PyFDS Results in the editor, or the PyFDS Results shortcut) "
                              "before a run is loaded.")
-d.menu_shot(win, "File", "results_file_menu", "PyFDS Results, File menu: Load Results opens the .smv file of a run.")
+d.menu_shot(win, "File", "results_file_menu", "PyFDS Results, File menu: Open Results (.smv) opens the .smv file of a run.")
 QFileDialog.getOpenFileName = staticmethod(lambda *a, **k: (str(SMV), "Smokeview (*.smv)"))
 t0 = time.perf_counter()
 win.open_results()
 d.pump(2.0)
 v = win.viewer
-d.shot(win, "results_loaded", f"File > Load Results with {SMV.name}: the geometry is shown and the Navigation View on "
+d.shot(win, "results_loaded", f"File > Open Results (.smv) with {SMV.name}: the geometry is shown and the Navigation View on "
                               "the left lists every result of the run.")
 d.step("R1 open results in PyFDS Results", "ok" if v.run is not None else "failed",
        {"seconds": round(time.perf_counter() - t0, 2), "datasets": len(list(v.tree.leaves())),
@@ -151,7 +151,7 @@ for i in range(plot.list.count()):
     if plot.list.item(i).text().split("/")[-1].strip() in wanted:
         plot.list.item(i).setCheckState(Qt.Checked)
 d.pump(1.0)
-d.shot(plot, "time_plot", "Analysis > Time History Plot after File > Load CSV with the heat release (_hrr.csv) and device "
+d.shot(plot, "time_plot", "Tools > Time History Plot after File > Load CSV File with the heat release (_hrr.csv) and device "
                           "(_devc.csv) files: tick the series to plot.")
 d.step("R3 time history plot", "ok" if series else "failed", {"csv": loaded, "series": series[:20]})
 plot.close()
@@ -166,7 +166,7 @@ from pyfds.gui.results.dialogs import MovieDialog, ScreenshotDialog             
 d.drive(lambda: ScreenshotDialog(v, win, (win.view.width(), win.view.height())).exec(), "results_screenshot_dialog",
         "File > Save Screenshot: one picture, a series over time, or one per saved view, at a chosen size.", accept=False)
 d.drive(lambda: MovieDialog(v, win, (1280, 720)).exec(), "results_movie_dialog",
-        "File > Save Movie: an MP4 of the time range at a chosen frame rate and speed.", accept=False)
+        "File > Movie > Save Movie: an MP4 of the time range at a chosen frame rate and speed.", accept=False)
 renderer = win.view.make_renderer(v)
 stills = []
 for t in (SCENES[CASE][0][2], SCENES[CASE][1][2]):
@@ -199,7 +199,9 @@ else:
     b.set_time(25.0).screenshot("smv_smoke_t25")
 script = RUN / f"{CHID}_demo.ssf"
 b.write(str(script))                                         # Smokeview closes by itself when the script ends
-before = {p.name for p in RUN.glob("smv_*.png")}
+for old in RUN.glob("smv_*.png"):                           # a rerun: the same names, so 'new' must mean new files
+    old.unlink()
+before = set()
 proc = subprocess.Popen([str(smokeview), "-script", script.name, SMV.name], cwd=str(RUN), startupinfo=shown_window())
 deadline = time.monotonic() + 240
 expected = 4
@@ -212,7 +214,7 @@ while time.monotonic() < deadline and len({p.name for p in RUN.glob("smv_*.png")
 d.pump(2.0)
 if grabbed:
     d.n += 1
-    d.log.append({"screenshot": desk.name, "caption": "Smokeview 6.10.1 (Run > Open Smokeview, or double-click the .smv "
+    d.log.append({"screenshot": desk.name, "caption": "Smokeview 6.10.1 (Results > Open Smokeview... in the editor, or double-click the .smv "
                   "file) while the script renders: the case's geometry with the scripted data loaded; right-click in "
                   "the window for the menus.", "size": "window"})
 proc.terminate()

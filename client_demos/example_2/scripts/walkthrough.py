@@ -82,7 +82,7 @@ def fill_sim(dlg) -> None:
 
 
 d.drive(win._on_simulation_parameters, "simulation_parameters",
-        "Model > Simulation Parameters: T_END reduced from 600 s to 25 s so the demo runs in about half an hour; "
+        "Model > Simulation Parameters: T_END reduced from 600 s to 25 s so the demo run stays short; "
         "nothing else in the case is changed.", fill_sim, accept=False)
 d.step("B2 shorten run", "ok" if p.params.t_end == 25.0 else "failed", {"t_end": p.params.t_end})
 
@@ -96,7 +96,7 @@ view(zoom=1.6)
 win._on_validate()
 d.pump(1.0)
 rep = api.validation.validate()
-d.shot(win, "validation", "Model > Validate on the imported case.")
+d.shot(win, "validation", "Model > Validate Project on the imported case.")
 d.step("C1 validation", "ok" if not rep.errors else "failed",
        {"errors": [r.message for r in rep.errors], "warnings": [r.message for r in rep.warnings],
         "notes": [r.message for r in rep.infos]})
@@ -120,7 +120,7 @@ def fill_run(dlg) -> None:
 
 started = time.monotonic()
 d.drive(win._on_run_simulation, "run_dialog",
-        "Run > Run Simulation with four meshes: 'This computer, in parallel (MPI)' is preselected with one process per "
+        "Analysis > Run Simulation with four meshes: 'This computer, in parallel (MPI)' is preselected with one process per "
         "mesh; the table shows which mesh each process computes and the summary shows the cells per process.", fill_run)
 d.step("D1 run started", "ok" if win._run_handle is not None else "failed", str(RUN))
 if win._run_handle is None:

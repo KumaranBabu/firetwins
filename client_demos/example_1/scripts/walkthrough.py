@@ -46,7 +46,7 @@ def view(preset=CameraPreset.ISOMETRIC, zoom: float = 1.0) -> None:
 d.shot(win, "editor_start", "PyFDS opens maximized with an empty project: menus and toolbars at the top, the "
                             "Project Explorer and Properties on the left, the 3D view in the centre.")
 d.step("A1 launch PyFDS editor", "ok", f"window {win.width()}x{win.height()}")
-d.menu_shot(win, "File", "file_menu", "File menu: New, Open, Save, Import and Export.")
+d.menu_shot(win, "File", "file_menu", "File menu: New, Open, Save, Preferences, Import, Export and Project Settings.")
 
 # B -- project and simulation settings -------------------------------------------------------------------------------
 d.drive(win._on_project_settings, "project_settings",
@@ -104,7 +104,7 @@ def fill_room(dlg) -> None:
 
 
 d.drive(d.menu_action(win, "Draw", "Draw Room (walls, door, window)...").trigger, "draw_room",
-        "Draw > Draw Room: walls, ceiling and two openings - a 0.9 x 2.1 m door in the south wall and a "
+        "Model > Draw > Draw Room: walls, ceiling and two openings - a 0.9 x 2.1 m door in the south wall and a "
         "1.2 x 1.05 m window (sill 0.9 m) in the east wall.", fill_room)
 view(zoom=2.0)
 d.shot(win, "room_in_view", "The room (4.8 x 3.3 x 2.4 m inside the mesh) with its door and window.")
@@ -112,7 +112,7 @@ d.step("D1 room", "ok", {"obstructions": len(api.project.obstructions), "holes":
 
 # E -- fire --------------------------------------------------------------------------------------------------------------
 d.drive(d.menu_action(win, "Model", "Add Typed Surface (burner, supply, exhaust...)...").trigger, "burner_surface",
-        "Model > Add Typed Surface, burner: 500 kW/m2, reached along a t-squared curve in 15 s (TAU_Q = -15).",
+        "Model > Add Special > Add Typed Surface, burner: 500 kW/m2, reached along a t-squared curve in 15 s (TAU_Q = -15).",
         d.fields(kind="burner", name="BURNER_SURF", heat_release_rate=500, tau_q=-15, color="ORANGE"))
 d.drive(lambda: win._on_add_entity("add_obstruction"), "burner_block",
         "Model > Add Obstruction: the burner body, a 0.6 x 0.6 x 0.15 m inert block in the middle of the room.",
@@ -145,24 +145,20 @@ d.step("E1 fire and reaction", "ok" if (reac.soot_yield, reac.co_yield) == (0.02
        {"hrrpua": api.project.surfaces[-1].heat_release_rate if api.project.surfaces else None,
         "soot_yield": reac.soot_yield, "co_yield": reac.co_yield})
 
-# F -- open boundaries, then close the floor ---------------------------------------------------------------------------
+# F -- open boundaries (the floor stays closed) --------------------------------------------------------------------------
 d.menu_action(win, "Model", "Open Mesh Boundaries").trigger()
 d.pump(0.6)
 vents = [v.name for v in api.project.vents]
 d.step("F1 open mesh boundaries", "ok", vents)
-floor = next((v for v in api.project.vents if v.z_min == v.z_max == 0.0 and v.surface_id == "OPEN"), None)
-if floor is not None:
-    win.explorer.select_entity("vents", floor)
+opened = [v for v in api.project.vents if v.surface_id == "OPEN"]
+if opened:
+    win.explorer.select_entity("vents", opened[-1])          # opens the Vents group of the Project Explorer
     d.pump(0.4)
-    d.shot(win, "floor_vent_selected", "Open Mesh Boundaries opens all six faces of the mesh. The floor of a room "
-                                       "standing on the ground must stay closed: select DOMAIN_ZMIN_OPEN in the "
-                                       "Project Explorer and press Delete.")
-    real_question = QMessageBox.question
-    QMessageBox.question = staticmethod(lambda *a, **k: QMessageBox.Yes)     # the user answers Yes to "Remove ...?"
-    win._on_delete_selected()
-    QMessageBox.question = real_question
-    d.pump(0.4)
-d.step("F2 floor closed", "ok" if not any(v.z_min == v.z_max == 0.0 for v in api.project.vents) else "failed",
+    d.shot(win, "open_boundaries", f"Model > Open Mesh Boundaries: {len(opened)} OPEN vents on the sides and the top "
+                                   "of the mesh (listed under Vents). The floor stays closed: the room stands on the "
+                                   "ground.")
+d.step("F2 floor closed", "ok" if not any(v.z_min == v.z_max == 0.0 and v.surface_id == "OPEN"
+                                          for v in api.project.vents) else "failed",
        [v.name for v in api.project.vents])
 
 # G -- instruments and outputs -------------------------------------------------------------------------------------------
@@ -170,17 +166,17 @@ d.drive(d.menu_action(win, "Model", "Library...").trigger, "library_heat_detecto
         "Model > Library: a heat detector property (RTI 5, activation 74 C).",
         library_pick("heat_detectors", "heat_detector_74C"), accept=False)
 d.drive(lambda: win._on_add_entity("add_device"), "heat_detector",
-        "Model > Add Device: the heat detector 5 cm below the ceiling above the burner.",
+        "Devices > Add Device (by Quantity): the heat detector 5 cm below the ceiling above the burner.",
         d.fields(quantity="LINK TEMPERATURE", xyz="3.0,2.4,2.35", name="HEAT_DET", prop_id="HEAT_DETECTOR_74C"))
 for i, z in enumerate((0.6, 1.2, 1.8, 2.3)):
     d.drive(lambda: win._on_add_entity("add_thermocouple"), "thermocouple" if i == 0 else None,
-            "Model > Add Thermocouple: a vertical tree of four thermocouples at 0.6, 1.2, 1.8 and 2.3 m above the burner "
+            "Devices > Add Thermocouple: a vertical tree of four thermocouples at 0.6, 1.2, 1.8 and 2.3 m above the burner "
             "centre (the same dialog is used four times).",
             d.fields(xyz=f"3.0,2.4,{z}", devc_id=f"TC_{round(z * 100):03d}"))
 for plane, pos, qty, name, cap in (("Y", 2.4, "TEMPERATURE", "SLICE_T_Y", "a temperature slice through the burner (Y = 2.4 m)"),
                                    ("X", 3.0, "TEMPERATURE", "SLICE_T_X", "a second temperature slice across the room (X = 3.0 m)"),
                                    ("Z", 1.5, "VISIBILITY", "SLICE_VIS_Z", "a visibility slice at head height (Z = 1.5 m)")):
-    d.drive(lambda: win._on_add_entity("add_slice"), f"slice_{name.lower()}", f"Model > Add Slice: {cap}.",
+    d.drive(lambda: win._on_add_entity("add_slice"), f"slice_{name.lower()}", f"Output > Add Slice: {cap}.",
             d.fields(quantity=qty, plane=plane, position=pos, name=name))
 d.step("G1 instruments and outputs", "ok", {"devices": [x.name for x in api.project.devices],
                                             "slices": [s.name for s in api.project.slices]})
@@ -203,7 +199,7 @@ for attr, title in (("surfaces", "Edit Surfaces"), ("devices", "Edit Devices")):
 win._on_validate()
 d.pump(1.0)
 rep = api.validation.validate()
-d.shot(win, "validation", "Model > Validate: the findings appear in the Validation tab at the bottom. Double-click a "
+d.shot(win, "validation", "Model > Validate Project: the findings appear in the Validation tab at the bottom. Double-click a "
                           "finding to select the object it is about.")
 d.step("I1 validation", "ok" if not rep.errors else "failed",
        {"errors": [r.message for r in rep.errors], "warnings": [r.message for r in rep.warnings],
@@ -214,7 +210,7 @@ QFileDialog.getSaveFileName = staticmethod(lambda *a, **k: (str(PROJECT), "PyFDS
 win._on_save_as()
 d.pump(0.6)
 from pyfds.io.fds_writer import FdsWriter                                         # noqa: E402
-FdsWriter().write(api.project, str(HERE / "example_1.fds"))                       # the same as File > Export > FDS
+FdsWriter().write(api.project, str(HERE / "example_1.fds"))                       # the same as File > Export > Export as FDS
 d.step("J1 save", "ok" if PROJECT.exists() else "failed", str(PROJECT))
 
 # K -- run -------------------------------------------------------------------------------------------------------------------
@@ -230,7 +226,7 @@ def fill_run(dlg) -> None:
 
 started = time.monotonic()
 d.drive(win._on_run_simulation, "run_dialog",
-        "Run > Run Simulation: where to run (this computer, one process - the model has one mesh), the folder for "
+        "Analysis > Run Simulation: where to run (this computer, one process - the model has one mesh), the folder for "
         "the input and results, the FDS version, and the 'Before you run' summary of the model and its checks.",
         fill_run)
 d.step("K1 run started", "ok" if win._run_handle is not None else "failed", str(RUN))

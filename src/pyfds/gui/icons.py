@@ -9,7 +9,8 @@ high-DPI screens and the colours are one table (``TASK_COLORS``). The colour tel
     slate   edit and transform          indigo   camera and display   pink  dimensions, labels, tours
 
 Public API
-    icon(key, task=None, gray=False)        a QIcon for a glyph key
+    icon(key, task=None, gray=False, badge=None)  a QIcon for a glyph key ("mesh"; "mesh+add" adds a corner badge: add,
+                                            import, export, library, open; "undo@view" recolours it to another task)
     icon_for_text(text, menu="")            the icon for a menu / toolbar entry, chosen from its wording
     icon_for_entity(attr, entity=None)      the Project Explorer row of a model object
     icon_for_node(kind, label)              the Navigation View row of a results node
@@ -25,20 +26,39 @@ from PySide6.QtGui import QColor, QIcon, QImage, QPainter, QPixmap
 from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtWidgets import QMenu, QToolBar, QWidget
 
+from .icon_commands import COMMAND_GLYPHS, OPTION_MENUS
 from .icon_glyphs import GLYPHS, TASK_COLORS
 
 SIZES = (16, 20, 24, 32, 48)
-_cache: Dict[Tuple[str, str, bool], QIcon] = {}
+_cache: Dict[Tuple[str, str, bool, str], QIcon] = {}
+
+# corner badges: a disc in the lower right with the verb, so "Import Materials" shows a material that comes in and
+# "Add Mesh" a mesh with a plus, instead of every Import / Add entry of a menu showing the same picture
+_BADGES = {
+    "add": ("#2e9e2e", '<path d="M18 14.6v6.8M14.6 18h6.8" stroke="#fff" stroke-width="2" stroke-linecap="round"/>'),
+    "import": ("#3f6fb5", '<path d="M18 14.3v6.2M15.3 17.9 18 20.6l2.7-2.7" fill="none" stroke="#fff" stroke-width="1.8" '
+                          'stroke-linecap="round" stroke-linejoin="round"/>'),
+    "export": ("#3f6fb5", '<path d="M18 21.7v-6.2M15.3 18.1 18 15.4l2.7 2.7" fill="none" stroke="#fff" stroke-width="1.8" '
+                          'stroke-linecap="round" stroke-linejoin="round"/>'),
+    "library": ("#8d6e63", '<path d="M15.2 15v6M18 15v6" stroke="#fff" stroke-width="1.7"/>'
+                           '<path d="M20 15.2l1.6 5.6" stroke="#ffca28" stroke-width="1.7"/>'),
+    "open": ("#00897b", '<path d="M14.6 18h6.8M16.3 16.3 14.6 18l1.7 1.7M19.7 16.3l1.7 1.7-1.7 1.7" fill="none" stroke="#fff" '
+                        'stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'),
+}
 
 
 def _shade(color: str, factor: int) -> str:
     return QColor(color).darker(factor).name() if factor > 100 else QColor(color).lighter(-factor).name()
 
 
-def _svg(key: str, task: Optional[str]) -> str:
+def _svg(key: str, task: Optional[str], badge: str = "") -> str:
     own_task, body = GLYPHS[key]
     c = TASK_COLORS[task or own_task]
     body = body.replace("@c", c).replace("@d", _shade(c, 140)).replace("@l", _shade(c, -170))
+    if badge:
+        fill, mark = _BADGES[badge]
+        body = (f'<g transform="scale(.84)">{body}</g>'
+                f'<circle cx="18" cy="18" r="5.6" fill="{fill}" stroke="#fff" stroke-width="1.2"/>{mark}')
     return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">{body}</svg>'
 
 
@@ -62,14 +82,19 @@ def _render(svg: str, size: int, gray: bool) -> QPixmap:
     return pm
 
 
-def icon(key: str, task: Optional[str] = None, gray: bool = False) -> QIcon:
+def icon(key: str, task: Optional[str] = None, gray: bool = False, badge: Optional[str] = None) -> QIcon:
     """The icon for glyph *key* (unknown keys give the plain dot). *task* recolours it to another task's colour;
-    *gray* is the muted version used for disabled model objects."""
+    *gray* is the muted version used for disabled model objects; *badge* (or ``key+badge``) adds a corner badge."""
+    if "@" in key:                                          # "undo@view": the glyph in another task's colour
+        key, task = key.split("@", 1)
+    if "+" in key:
+        key, badge = key.split("+", 1)
     if key not in GLYPHS:
         key = "dot"
-    ck = (key, task or "", gray)
+    badge = badge if badge in _BADGES else ""
+    ck = (key, task or "", gray, badge)
     if ck not in _cache:
-        svg = _svg(key, task)
+        svg = _svg(key, task, badge)
         out = QIcon()
         for s in SIZES:
             out.addPixmap(_render(svg, s, gray))
@@ -77,9 +102,9 @@ def icon(key: str, task: Optional[str] = None, gray: bool = False) -> QIcon:
     return _cache[ck]
 
 
-def svg_text(key: str, task: Optional[str] = None) -> str:
+def svg_text(key: str, task: Optional[str] = None, badge: str = "") -> str:
     """The SVG source of a glyph (used by the tests and by anyone who wants to export the picture)."""
-    return _svg(key, task)
+    return _svg(key, task, badge)
 
 
 # -- menu and toolbar wording -> glyph ---------------------------------------------------------------------------------
@@ -96,7 +121,7 @@ TEXT_RULES = [
     (r"project explorer|navigation view", "folder"), (r"layouts|workspace", "split"), (r"user manual", "help"), (r"^examples", "viewcube"),
     (r"navigation tool", "orbit"), (r"fds actual|fds requested|^ge1", "box"), (r"date/time", "time"),
     (r"fahrenheit|kelvin|^default \(|concentration|mass fraction|^ppm", "units"), (r"^none$", "cancel"), (r"motion blur", "rendering"),
-    (r"reset to viewpoint", "resetview"), (r"cache results", "database"),
+    (r"cache results", "database"),
     (r"^new from template", "new"), (r"^new results", "new"), (r"^new view", "viewsaved"), (r"^new tour", "tour"), (r"^new\b", "new"),
     (r"open results \(\.smv\)|^load results", "load"), (r"open results|^open\b", "open"), (r"^recent", "recent"),
     (r"^save as", "saveas"), (r"save screenshot", "camera"), (r"save 360", "movie360"), (r"save movie|record movie", "movie"),
@@ -118,24 +143,23 @@ TEXT_RULES = [
     (r"section", "section"), (r"split|horizontal|vertical|four-way", "split"), (r"fullscreen", "fullscreen"),
     (r"^theme|^light$|^dark$", "theme"), (r"units|metric|imperial", "units"),
     (r"^top$", "viewtop"), (r"^bottom$", "viewtop"), (r"^front$|^back$", "viewfront"), (r"left side|right side|^side|^left$|^right$", "viewside"),
-    (r"isometric", "viewcube"), (r"orthogonal|perspective|projection", "ortho"),
+    (r"orthogonal|projection", "ortho"), (r"perspective", "perspective"),
     (r"^orbit", "orbit"), (r"^pan", "pan"), (r"^zoom", "zoom"), (r"^roam", "roam"),
     (r"draw room", "room"), (r"cancel draw|^cancel", "cancel"),
-    (r"boolean", "union"), (r"^union", "union"), (r"^difference", "difference"), (r"^intersection", "intersection"),
+    (r"boolean", "union"), (r"^union", "union"), (r"^difference", "difference"),
     (r"cylinder", "cylinder"), (r"sphere", "sphere"), (r"\bcone\b", "cone"), (r"\bpipe\b", "pipe"), (r"beam detector", "beamdet"),
     (r"\bbeam\b|column|girder", "beam"), (r"\bwall\b", "wall"), (r"\bdoor\b|window", "door"),
     (r"^draw|stl|geometry \(", "box"),
-    (r"simulation parameters", "simparams"), (r"validat", "validate"), (r"auto-?fix", "autofix"), (r"geometry repair", "repair"),
-    (r"voxel|convert to blocks", "voxel"),
+    (r"simulation parameters", "simparams"), (r"auto-?fix", "autofix"), (r"geometry repair", "repair"),
     (r"library|import from library", "library"), (r"database", "database"),
     (r"\bmesh", "mesh"), (r"obstruction", "box"), (r"\bvent", "vent"), (r"\bhole", "hole"),
-    (r"surface", "surface"), (r"material", "material"), (r"reaction", "reaction"), (r"species|zone", "species"),
+    (r"surface", "surface"), (r"material", "material"), (r"reaction", "reaction"), (r"\bzone", "zone"), (r"species", "species"),
     (r"ramp", "ramp"), (r"control", "control"), (r"\bprop\b|property", "prop"), (r"init", "init"), (r"particle", "particles"),
     (r"floor", "floors"), (r"scenario", "scenario"), (r"\bgeom", "geom"),
     (r"heat flux", "heatflux"), (r"smoke detector", "smokedet"), (r"gas", "gas"), (r"anemometer|velocity probe", "anemometer"),
     (r"pressure", "gauge"), (r"nozzle|sprinkler", "nozzle"), (r"thermocouple|temperature", "thermometer"),
-    (r"heat detector|detector", "heatdet"), (r"device labels", "label"), (r"profile|line", "sensorline"), (r"device|devc", "device"),
-    (r"isosurface|isof", "iso"), (r"slice", "slice"), (r"boundary|bndf", "boundary"), (r"plot3d", "plot3d"),
+    (r"heat detector|detector", "heatdet"), (r"device labels", "label"), (r"outline", "shaded_outline"), (r"profile|\bline\b", "sensorline"), (r"device|devc", "device"),
+    (r"slice", "slice"), (r"boundary|bndf", "boundary"), (r"plot3d", "plot3d"),
     (r"frequency|timeline|time display|^time", "time"),
     (r"duct", "duct"), (r"\bfan", "fan"), (r"node", "node"), (r"damper", "damper"), (r"filter", "hvacfilter"),
     (r"leak", "leak"), (r"coil", "aircoil"), (r"hvac", "duct"),
@@ -162,7 +186,11 @@ def _clean(text: str) -> str:
 
 
 def glyph_for_text(text: str) -> Optional[str]:
+    """The glyph for a menu entry: its own entry in ``COMMAND_GLYPHS`` if it has one ("" = no icon), else the first
+    wording rule that matches."""
     t = _clean(text)
+    if t in COMMAND_GLYPHS:
+        return COMMAND_GLYPHS[t]
     for rx, key in _COMPILED:
         if rx.search(t):
             return key
@@ -173,7 +201,7 @@ def icon_for_text(text: str, menu: str = "") -> QIcon:
     key = glyph_for_text(text)
     if key is None:
         return icon("dot", task=MENU_TASKS.get(_clean(menu), "file"))
-    return icon(key)
+    return icon(key) if key else QIcon()
 
 
 # -- Project Explorer (the model editor's tree) ------------------------------------------------------------------------
@@ -230,8 +258,12 @@ def icon_for_node(kind: str, label: str = "") -> QIcon:
 # -- installing on a window --------------------------------------------------------------------------------------------------
 def _decorate_menu(menu: QMenu, top: str, seen: set) -> int:
     n = 0
+    options = _clean(menu.title()) in OPTION_MENUS        # the choices of one setting: the check mark says it all
     for act in menu.actions():
         if act.isSeparator():
+            continue
+        if options and act.menu() is None:
+            act.setIcon(QIcon())
             continue
         if act.icon().isNull():
             act.setIcon(icon_for_text(act.text(), top))

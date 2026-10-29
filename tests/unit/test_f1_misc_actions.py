@@ -120,9 +120,9 @@ def test_geometry_repair_menu_entries_open_the_dialog_on_the_selected_shape(w, m
     monkeypatch.setattr(GeometryRepairDialog, "exec", lambda self: seen.append(self.current()) or 0)
     g = _broken_shape(w.api)
     w.explorer.select_entity("geom", g)
-    for menu, label in (("Model", "Geometry Repair..."), ("Tools", "Geometry Repair...")):
-        next(a for a in _menu(w, menu).actions() if a.text().replace("&", "") == label).trigger()
-    assert seen == ["bad", "bad"]
+    next(a for a in _menu(w, "Tools").actions() if a.text().replace("&", "") == "Geometry Repair...").trigger()
+    assert seen == ["bad"]
+    assert not [a for a in _menu(w, "Model").actions() if a.text().replace("&", "") == "Geometry Repair..."]   # once, in Tools
 
 
 # -- export ---------------------------------------------------------------------------------------------------------------

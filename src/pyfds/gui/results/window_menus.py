@@ -86,7 +86,6 @@ class ResultsWindowMenusMixin:
             self._act(an, label, slot)
 
         pf = mb.addMenu("&Preferences")
-        self._act(pf, "&FDS Preferences...", self.fds_prefs)
         self._act(pf, "&Colorbar...", self.colorbar_prefs)
         self._act(pf, "3D S&moke...", lambda: self._edit("3D Smoke", v.viz.smoke3d, v.set_smoke3d,
                                                           {"preset": vm.SMOKE_PRESETS, "fire_rendering": ("radiant", "volumetric")}))

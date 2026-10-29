@@ -22,7 +22,6 @@ class MenusRunResultsMixin:
         scenarios_menu.addSeparator()
 
         scenarios_menu.addAction("&Export All Scenarios (folder)...", self._on_export_scenarios)
-        scenarios_menu.addAction("&Import Scenarios...", self._on_import_scenarios_dialog)
 
 
     def _build_floors_menu(self) -> None:

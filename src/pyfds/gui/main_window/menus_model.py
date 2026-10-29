@@ -38,7 +38,6 @@ class MenusModelMixin:
         # Validation and repair
         self._validate_action = model_menu.addAction("&Validate Project", self._on_validate)
         model_menu.addAction("Auto-&Fix", self._on_auto_fix)
-        model_menu.addAction("Geometry &Repair...", self._on_geometry_repair)
 
         model_menu.addSeparator()
 

@@ -133,8 +133,8 @@ def test_row_exists(win, row):
         assert cap.parse_cli([args[0], "x.pyfdsv"]).screenshot
     elif kind == "tool":
         if args[0] == "Time controls":
-            texts = {b.text() for b in win.findChildren(QToolButton)}
-            assert {"|<", ">|", "÷2", "×2"} <= texts and win.loop.text() == "Loop" and win.slider is not None
+            texts = {b.text() or b.toolTip() for b in win.findChildren(QToolButton)}    # first / last frame: icon + tooltip
+            assert {"First frame", "Last frame", "÷2", "×2"} <= texts and win.loop.text() == "Loop" and win.slider is not None
         else:
             assert any(a.text() == args[0] for a in win.findChildren(QAction)), f"{row}: toolbar {args[0]} missing"
     elif kind == "dialog":

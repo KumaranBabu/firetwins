@@ -1,7 +1,7 @@
 """Geometry Repair: check an imported shape for holes, duplicate or degenerate triangles and flipped faces, and repair it.
 
 All logic is ``api.geom.check_geometry`` / ``api.geom.repair`` (one undo step); this dialog shows the numbers before and
-after. Opened from Model > Geometry Repair and Tools > Geometry Repair.
+after. Opened from Tools > Geometry Repair.
 """
 from __future__ import annotations
 

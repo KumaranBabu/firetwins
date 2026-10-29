@@ -25,7 +25,7 @@ class PanelHidingMixin:
         self.panels_action = self._layout_action("Hide Panels", "Ctrl+B", "Hide or show all panels, keeping the toolbars",
                                                  self.toggle_panels)
         self.focus_action.setIcon(icon("focus"))
-        self.panels_action.setIcon(icon("panels"))
+        self.panels_action.setIcon(icon("eye_off"))             # hiding; the Panels submenu keeps the panels glyph
 
     def _layout_action(self, text: str, key: str, tip: str, slot) -> QAction:
         a = QAction(text, self)

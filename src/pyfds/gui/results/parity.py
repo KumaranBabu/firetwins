@@ -93,16 +93,12 @@ def install_parity(win) -> None:
     win._act(vw, "Edit S&kybox...", lambda: _skybox(win))                                 # V-29
     win._act(vw, "Set 3D Window Si&ze...", lambda: _window_size(win))                     # V-30
     vt = vw.addMenu("Views and &Tours")                                                   # V-31, V-32
-    win._act(vt, "New View", win.new_view)
-    win._act(vt, "New tour", win.new_tour)
     win._act(vt, "Reset to Viewpoint", lambda: (v.activate_view(v.viz.active_view), win._camera_changed()))
     win._act(vt, "Save Viewpoint", lambda: (v.set_camera(win.view.adapter.read_camera(v.camera)) if win.view.interactive else None,
                                             v.save_viewpoint(), win.sync()))
     win._act(vt, "Edit tour...", lambda: _edit_tour(win))
     vt.addSeparator()
-    win._act(vt, "Add section box", lambda: (v.add_section_box(), win.sync(True)))
     win._act(vt, "Edit section properties...", lambda: _section(win))
-    win._act(vt, "Remove section box", lambda: (v.remove_section_box(), win.sync()))
     win._act(vt, "Enable Section Boxes", lambda: (v.enable_section_boxes(not _boxes_on(win)), win.sync()), checkable=True, checked=True)
     win._act(vt, "Duplicate View", lambda: (v.duplicate_views([v.viz.active_view]), win.sync(True)))
 
@@ -111,7 +107,7 @@ def install_parity(win) -> None:
     mb.insertMenu(top_menu(win, "Preferences").menuAction(), an)
     win._act(an, "&Time Settings...", lambda: win._edit("Timelines", v.viz.timelines, lambda **k: v.set_timelines(**k), {
         "display_format": ("regional", "iso8601"), "view_timeline": ("automatic", "custom")}))
-    win._act(an, "&FDS Preferences...", win.fds_prefs)
+    win._act(an, "&FDS Preferences...", win.fds_prefs)                                    # PyroSim keeps it here (V-41, V-121)
     win._act(an, "Cache Results for Smooth &Playback", lambda: _cache(win))
 
     # -- Help (V-50) -----------------------------------------------------------------------------------------------------------
@@ -164,11 +160,14 @@ def install_parity(win) -> None:
                      ("÷2", lambda: win.speed.setValue(max(win.speed.value() / 2, 0.1))),
                      ("×2", lambda: win.speed.setValue(min(win.speed.value() * 2, 100.0)))):
         b = QToolButton()
-        b.setText(text)
-        glyph = {"|<": "tostart", ">|": "toend"}.get(text)
-        if glyph:
+        glyph, tip = {"|<": ("tostart", "First frame"), ">|": ("toend", "Last frame")}.get(text, (None, None))
+        if glyph:                                       # icon only: the glyph is the arrow the text drew
             from pyfds.gui.icons import icon
             b.setIcon(icon(glyph))
+            b.setToolTip(tip)
+        else:
+            b.setText(text)
+            b.setToolTip("Half speed" if text == "÷2" else "Double speed")
         b.clicked.connect(lambda _c=False, f=fn: f())
         bar.addWidget(b)
 

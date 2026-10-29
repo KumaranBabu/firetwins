@@ -15,11 +15,13 @@ class ResultsWindowTimebarMixin:
         self.addToolBar(Qt.BottomToolBarArea, bar)
         self.play_btn = QPushButton("Play")
         self.play_btn.clicked.connect(self._play_pause)
-        step_b, step_f = QPushButton("<"), QPushButton(">")
+        step_b, step_f = QPushButton(), QPushButton()       # the glyph says it; a text arrow beside it said it twice
         from pyfds.gui.icons import icon
         self._play_ui(False)
         step_b.setIcon(icon("stepback"))
         step_f.setIcon(icon("stepfwd"))
+        step_b.setToolTip("Back one frame")
+        step_f.setToolTip("Forward one frame")
         step_b.clicked.connect(lambda: self._step(-1))
         step_f.clicked.connect(lambda: self._step(1))
         self.slider = QSlider(Qt.Horizontal)

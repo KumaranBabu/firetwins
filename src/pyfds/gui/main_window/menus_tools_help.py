@@ -26,7 +26,6 @@ class MenusToolsHelpMixin:
 
         # Utilities
         tools_menu.addAction("&Plugin Manager...", self._on_plugin_manager)
-        tools_menu.addAction("&Preferences...", self._on_preferences)
         tools_menu.addAction("&Units Conversion...", self._on_units_conversion)
         tools_menu.addAction("&Calculator", self._on_calculator)
 
@@ -43,8 +42,6 @@ class MenusToolsHelpMixin:
         # ════════════════════════════════════════════════════════════════════════
         window_menu = self.menuBar().addMenu("&Window")
 
-        window_menu.addAction(self.focus_action)
-        window_menu.addAction(self.panels_action)
         panels_menu = window_menu.addMenu("Show &Panels")             # filled when opened, so panels added later appear too
         panels_menu.aboutToShow.connect(lambda m=panels_menu: self._fill_panels_menu(m))
         toolbars_menu = window_menu.addMenu("Show &Toolbars")

@@ -101,8 +101,7 @@ def install_extras(w) -> None:
     if draw is not None:
         draw.addSeparator()
         draw.addAction("Draw &Room (walls, door, window)...", draw_room)
-        draw.addAction("Draw &Wall...", lambda: tool_dialog("add_wall", "Draw Wall"))
-        draw.addAction("Draw S&tairs...", lambda: tool_dialog("add_stairs", "Draw Stairs"))
+        draw.addAction("Draw &Wall by Coordinates...", lambda: tool_dialog("add_wall", "Draw Wall by Coordinates"))
         draw.addAction("Draw Ro&of...", lambda: tool_dialog("add_roof", "Draw Roof"))
 
     # -- Model ------------------------------------------------------------------

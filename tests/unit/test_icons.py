@@ -28,6 +28,22 @@ def qapp():
     return QApplication.instance() or QApplication([])
 
 
+def _is_option(menu, action) -> bool:
+    """A choice of one setting (Units, Time Display ...): shown without an icon."""
+    return action.menu() is None and icons._clean(menu.title()) in icons.OPTION_MENUS
+
+
+def _menus(window):
+    """(path, [actions]) for every menu of *window*, submenus included."""
+    out, stack = [], [(top.text().replace("&", ""), top.menu()) for top in window.menuBar().actions() if top.menu()]
+    while stack:
+        path, menu = stack.pop()
+        acts = [a for a in menu.actions() if not a.isSeparator()]
+        out.append((path, acts))
+        stack.extend((f"{path} > {a.text().replace('&', '')}", a.menu()) for a in acts if a.menu())
+    return out
+
+
 def _opaque_pixels(svg: str) -> int:
     r = QSvgRenderer(QByteArray(svg.encode()))
     assert r.isValid()
@@ -83,7 +99,7 @@ def test_main_window_every_menu_entry_and_toolbar_button_has_an_icon():
 
     def walk(menu, out):
         for a in menu.actions():
-            if a.isSeparator():
+            if a.isSeparator() or _is_option(menu, a):
                 continue
             out.append(a)
             if a.menu():
@@ -131,7 +147,7 @@ def test_results_window_menus_tree_and_play_button(monkeypatch, tmp_path):
 
     def walk(menu):
         for a in menu.actions():
-            if not a.isSeparator():
+            if not a.isSeparator() and not _is_option(menu, a):
                 acts.append(a)
                 if a.menu():
                     walk(a.menu())
@@ -147,3 +163,66 @@ def test_results_window_menus_tree_and_play_button(monkeypatch, tmp_path):
     assert w.play_btn.text() == "Play" and w.play_btn.icon().cacheKey() == before
     assert not w.windowIcon().isNull()
     w.close()
+
+
+# mirror pairs that show the same picture on purpose; everything else in one menu must look different
+_PAIRS = [{"Front", "Back"}, {"Left", "Right"}, {"Top", "Bottom"}]
+
+
+def _shared_pictures(window):
+    clashes = []
+    for path, acts in _menus(window):
+        if path.endswith("Recent"):                       # recent files: one file icon each
+            continue
+        by = {}
+        for a in acts:
+            if not a.icon().isNull():
+                by.setdefault(a.icon().cacheKey(), []).append(a.text().replace("&", "").rstrip("."))
+        clashes += [f"{path}: {' | '.join(t)}" for t in by.values() if len(t) > 1 and set(t) not in _PAIRS]
+    return clashes
+
+
+def test_no_two_entries_of_a_menu_show_the_same_picture(monkeypatch, tmp_path):
+    """The icon audit (2026-10-29) found 186 entries sharing a picture with a neighbour (every Import, every Run, every
+    Add Device ...). Each entry of a menu now has its own picture."""
+    from pyfds.gui.main_window import MainWindow
+    from pyfds.gui.results.window import ResultsWindow
+    monkeypatch.setattr(QMessageBox, "question", lambda *a, **k: QMessageBox.Discard)
+    editor, results = MainWindow(FdsApi()), ResultsWindow(FdsApi())
+    assert _shared_pictures(editor) == [] and _shared_pictures(results) == []
+    editor.close()
+    results.close()
+
+
+def test_options_of_one_setting_have_no_icon():
+    from pyfds.gui.main_window import MainWindow
+    w = MainWindow(FdsApi())
+    options = [a for path, acts in _menus(w) for a in acts if path.split(" > ")[-1].lower() in icons.OPTION_MENUS and not a.menu()]
+    assert options and all(a.icon().isNull() for a in options)
+    w.close()
+
+
+def test_badges_and_task_colours_are_new_pictures_of_the_same_glyph():
+    plain, add, imp = icons.icon("mesh"), icons.icon("mesh+add"), icons.icon("mesh", badge="import")
+    assert len({plain.cacheKey(), add.cacheKey(), imp.cacheKey()}) == 3
+    assert icons.icon("mesh+add").cacheKey() == icons.icon("mesh", badge="add").cacheKey()
+    assert icons.icon("undo@view").cacheKey() == icons.icon("undo", task="view").cacheKey() != icons.icon("undo").cacheKey()
+    assert icons.icon("mesh+nonsense").cacheKey() == plain.cacheKey()                 # unknown badge: the plain glyph
+    for badge in ("add", "import", "export", "library", "open"):
+        assert _opaque_pixels(icons.svg_text("material", badge=badge)) > _opaque_pixels(icons.svg_text("material")) * 0.8
+
+
+def test_every_command_glyph_is_real():
+    from pyfds.gui.icon_commands import COMMAND_GLYPHS
+    for text, spec in COMMAND_GLYPHS.items():
+        if spec:
+            key = spec.split("@")[0].split("+")[0]
+            assert key in GLYPHS, (text, spec)
+
+
+def test_command_table_wins_over_the_wording_rules():
+    g = icons.glyph_for_text
+    assert g("Import &Materials...") == "material+import" and g("Export as &FDS...") == "fdsfile+export"
+    assert g("Add &Mesh...") == "mesh+add" and g("Edit &Meshes...") == "mesh"
+    assert g("Outlines Mode") == "shaded_outline" and g("Edit &Zones...") == "zone" and g("Draw &Mesh") == "mesh"
+    assert g("Run FDS &Cluster...") == "cluster" and g("Run &Simulation...") == "run"

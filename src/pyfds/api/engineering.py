@@ -153,6 +153,21 @@ class EngineeringManager:
 
     # ── Reaction library ─────────────────────────────────────────────────────
 
+    # ── Tenability and run comparison (Results window) ───────────────────────
+
+    def fed(self, times_s, co_ppm, **kwargs) -> Any:
+        """Purser FED with FDS's constants (:func:`pyfds.tenability.calculate_fed`); kwargs o2_pct, hcn_ppm, co2_pct,
+        temp_c. The result also carries ``incapacitation_threshold``."""
+        from pyfds.tenability.fed import FED_INCAPACITATION, calculate_fed
+        result = calculate_fed(times_s, co_ppm, **kwargs)
+        result.incapacitation_threshold = FED_INCAPACITATION
+        return result
+
+    def compare_runs(self, baseline_dir: str, variant_dir: str, threshold_pct: float = 5.0) -> Any:
+        """Device-by-device comparison of two result folders (:class:`pyfds.results.comparator.ComparisonReport`)."""
+        from pyfds.results.comparator import SimulationComparator
+        return SimulationComparator(baseline_dir, variant_dir).compare(threshold_pct)
+
     def list_fuels(self):
         """Return sorted list of predefined fuel names."""
         from pyfds.domain.reactions import list_fuels

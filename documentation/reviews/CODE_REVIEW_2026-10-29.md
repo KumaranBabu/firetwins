@@ -83,3 +83,22 @@ validation cases) and **TABL** (spray patterns for sprinklers). Not measured: wh
 - Behaviour of the GUI on a real screen (only offscreen dumps were taken in this pass).
 - `meshing` engines (optional packages, not installed), the plugin loader and the CLI were not read line by line.
 - No finding here was reproduced by a failing test yet; each fix should start with one.
+
+## 7. Status after the fix run (2026-10-29)
+
+| Item | Commit | Result |
+|---|---|---|
+| B2 &PRES defaults, SOLVER now written; B3 floor stays closed; B6 number noise | `6384374` | Fixed; old projects migrate on load |
+| B4 shared fan / air coil / filter | `86c1db9` | One object with `more_duct_ids` / `more_node_ids` |
+| B1 AI tool calls on the GUI thread; B8 loop (model `claude-opus-5-5`, server-side fallback, refusal) | `33b4d2c` | Fixed; B8's "invalid id" claim was wrong and is corrected above |
+| B5 FED constants; B7 "Run >" messages | `46a06ff` | FED now uses FDS 6.10's constants (eq. 22.42-22.49); heat dose separate |
+| B9-B11, clean-up | `634afb1` | Silent listener errors logged; dead code removed; B9 was not a bug |
+| 3.1 menus | `9ab4cab`, `2dc53fc` | Model 41 -> 30 entries; checks grouped; Visibility / Transform / Rendering Mode / Movie / Section Box / Units submenus; PyroSim manual removed from Help |
+| 3.2 Explorer | `dd19aec` | Filter box; collapsed folders, scroll and filter survive rebuilds |
+| 3.2 Fire Engineering calculators | `24f755d` | New dialog; **found five calculations that never worked** (four `api.engineering` wrappers, `detector_response_time`), which also broke five AI-assistant tools |
+| 3.2 Tenability | `a61e8ba` | Analysis > Tenability (FED) in the Results window |
+| 3.2 Compare Runs | `08a0fc3` | Analysis > Compare Runs; comparator reported baseline `Time` as a channel (precedence bug) |
+
+Not done in this run: Explorer refresh coalescing (tests rely on a synchronous rebuild), Run Monitor time-to-finish,
+the FDS line in the Properties dock, Devices menu grouping, the three "open results" entries in the editor's Results
+menu, and CLIP / TABL editors (section 4).

@@ -13,7 +13,6 @@ from PySide6.QtWidgets import (
     QTableWidgetItem, QVBoxLayout, QWidget,
 )
 
-from pyfds.tenability.fed import FED_INCAPACITATION, aset_margin, calculate_fed
 
 NONE = "(none)"
 #: role -> (label, words that suggest a column for it)
@@ -53,7 +52,8 @@ def guess(series: Dict[str, Any], role: str) -> Optional[str]:
     return None
 
 
-def tenability(series: Dict[str, Any], picks: Dict[str, Optional[str]], rset_s: float) -> List[Tuple[str, str]]:
+def tenability(api: Any, series: Dict[str, Any], picks: Dict[str, Optional[str]],
+               rset_s: float) -> List[Tuple[str, str]]:
     """Result rows for the chosen columns. CO is required; the others are optional (ambient air assumed)."""
     if not picks.get("co"):
         raise ValueError("choose the carbon monoxide column")
@@ -72,7 +72,7 @@ def tenability(series: Dict[str, Any], picks: Dict[str, Optional[str]], rset_s: 
     co2 = on_t("co2")
     hcn = on_t("hcn")
     temp = on_t("temp")
-    res = calculate_fed(
+    res = api.engineering.fed(
         list(t), list(co_ppm),
         o2_pct=list(to_percent(*o2)) if o2 else None,
         hcn_ppm=list(to_ppm(*hcn)) if hcn else None,
@@ -80,10 +80,10 @@ def tenability(series: Dict[str, Any], picks: Dict[str, Optional[str]], rset_s: 
         temp_c=list(temp[0]) if temp else None,
     )
     fmt = lambda x: "not reached" if x is None else f"{x:.1f} s"     # noqa: E731
-    margin = aset_margin(res.t_incapacitation, rset_s)
+    margin = float("inf") if res.t_incapacitation is None else res.t_incapacitation - rset_s
     rows = [
         ("Maximum FED (gases)", f"{res.max_fed:.3g}"),
-        (f"Time to FED {FED_INCAPACITATION:g} (incapacitation, ASET)", fmt(res.t_incapacitation)),
+        (f"Time to FED {res.incapacitation_threshold:g} (incapacitation, ASET)", fmt(res.t_incapacitation)),
         ("Time to FED 1 (lethality)", fmt(res.t_lethality)),
         ("Time to heat dose 1 (separate from FED)", fmt(res.t_heat_incapacitation) if temp else "no temperature chosen"),
         ("ASET - RSET", "ASET not reached in this run" if margin == float("inf") else f"{margin:.1f} s"),
@@ -93,8 +93,9 @@ def tenability(series: Dict[str, Any], picks: Dict[str, Optional[str]], rset_s: 
 
 
 class TenabilityDialog(QDialog):
-    def __init__(self, viewer: Any, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, api: Any, viewer: Any, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
+        self.api = api
         self.viewer = viewer
         self.setWindowTitle("Tenability (FED)")
         self.resize(560, 460)
@@ -142,7 +143,7 @@ class TenabilityDialog(QDialog):
 
     def calculate(self) -> List[Tuple[str, str]]:
         try:
-            rows = tenability(self.series, self.picks(), self.rset.value())
+            rows = tenability(self.api, self.series, self.picks(), self.rset.value())
         except (ValueError, KeyError) as exc:
             self.table.setRowCount(0)
             self.message.setText(str(exc))
@@ -166,7 +167,7 @@ def install(window: Any) -> None:
     menu.addSeparator()
 
     def show() -> TenabilityDialog:
-        window._tenability_dialog = TenabilityDialog(window.viewer, window)
+        window._tenability_dialog = TenabilityDialog(window.api, window.viewer, window)
         window._tenability_dialog.show()
         return window._tenability_dialog
 

@@ -11,6 +11,7 @@ import numpy as np
 import pytest
 from PySide6.QtWidgets import QApplication, QMessageBox
 
+from pyfds.api.facade import FdsApi
 from pyfds.gui.results.tenability_dialog import TenabilityDialog, guess, tenability, to_ppm
 from pyfds.results.viz.csvload import TimeSeries
 from pyfds.tenability.fed import calculate_fed
@@ -47,17 +48,17 @@ def test_units_are_converted_before_the_dose():
 def test_result_matches_the_fed_module_and_gives_the_aset_margin():
     s = _series()
     picks = {"co": "case_devc.csv/CO_1", "o2": "case_devc.csv/O2_1", "co2": "case_devc.csv/CO2_1", "temp": None}
-    rows = dict(tenability(s, picks, rset_s=60.0))
+    rows = dict(tenability(FdsApi(), s, picks, rset_s=60.0))
     t = list(s["case_devc.csv/CO_1"].times)
     ref = calculate_fed(t, [5000.0] * len(t), o2_pct=[18.0] * len(t), co2_pct=[2.0] * len(t))
     assert rows["Time to FED 0.3 (incapacitation, ASET)"] == f"{ref.t_incapacitation:.1f} s"
     assert rows["ASET - RSET"] == f"{ref.t_incapacitation - 60.0:.1f} s"
     with pytest.raises(ValueError):
-        tenability(s, {"co": None}, 60.0)
+        tenability(FdsApi(), s, {"co": None}, 60.0)
 
 
 def test_dialog_lists_the_columns_and_calculates(app):
-    dlg = TenabilityDialog(SimpleNamespace(csv_series=_series))
+    dlg = TenabilityDialog(FdsApi(), SimpleNamespace(csv_series=_series))
     assert dlg.combos["co"].currentData() == "case_devc.csv/CO_1"
     rows = dict(dlg.calculate())
     assert rows["Time to FED 0.3 (incapacitation, ASET)"].endswith(" s")
@@ -65,7 +66,6 @@ def test_dialog_lists_the_columns_and_calculates(app):
 
 
 def test_results_window_has_the_entry(app, monkeypatch):
-    from pyfds.api.facade import FdsApi
     from pyfds.gui.results.window import ResultsWindow
     monkeypatch.setattr(QMessageBox, "question", lambda *a, **k: QMessageBox.Discard)
     w = ResultsWindow(FdsApi())
@@ -81,7 +81,7 @@ def test_compare_runs_dialog_flags_a_changed_device(app, tmp_path):
         d.mkdir()
         rows = "\n".join(f"{t},{20 + scale * t},{20 + t}" for t in range(0, 61, 10))
         (d / "case_devc.csv").write_text(f's,C,C\nTime,"TC_A","TC_B"\n{rows}\n')
-    dlg = CompareRunsDialog(str(base))
+    dlg = CompareRunsDialog(FdsApi(), str(base))
     dlg.variant.setText(str(var))
     report = dlg.compare()
     status = {c.name: c.status for c in report.channels}

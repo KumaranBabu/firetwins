@@ -13,8 +13,6 @@ from PySide6.QtWidgets import (
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
 )
 
-from pyfds.results.comparator import ComparisonReport, SimulationComparator
-
 _COLUMNS = ["Channel", "Units", "Baseline peak", "Variant peak", "Peak diff %", "Mean diff %", "Status"]
 
 
@@ -34,8 +32,9 @@ def _pick(parent: QWidget, edit: QLineEdit) -> None:
 
 
 class CompareRunsDialog(QDialog):
-    def __init__(self, baseline_dir: str = "", parent: Optional[QWidget] = None) -> None:
+    def __init__(self, api: Any, baseline_dir: str = "", parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
+        self.api = api
         self.setWindowTitle("Compare Runs")
         self.resize(780, 520)
         v = QVBoxLayout(self)
@@ -65,14 +64,14 @@ class CompareRunsDialog(QDialog):
         buttons.rejected.connect(self.reject)
         v.addWidget(buttons)
 
-    def compare(self) -> Optional[ComparisonReport]:
+    def compare(self) -> Optional[Any]:
         base, var = self.baseline.text().strip(), self.variant.text().strip()
         missing = [p for p in (base, var) if not p or not Path(p).is_dir()]
         if missing:
             self.table.setRowCount(0)
             self.summary.setText("Choose two existing result folders.")
             return None
-        report = SimulationComparator(base, var).compare(self.threshold.value())
+        report = self.api.engineering.compare_runs(base, var, self.threshold.value())
         self.table.setRowCount(len(report.channels))
         for r, c in enumerate(report.channels):
             cells = [c.name, c.units, f"{c.baseline_peak:.4g}", f"{c.variant_peak:.4g}", f"{c.peak_pct_diff:+.1f}",
@@ -96,7 +95,7 @@ def install(window: Any) -> None:
 
     def show() -> CompareRunsDialog:
         smv = getattr(getattr(window.viewer, "viz", None), "results", None) or ""      # the open case's .smv
-        window._compare_dialog = CompareRunsDialog(str(Path(smv).resolve().parent) if smv else "", window)
+        window._compare_dialog = CompareRunsDialog(window.api, str(Path(smv).resolve().parent) if smv else "", window)
         window._compare_dialog.show()
         return window._compare_dialog
 

@@ -54,7 +54,6 @@ _FDS_USER_GUIDE = _REPO_ROOT / "docs" / "manuals_and_tutorials" / "FDS" / "FDS_U
 
 _SMV_VERIFICATION_GUIDE = _REPO_ROOT / "docs" / "manuals_and_tutorials" / "SMV" / "SMV_Verification_Guide.pdf"
 
-_PYROSIM_USER_MANUAL = _REPO_ROOT / "docs" / "manuals_and_tutorials" / "pyrosim" / "PyroSim_User_Manual_2025.pdf"
 
 # (menu label, tool name) — tool_name resolves against agent.registry.TOOL_REGISTRY,
 # so the GUI's "Add..." actions and the AI agent's tool calls share one field

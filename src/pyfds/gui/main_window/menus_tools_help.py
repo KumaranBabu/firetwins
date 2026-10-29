@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from .shared import (
     _FDS_USER_GUIDE,
-    _PYROSIM_USER_MANUAL,
     _SMV_VERIFICATION_GUIDE,
 )
 
@@ -64,7 +63,6 @@ class MenusToolsHelpMixin:
 
         help_menu.addAction("&FDS User Guide", lambda: self._on_open_doc(_FDS_USER_GUIDE))
         help_menu.addAction("&Smokeview Verification Guide", lambda: self._on_open_doc(_SMV_VERIFICATION_GUIDE))
-        help_menu.addAction("Pyro&Sim User Manual (reference)", lambda: self._on_open_doc(_PYROSIM_USER_MANUAL))
 
         help_menu.addSeparator()
 

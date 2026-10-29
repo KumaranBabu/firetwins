@@ -122,7 +122,6 @@ COMMAND_GLYPHS: Dict[str, str] = {
     'preferences': 'settings',
     'preview model in results': 'eye@result',
     'project settings': 'properties',
-    'pyrosim user manual (reference)': 'book@library',
     'realistic outlines': 'realistic_outline',
     'record movie (real time)': 'record',
     'redo view change': 'redo@view',

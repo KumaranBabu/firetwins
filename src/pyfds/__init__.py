@@ -129,7 +129,7 @@ from pyfds.smokeview.binary    import SmvBinaryExtractor
 from pyfds.smokeview.scripting import SsfScriptBuilder
 from pyfds.smokeview.ini_writer import (
     SmvIniConfig, SmvIniWriter, SmvIniParser,
-    SmvColorbarConfig, SmvSurfaceColor,
+    SmvColorbarConfig, SmvSurfaceColor, SmvIniUnsupported,
 )
 
 # Automation
@@ -329,7 +329,7 @@ __all__ = [
     "SmvViewpoint", "SmvSurface",
     "SmvBinaryExtractor", "SsfScriptBuilder",
     "SmvIniConfig", "SmvIniWriter", "SmvIniParser",
-    "SmvColorbarConfig", "SmvSurfaceColor",
+    "SmvColorbarConfig", "SmvSurfaceColor", "SmvIniUnsupported",
 
     # Automation
     "ScenarioOrchestrator", "OrchestratorResult",

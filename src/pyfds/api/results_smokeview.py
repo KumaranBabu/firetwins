@@ -162,30 +162,22 @@ class SmokeviewManager:
         return SmvIniConfig()
 
     def write_ini(self, config: Any, filepath: str) -> None:
-        """Write a :class:`SmvIniConfig` to *filepath* as a ``.ini`` file."""
+        """Write a :class:`SmvIniConfig` to *filepath* in Smokeview's ``.ini`` format. Name it ``<casename>.ini``
+        beside the ``.smv`` file for Smokeview to load it with the case."""
         from pyfds.smokeview.ini_writer import SmvIniWriter
         SmvIniWriter().write(config, filepath)
 
     def ini_from_project(self, output_filepath: Optional[str] = None) -> Any:
         """
-        Auto-generate a :class:`SmvIniConfig` from the active FDS project.
+        Not possible: this mapped the project's surface colours into the ``.ini`` file, and Smokeview 6.10.1
+        ignores surface colours there (it already shows the SURF colours of the FDS input).
 
-        Reads surface names and colors from the project and creates matching
-        INI colorbar / surface-color entries.  Returns the config object and
-        optionally writes it to *output_filepath*.
+        Raises :class:`~pyfds.smokeview.ini_writer.SmvIniUnsupported`.
         """
-        from pyfds.smokeview.ini_writer import SmvIniConfig, SmvIniWriter
-        project = self._api.project
-        cfg = SmvIniConfig()
-
-        # Map FDS surface colors → SMV surface display colors
-        for surf in getattr(project, "surfaces", []):
-            if hasattr(surf, "rgb") and surf.rgb:
-                cfg.add_surface_color(surf.name, rgb=surf.rgb)
-
-        if output_filepath:
-            SmvIniWriter().write(cfg, output_filepath)
-        return cfg
+        from pyfds.smokeview.ini_writer import SmvIniUnsupported
+        raise SmvIniUnsupported(
+            "Smokeview 6.10.1 .ini files cannot recolour surfaces (OBSTSURFCOLORS is ignored). "
+            "Set COLOR or RGB on the SURF in the FDS input.")
 
     # ── Parsing ───────────────────────────────────────────────────────────────
 
@@ -195,6 +187,6 @@ class SmokeviewManager:
         return SmvParser().parse(smv_filepath)
 
     def parse_ini(self, ini_filepath: str) -> Any:
-        """Parse a ``.ini`` scene-config file and return :class:`SmvIniConfig`."""
+        """Read the settings :class:`SmvIniConfig` covers from a Smokeview ``.ini`` file."""
         from pyfds.smokeview.ini_writer import SmvIniParser
         return SmvIniParser().parse(ini_filepath)

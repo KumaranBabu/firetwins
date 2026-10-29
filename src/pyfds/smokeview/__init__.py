@@ -7,7 +7,9 @@ from .smv_parser import (
 )
 from .binary import SmvBinaryExtractor
 from .scripting import SsfScriptBuilder
-from .ini_writer import SmvIniConfig, SmvIniWriter, SmvIniParser, SmvColorbarConfig, SmvSurfaceColor
+from .ini_writer import (
+    SmvIniConfig, SmvIniWriter, SmvIniParser, SmvColorbarConfig, SmvSurfaceColor, SmvIniUnsupported,
+)
 
 __all__ = [
     "SmokeviewRunner",
@@ -21,5 +23,5 @@ __all__ = [
     "SsfScriptBuilder",
     # INI writer / parser
     "SmvIniConfig", "SmvIniWriter", "SmvIniParser",
-    "SmvColorbarConfig", "SmvSurfaceColor",
+    "SmvColorbarConfig", "SmvSurfaceColor", "SmvIniUnsupported",
 ]

@@ -198,29 +198,35 @@ def test_refinement_zone_touching_edges_makes_fewer_pieces(api):
 
 
 # ----------------------------------------------------------------- open boundaries MSH-11
-def test_open_boundaries_single_mesh_six_faces_idempotent_and_valid(api, tmp_path):
+def test_open_boundaries_single_mesh_five_faces_idempotent_and_valid(api, tmp_path):
     vents = api.meshes.open_boundaries()
-    assert len(vents) == 6 and {v.surface_id for v in vents} == {"OPEN"}
+    assert len(vents) == 5 and {v.surface_id for v in vents} == {"OPEN"}
+    assert not [v for v in vents if v.z_min == v.z_max == 0]                  # the floor stays closed
     assert api.meshes.open_boundaries() == []                                  # second run adds nothing
     api.history.undo()
-    assert api.vents.count() == 0                                              # six vents = one step
+    assert api.vents.count() == 0                                              # five vents = one step
     api.history.redo()
-    assert api.vents.count() == 6
+    assert api.vents.count() == 5
     out = tmp_path / "o.fds"
     FdsWriter().write(api.project, str(out))
     back = FdsParser().parse(str(out))
-    assert len(back.vents) == 6
+    assert len(back.vents) == 5
     assert not [r for r in api.validation.validate().results if r.rule == "VentCoplanar"]
 
 
 def test_open_boundaries_skips_shared_faces_and_handles_partial_overlap(api):
     api.meshes.split("M", "X", 2.0)                                            # two abutting halves
     vents = api.meshes.open_boundaries()
-    assert len(vents) == 10                                                    # 2 x 6 faces - the 2 shared ones
+    assert len(vents) == 8                                                     # 2 x 5 faces - the 2 shared ones
     api.history.undo()
     api.meshes.add_mesh(ijk=(10, 5, 10), xb=(4, 6, 0, 1, 0, 2), name="SIDE")   # half the height of M_2's +x face
     exposed = [v for v in api.meshes.open_boundaries() if v.name.startswith("M_2_XMAX")]
     assert len(exposed) == 1 and (exposed[0].y_min, exposed[0].y_max) == (1.0, 2.0)   # only the uncovered half
+
+
+def test_open_boundaries_floor_on_request(api):
+    vents = api.meshes.open_boundaries(floor=True)
+    assert len(vents) == 6 and [v for v in vents if v.name.endswith("ZMIN_OPEN")]
 
 
 def test_subtract_rects_exact():

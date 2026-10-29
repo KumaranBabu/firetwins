@@ -46,6 +46,20 @@ logger = logging.getLogger(__name__)
 
 _VERSION = "2.0"
 
+
+def _legacy_pres(values: Dict[str, Any]) -> Dict[str, Any]:
+    """&PRES saved before 2026-10-29 (recognised by its ``mach_number_limit`` field) held two fake defaults: a
+    VELOCITY_TOLERANCE of 0.05 that was always written, and SOLVER='SCARC' that was never written. Map them to
+    "not set" / FDS's FFT, which is what such a project meant (and, for the solver, what FDS actually ran)."""
+    if "mach_number_limit" not in values:
+        return values
+    out = {k: v for k, v in values.items() if k not in ("mach_number_limit", "pressure_iterations")}
+    if out.get("velocity_tolerance") == 0.05:
+        out["velocity_tolerance"] = None
+    if out.get("solver") == "SCARC":
+        out["solver"] = "FFT"
+    return out
+
 # Ordered list of (collection_attr, entity_class) for serialization
 _COLLECTIONS: List[tuple] = [
     ("meshes",       Mesh),
@@ -369,7 +383,8 @@ class Serializer:
         ]:
             if attr in data:
                 try:
-                    setattr(project, attr, model_cls(**data[attr]))
+                    values = _legacy_pres(data[attr]) if attr == "pres" else data[attr]
+                    setattr(project, attr, model_cls(**values))
                 except Exception as exc:
                     logger.warning("Could not restore %s: %s", attr, exc)
 

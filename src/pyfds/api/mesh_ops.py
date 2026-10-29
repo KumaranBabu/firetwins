@@ -334,11 +334,13 @@ class MeshOperations:
         return made
 
     # -- open boundaries (MSH-11) -----------------------------------------------------------------------
-    def open_boundaries(self, surf_id: str = "OPEN", meshes: Optional[Sequence[Any]] = None) -> List[Any]:
+    def open_boundaries(self, surf_id: str = "OPEN", meshes: Optional[Sequence[Any]] = None,
+                        floor: bool = False) -> List[Any]:
         """Add an ``OPEN`` vent on every mesh face that is not shared with another mesh.
 
-        Faces partly shared with a neighbour get vents only over the exposed part. Faces already
-        carrying an identical vent are skipped, so running it twice adds nothing.
+        The bottom face (Z-min) is the ground and stays closed unless *floor* is True. Faces partly shared
+        with a neighbour get vents only over the exposed part. Faces already carrying an identical vent are
+        skipped, so running it twice adds nothing.
         """
         from pyfds.automation.commands import AddEntityCommand
         from pyfds.domain.model import Vent
@@ -353,6 +355,8 @@ class MeshOperations:
                 for a, axname in enumerate("XYZ"):
                     u, v = [i for i in range(3) if i != a]
                     for side, plane in (("MIN", lo[a]), ("MAX", hi[a])):
+                        if axname == "Z" and side == "MIN" and not floor:
+                            continue
                         cutters = []
                         for o in everyone:
                             if o is m:

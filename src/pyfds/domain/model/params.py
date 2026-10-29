@@ -96,11 +96,10 @@ class PresParams(BaseModel):
     #: ``{FDS_KEY: fds_value_text}`` in source order. Re-emitted verbatim by the
     #: writer so an import/export round trip never silently drops them.
     fds_extra: Optional[Dict[str, str]] = None
-    velocity_tolerance: float = 0.05
-    max_pressure_iterations: int = 10
-    mach_number_limit: float = 0.3
-    pressure_iterations: int = 1
-    solver: str = "SCARC"
+    #: VELOCITY_TOLERANCE (m/s). None leaves it to FDS, which derives it from the cell size.
+    velocity_tolerance: Optional[float] = None
+    max_pressure_iterations: int = 10           # FDS default; written only when changed
+    solver: str = "FFT"                         # SOLVER; FDS default, written only when changed
 
 
 class RadiParams(BaseModel):

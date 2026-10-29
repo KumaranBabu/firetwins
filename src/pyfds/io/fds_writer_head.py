@@ -90,10 +90,13 @@ class FdsWriterHeadMixin:
         return text
 
     def _write_pres(self, p: FdsProject) -> str:
-        return _nl("PRES", {
-            "VELOCITY_TOLERANCE":      p.pres.velocity_tolerance,
-            "MAX_PRESSURE_ITERATIONS": p.pres.max_pressure_iterations,
-        })
+        # Only what the user set: FDS derives VELOCITY_TOLERANCE from the cell size, and the others have FDS defaults.
+        d = {"VELOCITY_TOLERANCE": p.pres.velocity_tolerance}
+        if p.pres.max_pressure_iterations != 10:
+            d["MAX_PRESSURE_ITERATIONS"] = p.pres.max_pressure_iterations
+        if (p.pres.solver or "FFT").upper() != "FFT":
+            d["SOLVER"] = p.pres.solver.upper()
+        return _nl("PRES", d)               # an empty record is left out by the caller
 
     def _write_radi(self, p: FdsProject) -> str:
         return _nl("RADI", {

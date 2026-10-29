@@ -103,7 +103,7 @@ class ParamBuilders:
     def _parse_pres(self, p: FdsProject, d: Dict) -> None:
         if "VELOCITY_TOLERANCE"      in d: p.pres.velocity_tolerance = float(d["VELOCITY_TOLERANCE"])
         if "MAX_PRESSURE_ITERATIONS" in d: p.pres.max_pressure_iterations = int(float(d["MAX_PRESSURE_ITERATIONS"]))
-        if "MACH_NUMBER_LIMIT"       in d: p.pres.mach_number_limit = float(d["MACH_NUMBER_LIMIT"])
+        if "SOLVER"                  in d: p.pres.solver = self._str(d, "SOLVER").upper()
 
     def _parse_radi(self, p: FdsProject, d: Dict) -> None:
         if "NUMBER_RADIATION_ANGLES" in d: p.radi.number_radiation_angles = int(float(d["NUMBER_RADIATION_ANGLES"]))

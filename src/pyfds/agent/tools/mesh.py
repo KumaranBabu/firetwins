@@ -60,11 +60,13 @@ TOOLS: List[ToolSpec] = [
                lambda api, mesh, axis, points: api.meshes.set_stretching(mesh, axis, [tuple(p) for p in points])),
     ToolSpec(
         name="open_mesh_boundaries",
-        description="Add an OPEN vent on every mesh face not shared with another mesh (idempotent).",
+        description="Add an OPEN vent on every mesh face not shared with another mesh (idempotent). "
+                    "The floor (Z-min) stays closed unless floor is true.",
         input_schema={"type": "object", "properties": {
             "surf_id": {"type": "string", "default": "OPEN"},
-            "meshes": {"type": "array", "items": _NAME, "description": "Limit to these meshes."}}},
-        handler=lambda api, surf_id="OPEN", meshes=None: api.meshes.open_boundaries(surf_id, meshes),
+            "meshes": {"type": "array", "items": _NAME, "description": "Limit to these meshes."},
+            "floor": {"type": "boolean", "default": False, "description": "Open the bottom face as well."}}},
+        handler=lambda api, surf_id="OPEN", meshes=None, floor=False: api.meshes.open_boundaries(surf_id, meshes, floor),
     ),
     ToolSpec(
         name="mesh_stats",

@@ -17,6 +17,8 @@ Phase 1 fixes and additions:
 """
 from __future__ import annotations
 
+import re
+
 import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -190,7 +192,9 @@ class FdsWriter(FdsWriterHeadMixin, FdsWriterPhysicsMixin, FdsWriterGeometryMixi
             (self._write_pres(project), project.pres),
             (self._write_radi(project), project.radi),
         ):
-            lines.append(_with_extra(line, getattr(block, "fds_extra", None)))
+            line = _with_extra(line, getattr(block, "fds_extra", None))
+            if not re.fullmatch(r"&\w+\s*/", line):           # nothing set and nothing kept: no record at all
+                lines.append(line)
         lines.append("")
 
         # ── Entity groups ─────────────────────────────────────────────────────

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import contextvars
+import math
 from typing import Any, Dict, Optional
 
 from pyfds.io.namelist import tokenize
@@ -87,8 +88,12 @@ def _fmt_float(v: float) -> str:
 
 
 def _exact_float(v: float) -> str:
-    """The shortest text that reads back as exactly *v* (decimal where practical, else E notation)."""
-    text = repr(v)
+    """The shortest text that reads back as exactly *v* (decimal where practical, else E notation).
+
+    Arithmetic noise in the last bits (``1.9500000000000002`` from ``0.65 * 3``) is dropped: a value within a few
+    units in the last place of a 12-digit number is written as that number."""
+    short = f"{v:.12g}"
+    text = short if abs(float(short) - v) <= 4 * math.ulp(v) else repr(v)
     if "e" in text:
         if 0.0001 <= abs(v) <= 999999.0:
             from decimal import Decimal

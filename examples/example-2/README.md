@@ -1,5 +1,7 @@
 # Example 2 - a burning couch (from the FDS distribution)
 
+> The client-ready version of this case, run through the GUI with a step-by-step manual, is in `client_demos/example_2/`.
+
 The case is `Examples/Fires/couch.fds` from the FDS install (`fds_smv/FDS6/Examples/Fires/`), taken in unchanged and run
 for 25 s of its 600 s (about 27 minutes on 4 logical cores).
 
@@ -9,7 +11,7 @@ for 25 s of its 600 s (about 27 minutes on 4 logical cores).
 | Check | `api.validate()` / Model > Validate | no findings |
 | Save | `couch.pyfds` (PyFDS project) and `couch.fds` (written back) | |
 | Run | `api.solvers.run_local(..., num_processes=4)`, one MPI process per mesh | `gui_run/` (not kept in git, 190 MB) |
-| Results | `make_results.py`, `gui_viewer_shots.py` | `gui_results/hrr.png`, `summary.json`, `gui_viewer/*.png` |
+| Results | `make_results.py`, `gui_viewer_shots.py` | `gui_results/hrr.png`, `summary.json`, `gui_viewer/*.png` (not kept in git; the scripts make them again) |
 
 Heat release rate: 63 kW at 5 s, 354 kW at 10 s, 518 kW at 15 s, 537 kW at 25 s (the couch has not burnt through yet).
 

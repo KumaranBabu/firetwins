@@ -23,7 +23,9 @@ Nothing in the manual or the READMEs was typed in by hand from expectations. The
 | Example 1 mesh | 40x30x20 (0.15 m) | Matched the 360 kW fire (D*/dx ≈ 4.1). At the intended 180 kW, D*/dx = 3.2, below FDS's minimum of 4. |
 | Example 1 T_END / yields | T_END 20 s; soot and CO yields 0 | The fire was still ramping up at 20 s (TAU_Q -15 s). With no soot, there was no visible smoke. |
 | Example 1 boundaries | All six mesh faces OPEN, including the floor | The floor was open to the outside. |
-| `examples/example-2/` | Only `couch.~bak.pyfds`, an editor backup | Not a usable demo. Example 2 was rebuilt from the FDS distribution's `Examples/Fires/couch.fds`. |
+| `examples/example-2/` | The same FDS couch case (`Examples/Fires/couch.fds`), run for 25 s on 4 MPI processes through the API and scripts, with a README, an HRR plot and viewer screenshots (63 / 354 / 518 / 537 kW at 5 / 10 / 15 / 25 s) | A working demo, but built by scripts rather than through the GUI. The client demo repeats it through the real GUI and the Run dialog. (An earlier version of this report said the folder held only an editor backup; that was wrong.) |
+
+On 2026-10-29 `examples/` was trimmed to its sources (projects, FDS inputs, READMEs and the scripts); the run output, screenshots and the two old PDF manuals were removed and can be made again with those scripts.
 
 ## 2. Changes made for the client demos
 

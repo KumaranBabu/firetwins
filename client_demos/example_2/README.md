@@ -51,7 +51,7 @@ The screen recordings are `documentation/videos/example_2_open_and_run.mp4` and 
 ## Changes from the original
 - T_END was changed from 600 s to 25 s, for demo run time only. Nothing else in the physics was changed. The surface and material properties are the FDS example's own, which it labels as fabricated, illustrative values.
 - On writing, PyFDS changes TITLE (descriptive only) and NUMBER_RADIATION_ANGLES from 100 to 104, the FDS default.
-- `examples/example-2` contained only a backup project file (`couch.~bak.pyfds`). It was left untouched. This demo is built from the FDS distribution's original input.
+- `examples/example-2` already ran this case for 25 s through scripts (HRR 63 / 354 / 518 / 537 kW at 5 / 10 / 15 / 25 s). It was left untouched; this demo repeats the case through the GUI, from the FDS distribution's original input. The two runs differ most at 10 s (354 kW then, 300 kW here), while the flame spreads fastest; the earlier run used 100 radiation angles, this one FDS's default 104.
 
 ## Known limitation shown by this example
 - This case's slices are cell-centred (`CELL_CENTERED=.TRUE.`). Smokeview's LOADSLICE script command cannot load those ("Slice files of type ... failed to load"), so the scripted Smokeview images for this example, made on 2026-10-28, show 3D smoke and the burning rate on the couch. Since 2026-10-29 PyFDS's Smokeview script builder loads cell-centred slices with LOADSLCF (`load_slice(..., cell_centered=True)`); the slices also show in PyFDS Results and in Smokeview's Load/Unload menu.

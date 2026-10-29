@@ -24,6 +24,7 @@ class MenusToolsHelpMixin:
         tools_menu.addSeparator()
 
         # Utilities
+        tools_menu.addAction("Fire &Engineering Calculators...", self._on_fire_engineering)
         tools_menu.addAction("&Plugin Manager...", self._on_plugin_manager)
         tools_menu.addAction("&Units Conversion...", self._on_units_conversion)
         tools_menu.addAction("&Calculator", self._on_calculator)
@@ -34,6 +35,13 @@ class MenusToolsHelpMixin:
         tools_menu.addAction("&FDS Preview (EXPERIMENTAL)...", self._on_fds_preview)
         tools_menu.addAction("&Script Console...", self._on_script_console)
 
+
+    def _on_fire_engineering(self):
+        """Tools > Fire Engineering Calculators: plume, ceiling jet, smoke filling, zone model, detector, tunnel."""
+        from pyfds.gui.fire_engineering_dialog import FireEngineeringDialog
+        self._fire_engineering_dialog = FireEngineeringDialog(self.api, self)
+        self._fire_engineering_dialog.show()
+        return self._fire_engineering_dialog
 
     def _build_window_menu(self) -> None:
         # ════════════════════════════════════════════════════════════════════════

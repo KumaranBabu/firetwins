@@ -5,7 +5,8 @@ Split out of the former monolithic ``controller.py``; behaviour unchanged.
 from __future__ import annotations
 
 import logging
-from typing import Any, TYPE_CHECKING
+import math
+from typing import Any, Optional, TYPE_CHECKING
 
 
 if TYPE_CHECKING:
@@ -102,12 +103,16 @@ class EngineeringManager:
     def ceiling_jet(self, hrr_kw: float, r: float, H: float) -> Any:
         """Return a :class:`CeilingJetResult` (Alpert 1972)."""
         from pyfds.engineering import alpert_ceiling_jet
-        return alpert_ceiling_jet(hrr_kw=hrr_kw, r=r, H=H)
+        return alpert_ceiling_jet(q_kw=hrr_kw, H=H, r=r)
 
-    def heskestad_plume(self, hrr_kw: float, z: float) -> Any:
-        """Return a :class:`HeskestadResult` at height *z* above the fire."""
+    def heskestad_plume(self, hrr_kw: float, z: float, diameter_m: Optional[float] = None,
+                        hrrpua_kw_m2: float = 250.0) -> Any:
+        """Return a :class:`HeskestadResult` at height *z* above the fire. Without *diameter_m* the fire is taken as a
+        circle burning at *hrrpua_kw_m2* (250 kW/m² by default)."""
         from pyfds.engineering import heskestad_plume
-        return heskestad_plume(hrr_kw=hrr_kw, z=z)
+        if diameter_m is None:
+            diameter_m = math.sqrt(4.0 * hrr_kw / (hrrpua_kw_m2 * math.pi))
+        return heskestad_plume(q_kw=hrr_kw, D=diameter_m, z=z)
 
     # ── Tunnel ───────────────────────────────────────────────────────────────
 
@@ -115,21 +120,15 @@ class EngineeringManager:
                           tunnel_width_m: float, **kwargs) -> Any:
         """Return a :class:`CriticalVelocityResult` (Kennedy 1996)."""
         from pyfds.engineering import critical_velocity
-        return critical_velocity(hrr_kw=hrr_kw,
-                                 tunnel_height_m=tunnel_height_m,
-                                 tunnel_width_m=tunnel_width_m,
-                                 **kwargs)
+        return critical_velocity(q_kw=hrr_kw, H=tunnel_height_m, A=tunnel_height_m * tunnel_width_m, **kwargs)
 
     def smoke_filling_time(self, hrr_kw: float, floor_area_m2: float,
                            room_height_m: float, z_interface_m: float,
                            **kwargs) -> float:
         """Return NFPA 92 smoke filling time (s) to *z_interface_m*."""
         from pyfds.engineering import smoke_filling_time
-        return smoke_filling_time(hrr_kw=hrr_kw,
-                                  A_floor=floor_area_m2,
-                                  H_room=room_height_m,
-                                  z_interface=z_interface_m,
-                                  **kwargs)
+        return smoke_filling_time(q_kw=hrr_kw, volume=floor_area_m2 * room_height_m, A_floor=floor_area_m2,
+                                  H_room=room_height_m, z_interface=z_interface_m, **kwargs)
 
     # ── Zone model ────────────────────────────────────────────────────────────
 

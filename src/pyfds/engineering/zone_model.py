@@ -219,9 +219,9 @@ def detector_response_time(
 
     H = ceiling_height_m
     r = detector_radial_distance_m
-    result = alpert_ceiling_jet(hrr_kw=hrr_kw, r=r, H=H)
-    T_jet = result.temperature_c
-    u_jet = result.velocity_ms
+    result = alpert_ceiling_jet(q_kw=hrr_kw, H=H, r=r, T_amb=t_ambient_c + 273.15)
+    T_jet = t_ambient_c + result.delta_T          # delta_T is the jet's excess temperature (K = °C difference)
+    u_jet = result.u_max
 
     # RTI model: dT_detector/dt = (u_jet^0.5 / rti) * (T_jet - T_det) - c_factor * u_jet^0.5 * T_det^0.5
     T_det = t_ambient_c

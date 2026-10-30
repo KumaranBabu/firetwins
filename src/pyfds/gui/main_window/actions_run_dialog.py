@@ -4,8 +4,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Optional
 
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtWidgets import QApplication, QDialog, QFileDialog, QMessageBox
+from PySide6.QtCore import QTimer
+from PySide6.QtWidgets import QDialog, QFileDialog, QMessageBox
 
 from pyfds.gui.run import model as run_model
 from pyfds.gui.run.dialog import RunDialog
@@ -160,14 +160,12 @@ class ActionsRunDialogMixin:
             self, "Folder for the model preview")
         if not work:
             return None
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        from pyfds.gui.busy import run_busy
         try:
-            smv = self.api.solvers.preview_model(work)
+            smv = run_busy(self, "Previewing the model", self.api.solvers.preview_model, work)
         except Exception as exc:
-            QApplication.restoreOverrideCursor()
             QMessageBox.critical(self, "Could not preview the model", str(exc))
             return None
-        QApplication.restoreOverrideCursor()
         self.open_in_results(smv)
         return smv
 

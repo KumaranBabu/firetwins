@@ -5,8 +5,9 @@ from pathlib import Path
 from typing import Optional
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QApplication, QInputDialog, QMessageBox
+from PySide6.QtWidgets import QInputDialog, QMessageBox
 
+from ..busy import busy
 from .forms import SettingsDialog
 
 from .window_common import _SMV_FILTER, _VIZ_FILTER
@@ -16,12 +17,15 @@ class ResultsWindowFilesMixin:
     # -- file ------------------------------------------------------------------------------------------------------------
     def open_visualization(self) -> None:
         if p := self._ask_file(True, "Open Results Visualization", _VIZ_FILTER):
-            self.viewer.open_visualization(p)
+            with busy(self, "Opening the visualization"):
+                self.viewer.open_visualization(p)
             self.sync(True)
 
     def open_results(self, smv: Optional[str] = None) -> None:
         if smv or (smv := self._ask_file(True, "Open Results", _SMV_FILTER)):
-            self.viewer.open_results(smv)
+            with busy(self, "Opening results") as b:
+                b.tick(Path(smv).name)
+                self.viewer.open_results(smv)
             self.sync(True)
 
     def open_or_refresh(self, smv: Optional[str] = None) -> None:
@@ -41,7 +45,9 @@ class ResultsWindowFilesMixin:
 
     def load_results(self) -> None:
         if p := self._ask_file(True, "Load Results", _SMV_FILTER):
-            self.viewer.load_results(p)
+            with busy(self, "Loading results") as b:
+                b.tick(Path(p).name)
+                self.viewer.load_results(p)
             self.sync(True)
 
     def save(self) -> None:
@@ -56,7 +62,8 @@ class ResultsWindowFilesMixin:
             self.sync()
 
     def refresh(self) -> None:
-        info = self.viewer.refresh()
+        with busy(self, "Refreshing results"):
+            info = self.viewer.refresh()
         self.sync(info["reloaded"])
         self.statusBar().showMessage(f"Refreshed: {info['records']} new frame record(s)")
 
@@ -93,7 +100,10 @@ class ResultsWindowFilesMixin:
         from .dialogs import ScreenshotDialog
         d = ScreenshotDialog(self.viewer, self, (self.view.width(), self.view.height()))
         if d.exec():
-            done = self.viewer.render_screenshots(d.shots(), self.view.make_renderer(self.viewer), d.size())
+            shots = d.shots()
+            with busy(self, "Saving images") as b:
+                done = self.viewer.render_screenshots(shots, _ticking(self.view.make_renderer(self.viewer), b, len(shots),
+                                                                      "Image"), d.size())
             self.statusBar().showMessage(f"Saved {len(done)} image(s)")
 
     def movie(self) -> None:
@@ -103,11 +113,9 @@ class ResultsWindowFilesMixin:
         d = MovieDialog(self.viewer, self, (min(self.view.width(), 1920), min(self.view.height(), 1080)))
         if d.exec():
             plan = d.plan()
-            QApplication.setOverrideCursor(Qt.WaitCursor)
-            try:
-                res = self.viewer.render_movie(plan, self.view.make_renderer(self.viewer), d.view.currentText())
-            finally:
-                QApplication.restoreOverrideCursor()
+            with busy(self, "Rendering the movie") as b:
+                res = self.viewer.render_movie(plan, _ticking(self.view.make_renderer(self.viewer), b, len(plan.times)),
+                                               d.view.currentText())
             QMessageBox.information(self, "Movie", f"{res['frames']} frames -> {res['path']}" if res["encoded"] else
                                     f"No video encoder found; the {res['frames']} frames were kept in {res['frames_dir']}")
 
@@ -119,10 +127,21 @@ class ResultsWindowFilesMixin:
         d = MovieDialog(self.viewer, self, panorama=True)
         d.path.setText("movie360.mp4")
         if d.exec():
-            QApplication.setOverrideCursor(Qt.WaitCursor)
-            try:
-                res = self.viewer.render_movie(d.plan(), make_panorama_renderer(self.viewer), d.view.currentText())
-            finally:
-                QApplication.restoreOverrideCursor()
+            plan = d.plan()
+            with busy(self, "Rendering the 360 movie") as b:
+                res = self.viewer.render_movie(plan, _ticking(make_panorama_renderer(self.viewer), b, len(plan.times)),
+                                               d.view.currentText())
             QMessageBox.information(self, "360 Movie", f"{res['frames']} frames -> {res['path']}" if res["encoded"] else
                                     f"No video encoder found; the {res['frames']} frames were kept in {res['frames_dir']}")
+
+
+def _ticking(renderer, b, total: int, what: str = "Frame"):
+    """*renderer* that moves the hourglass on and counts each picture it draws ("Frame 3 of 90"); the last count
+    stays up while the frames are joined into the movie."""
+    count = [0]
+
+    def draw(*args, **kwargs):
+        count[0] += 1
+        b.tick(f"{what} {count[0]} of {total}" + (" - joining the frames" if what == "Frame" and count[0] == total else ""))
+        return renderer(*args, **kwargs)
+    return draw
